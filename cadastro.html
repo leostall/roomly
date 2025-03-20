@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -5,6 +6,7 @@
   <title>Cadastro - Dark Mode</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     body, html {
       height: 100%;
@@ -33,70 +35,54 @@
       color: #9d9e9e;
       opacity: 1;
     }
-    a {
-      color: #0d6efd;
-      text-decoration: none;
+    .password-wrapper {
+      position: relative;
     }
-    a:hover {
-      text-decoration: underline;
-    }
-    .error-message {
-      color: red;
-      font-size: 0.875rem;
-      display: none;
+    .toggle-password {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #ccc;
     }
   </style>
 </head>
 <body>
-
   <div class="container-fluid">
     <div class="row">
-      
       <div class="col-md-6 d-none d-md-block login-image"></div>
-
       <div class="col-md-6 d-flex align-items-center justify-content-center">
         <div class="w-75">
           <h2 class="mb-4 text-center">Cadastro</h2>
           <form id="registrationForm">
             <div class="mb-3">
               <label for="email" class="form-label">Email</label>
-              <input type="email" class="form-control" id="email" placeholder="nome@exemplo.com">
+              <input type="text" class="form-control" id="email" placeholder="nome@exemplo.com">
             </div>
             <div class="mb-3">
-              <label for="nome" class="form-label">Nome completo</label>
+              <label for="nome" class="form-label">Nome completo ( No máximo 100 caracteres )</label>
               <input type="text" class="form-control" id="nome" placeholder="Insira o nome">
-              <small id="nomeError" class="error-message">O nome não pode ter mais que 100 caracteres.</small>
             </div>
             <div class="mb-3">
               <label for="telefone" class="form-label">Telefone</label>
               <input type="tel" class="form-control" id="telefone" placeholder="(00) 00000-0000">
-              <small id="telefoneError" class="error-message">Telefone inválido. Use o formato (XX) XXXXX-XXXX ou (XX) XXXX-XXXX.</small>
             </div>
             <div class="mb-3">
               <label for="cpf" class="form-label">CPF</label>
               <input type="text" class="form-control" id="cpf" placeholder="000.000.000-00" maxlength="14">
-              <small id="cpfError" class="error-message">CPF inválido.</small>
             </div>
-            <div class="mb-3 position-relative">
+            <div class="mb-3 password-wrapper">
               <label for="password" class="form-label">Senha</label>
-              <input type="password" class="form-control pr-5" id="password" placeholder="Inserir Senha">
-              <i class="bi bi-eye-slash toggle-password" onclick="togglePassword('password', this)"
-                style="position: absolute; top: 43px; right: 10px; cursor: pointer;"></i>
+              <input type="password" class="form-control" id="password" placeholder="Inserir Senha">
+              <i class="bi bi-eye toggle-password" onclick="togglePassword('password', this)"></i>
             </div>
-            
-            <div class="mb-3 position-relative">
+            <div class="mb-3 password-wrapper">
               <label for="confirm-password" class="form-label">Confirme sua senha</label>
-              <input type="password" class="form-control pr-5" id="confirm-password" placeholder="Inserir Senha">
-              <i class="bi bi-eye-slash toggle-password" onclick="togglePassword('confirm-password', this)"
-                style="position: absolute; top: 43px; right: 10px; cursor: pointer;"></i>
+              <input type="password" class="form-control" id="confirm-password" placeholder="Inserir Senha">
+              <i class="bi bi-eye toggle-password" onclick="togglePassword('confirm-password', this)"></i>
             </div>
             <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
-            <div class="text-center mt-3">
-              <small><a href="#">Esqueceu a senha?</a></small>
-            </div>
-            <div class="text-center mt-2">
-              <small>Já tem uma conta? <a href="index.html">Entrar</a></small>
-            </div>
           </form>
         </div>
       </div>
@@ -104,144 +90,91 @@
   </div>
 
   <script>
-    function togglePassword(inputId, icon) {
-      const input = document.getElementById(inputId);
+    function togglePassword(id, icon) {
+      const input = document.getElementById(id);
       if (input.type === "password") {
         input.type = "text";
-        icon.classList.remove("bi-eye-slash");
-        icon.classList.add("bi-eye");
-      } else {
-        input.type = "password";
         icon.classList.remove("bi-eye");
         icon.classList.add("bi-eye-slash");
+      } else {
+        input.type = "password";
+        icon.classList.remove("bi-eye-slash");
+        icon.classList.add("bi-eye");
       }
     }
 
-    document.getElementById("nome").addEventListener("input", function () {
-      const nomeInput = this;
-      const errorMessage = document.getElementById("nomeError");
-      errorMessage.style.display = nomeInput.value.length > 100 ? "block" : "none";
-    });
+    function formatTelefone(input) {
+      let telefone = input.value.replace(/\D/g, ""); 
+      if (telefone.length > 11) telefone = telefone.slice(0, 11);
 
-    // Validação de telefone
+      if (telefone.length > 10) {
+        input.value = `(${telefone.slice(0,2)}) ${telefone.slice(2,7)}-${telefone.slice(7,11)}`;
+      } else if (telefone.length > 6) {
+        input.value = `(${telefone.slice(0,2)}) ${telefone.slice(2,6)}-${telefone.slice(6)}`;
+      } else if (telefone.length > 2) {
+        input.value = `(${telefone.slice(0,2)}) ${telefone.slice(2)}`;
+      } else {
+        input.value = telefone;
+      }
+    }
+
+    function formatCPF(input) {
+      let cpf = input.value.replace(/\D/g, ""); 
+      if (cpf.length > 11) cpf = cpf.slice(0, 11);
+
+      if (cpf.length > 9) {
+        input.value = `${cpf.slice(0,3)}.${cpf.slice(3,6)}.${cpf.slice(6,9)}-${cpf.slice(9,11)}`;
+      } else if (cpf.length > 6) {
+        input.value = `${cpf.slice(0,3)}.${cpf.slice(3,6)}.${cpf.slice(6)}`;
+      } else if (cpf.length > 3) {
+        input.value = `${cpf.slice(0,3)}.${cpf.slice(3)}`;
+      } else {
+        input.value = cpf;
+      }
+    }
+
     document.getElementById("telefone").addEventListener("input", function () {
-      let telefoneInput = this;
-      let telefoneValue = telefoneInput.value.replace(/\D/g, ''); // Remove tudo que não é número
-      if (telefoneValue.length <= 2) {
-        telefoneInput.value = '(' + telefoneValue;
-      } else if (telefoneValue.length <= 6) {
-        telefoneInput.value = '(' + telefoneValue.substring(0, 2) + ') ' + telefoneValue.substring(2);
-      } else {
-        telefoneInput.value = '(' + telefoneValue.substring(0, 2) + ') ' + telefoneValue.substring(2, 7) + '-' + telefoneValue.substring(7, 11);
-      }
-
-      // Validação do formato de telefone
-      const telefoneRegex = /^\(\d{2}\)\s(\d{4,5})-\d{4}$/;
-      const telefoneError = document.getElementById("telefoneError");
-      if (!telefoneRegex.test(telefoneInput.value)) {
-        telefoneError.style.display = "block";
-      } else {
-        telefoneError.style.display = "none";
-      }
+      formatTelefone(this);
     });
 
-    // Validação de CPF
     document.getElementById("cpf").addEventListener("input", function () {
-      let cpfInput = this;
-      let cpfValue = cpfInput.value.replace(/\D/g, ''); // Remove tudo que não é número
-      if (cpfValue.length <= 3) {
-        cpfInput.value = cpfValue.substring(0, 3);
-      } else if (cpfValue.length <= 6) {
-        cpfInput.value = cpfValue.substring(0, 3) + '.' + cpfValue.substring(3, 6);
-      } else if (cpfValue.length <= 9) {
-        cpfInput.value = cpfValue.substring(0, 3) + '.' + cpfValue.substring(3, 6) + '.' + cpfValue.substring(6, 9);
-      } else {
-        cpfInput.value = cpfValue.substring(0, 3) + '.' + cpfValue.substring(3, 6) + '.' + cpfValue.substring(6, 9) + '-' + cpfValue.substring(9, 11);
-      }
-
-      // Validação do CPF
-      const cpfError = document.getElementById("cpfError");
-      if (!validarCPF(cpfValue)) {
-        cpfError.style.display = "block";
-      } else {
-        cpfError.style.display = "none";
-      }
+      formatCPF(this);
     });
 
-    // Função de validação de CPF
-    function validarCPF(cpf) {
-      cpf = cpf.replace(/\D/g, '');
-
-      if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
-
-      let soma = 0;
-      let resto;
-
-      for (let i = 1; i <= 9; i++) {
-        soma += parseInt(cpf.charAt(i - 1)) * (11 - i);
-      }
-      resto = (soma * 10) % 11;
-
-      if (resto === 10 || resto === 11) resto = 0;
-      if (resto !== parseInt(cpf.charAt(9))) return false;
-
-      soma = 0;
-      for (let i = 1; i <= 10; i++) {
-        soma += parseInt(cpf.charAt(i - 1)) * (12 - i);
-      }
-      resto = (soma * 10) % 11;
-
-      if (resto === 10 || resto === 11) resto = 0;
-      if (resto !== parseInt(cpf.charAt(10))) return false;
-
-      return true;
+    function isRepeatedNumber(value) {
+      return /^(\d)\1*$/.test(value);
     }
 
-    // Validação do formulário
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
     document.getElementById("registrationForm").addEventListener("submit", function (event) {
       event.preventDefault();
+      let errors = [];
 
-      const nome = document.getElementById("nome");
-      const nomeError = document.getElementById("nomeError");
-      if (nome.value === "" || nome.value.length > 100) {
-        nomeError.style.display = "block";
-        return;
-      } else {
-        nomeError.style.display = "none";
+      let email = document.getElementById("email").value.trim();
+      let nome = document.getElementById("nome").value.trim();
+      let telefone = document.getElementById("telefone").value.replace(/\D/g, "").trim();
+      let cpf = document.getElementById("cpf").value.replace(/\D/g, "").trim();
+      let senha = document.getElementById("password").value.trim();
+      let confirmSenha = document.getElementById("confirm-password").value.trim();
+
+      if (!email || !nome || !telefone || !cpf || !senha || !confirmSenha) {
+        return Swal.fire("Erro", "Todos os campos são obrigatórios!", "error");
       }
 
-      const telefone = document.getElementById("telefone");
-      const telefoneError = document.getElementById("telefoneError");
-      const telefoneRegex = /^\(\d{2}\)\s(\d{4,5})-\d{4}$/;
-      if (!telefoneRegex.test(telefone.value)) {
-        telefoneError.style.display = "block";
-        return;
-      } else {
-        telefoneError.style.display = "none";
+      if (!isValidEmail(email)) errors.push("Email inválido");
+      if (isRepeatedNumber(cpf)) errors.push("CPF inválido");
+      if (isRepeatedNumber(telefone)) errors.push("Telefone inválido");
+      if (senha !== confirmSenha) errors.push("As senhas não coincidem");
+
+      if (errors.length > 0) {
+        return Swal.fire("Erro", errors.join(", "), "error");
       }
 
-      const cpf = document.getElementById("cpf");
-      const cpfError = document.getElementById("cpfError");
-      const cpfValue = cpf.value.replace(/\D/g, '');
-      if (!validarCPF(cpfValue)) {
-        cpfError.style.display = "block";
-        return;
-      } else {
-        cpfError.style.display = "none";
-      }
-
-      const password = document.getElementById("password");
-      const confirmPassword = document.getElementById("confirm-password");
-      if (password.value !== confirmPassword.value) {
-        alert("As senhas não coincidem!");
-        return;
-      }
-
-      alert("Cadastro realizado com sucesso!");
-      // Aqui você pode enviar os dados para o backend ou banco de dados
-      // form.submit();
+      Swal.fire("Sucesso!", "Cadastro realizado com sucesso!", "success");
     });
   </script>
-
 </body>
 </html>
