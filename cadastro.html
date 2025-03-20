@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title> Cadastro - Roomly</title>
+  <title>Cadastro - Roomly</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -88,49 +88,28 @@
       </div>
     </div>
   </div>
-
   <script>
     function togglePassword(id, icon) {
       const input = document.getElementById(id);
       if (input.type === "password") {
         input.type = "text";
-        icon.classList.remove("bi-eye");
-        icon.classList.add("bi-eye-slash");
+        icon.classList.replace("bi-eye", "bi-eye-slash");
       } else {
         input.type = "password";
-        icon.classList.remove("bi-eye-slash");
-        icon.classList.add("bi-eye");
-      }
-    }
-
-    function formatTelefone(input) {
-      let telefone = input.value.replace(/\D/g, ""); 
-      if (telefone.length > 11) telefone = telefone.slice(0, 11);
-
-      if (telefone.length > 10) {
-        input.value = `(${telefone.slice(0,2)}) ${telefone.slice(2,7)}-${telefone.slice(7,11)}`;
-      } else if (telefone.length > 6) {
-        input.value = `(${telefone.slice(0,2)}) ${telefone.slice(2,6)}-${telefone.slice(6)}`;
-      } else if (telefone.length > 2) {
-        input.value = `(${telefone.slice(0,2)}) ${telefone.slice(2)}`;
-      } else {
-        input.value = telefone;
+        icon.classList.replace("bi-eye-slash", "bi-eye");
       }
     }
 
     function formatCPF(input) {
-      let cpf = input.value.replace(/\D/g, ""); 
-      if (cpf.length > 11) cpf = cpf.slice(0, 11);
+      let cpf = input.value.replace(/\D/g, "").slice(0, 11);
+      input.value = cpf.replace(/(\d{3})(\d{3})?(\d{3})?(\d{2})?/, (m, p1, p2, p3, p4) => 
+        [p1, p2, p3].filter(Boolean).join(".") + (p4 ? "-" + p4 : ""));
+    }
 
-      if (cpf.length > 9) {
-        input.value = `${cpf.slice(0,3)}.${cpf.slice(3,6)}.${cpf.slice(6,9)}-${cpf.slice(9,11)}`;
-      } else if (cpf.length > 6) {
-        input.value = `${cpf.slice(0,3)}.${cpf.slice(3,6)}.${cpf.slice(6)}`;
-      } else if (cpf.length > 3) {
-        input.value = `${cpf.slice(0,3)}.${cpf.slice(3)}`;
-      } else {
-        input.value = cpf;
-      }
+    function formatTelefone(input) {
+      let telefone = input.value.replace(/\D/g, "").slice(0, 11);
+      input.value = telefone.replace(/(\d{2})(\d{5})?(\d{4})?/, (m, p1, p2, p3) => 
+        `(${p1}) ${p2 || ""}${p3 ? "-" + p3 : ""}`);
     }
 
     document.getElementById("telefone").addEventListener("input", function () {
@@ -141,8 +120,12 @@
       formatCPF(this);
     });
 
-    function isRepeatedNumber(value) {
-      return /^(\d)\1*$/.test(value);
+    function isValidCPF(cpf) {
+      return cpf.length === 11 && !/^(\d)\1+$/.test(cpf);
+    }
+
+    function isValidTelefone(telefone) {
+      return telefone.length === 11;
     }
 
     function isValidEmail(email) {
@@ -165,13 +148,11 @@
       }
 
       if (!isValidEmail(email)) errors.push("Email inválido");
-      if (isRepeatedNumber(cpf)) errors.push("CPF inválido");
-      if (isRepeatedNumber(telefone)) errors.push("Telefone inválido");
+      if (!isValidCPF(cpf)) errors.push("CPF inválido");
+      if (!isValidTelefone(telefone)) errors.push("Telefone inválido");
       if (senha !== confirmSenha) errors.push("As senhas não coincidem");
 
-      if (errors.length > 0) {
-        return Swal.fire("Erro", errors.join(", "), "error");
-      }
+      if (errors.length) return Swal.fire("Erro", errors.join(", "), "error");
 
       Swal.fire("Sucesso!", "Cadastro realizado com sucesso!", "success");
     });
