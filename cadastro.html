@@ -46,6 +46,11 @@
       cursor: pointer;
       color: #ccc;
     }
+    .password-requirements {
+      font-size: 0.9rem;
+      color: #f8d7da;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -76,6 +81,7 @@
               <label for="password" class="form-label">Senha</label>
               <input type="password" class="form-control" id="password" placeholder="Inserir Senha">
               <i class="bi bi-eye toggle-password" onclick="togglePassword('password', this)"></i>
+              <p class="password-requirements" id="passwordRequirements">A senha deve ter no mínimo 8 caracteres, incluindo uma letra maiúscula, uma minúscula, um número e um caractere especial.</p>
             </div>
             <div class="mb-3 password-wrapper">
               <label for="confirm-password" class="form-label">Confirme sua senha</label>
@@ -91,13 +97,9 @@
   <script>
     function togglePassword(id, icon) {
       const input = document.getElementById(id);
-      if (input.type === "password") {
-        input.type = "text";
-        icon.classList.replace("bi-eye", "bi-eye-slash");
-      } else {
-        input.type = "password";
-        icon.classList.replace("bi-eye-slash", "bi-eye");
-      }
+      input.type = input.type === "password" ? "text" : "password";
+      icon.classList.toggle("bi-eye");
+      icon.classList.toggle("bi-eye-slash");
     }
 
     function formatCPF(input) {
@@ -131,6 +133,23 @@
     function isValidEmail(email) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
+
+    function isValidPassword(password) {
+      return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
+    }
+
+    document.getElementById("password").addEventListener("input", function () {
+      const message = document.getElementById("passwordMessage");
+      if (isValidPassword(this.value)) {
+        message.textContent = "Senha forte!";
+        message.classList.remove("weak");
+        message.classList.add("strong");
+      } else {
+        message.textContent = "A senha deve ter no mínimo 8 caracteres, incluindo uma letra maiúscula, uma minúscula, um número e um caractere especial";
+        message.classList.remove("strong");
+        message.classList.add("weak");
+      }
+    });
 
     document.getElementById("registrationForm").addEventListener("submit", function (event) {
       event.preventDefault();
