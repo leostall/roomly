@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -5,6 +6,7 @@
   <title>Login - Roomly </title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     body, html {
       height: 100%;
@@ -20,7 +22,6 @@
       height: 100vh;
     }
   
-
     .form-container {
       position: absolute;
       top: 50%;
@@ -55,7 +56,6 @@
       color: #ccc;
     }
   
-    
     .btn-login {
       background: linear-gradient(45deg, #0d6efd, #0044cc);
       border: none;
@@ -73,7 +73,6 @@
       box-shadow: 0 0 12px rgba(13, 110, 253, 0.5);
       transform: scale(1.05);
     }
-  
   
     .form-check {
       display: flex;
@@ -100,13 +99,11 @@
       color: #0056b3;
     }
   </style>
-  
 </head>
 <body>
 
   <div class="container-fluid">
     <div class="row">
-      
       <!-- Image Side -->
       <div class="col-md-6 d-none d-md-block login-image"></div>
 
@@ -114,7 +111,7 @@
       <div class="col-md-6 d-flex align-items-center justify-content-center">
         <div class="w-75">
           <h2 class="mb-4 text-center">Bem Vindo</h2>
-          <form>
+          <form id="loginForm">
             <div class="mb-3">
               <label for="email" class="form-label">Email</label>
               <input type="email" class="form-control" id="email" placeholder="nome@exemplo.com">
@@ -139,7 +136,6 @@
           </form>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -156,6 +152,41 @@
         icon.classList.add("bi-eye-slash");
       }
     }
+
+    // Validação de login
+    document.getElementById("loginForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      
+      let email = document.getElementById("email").value.trim();
+      let password = document.getElementById("password").value.trim();
+
+      // Campos não preenchidos
+      let errors = [];
+      if (!email) errors.push("Email");
+      if (!password) errors.push("Senha");
+
+      if (errors.length) {
+        Swal.fire({
+          title: "Erro",
+          text: `Preencha os seguintes campos: ${errors.join(", ")}`,
+          icon: "error",
+          background: "#121212",
+          color: "#ffffff"
+        });
+      } else {
+        // Sucesso no login
+        Swal.fire({
+          title: "Login realizado com sucesso!",
+          icon: "success",
+          background: "#121212",
+          color: "#ffffff"
+        }).then(() => {
+        // Limpar os campos do formulário
+        document.getElementById("email").value = "";
+        document.getElementById("password").value = "";
+        });
+      }
+    });
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
