@@ -168,15 +168,15 @@
               </div>
               <div class="col-2 mb-3">
                 <label for="capacidade" class="form-label">Capacidade *</label>
-                <input type="text" class="form-control" id="capacidade" placeholder="Capacidade">
+                <input type="number" class="form-control" id="capacidade" placeholder="Capacidade" min="1">
               </div>
               <div class="col-2 mb-3">
                 <label for="tamanhoM2" class="form-label">Tamanho m²</label>
-                <input type="text" class="form-control" id="tamanhoM2" placeholder="Tamanho m²">
+                <input type="number" class="form-control" id="tamanhoM2" placeholder="Tamanho m²" min="1">
               </div>
               <div class="col-2 mb-3">
                 <label for="valorHora" class="form-label">Valor hora (R$) *</label>
-                <input type="text" class="form-control" id="valorHora" placeholder="Valor R$">
+                <input type="number" class="form-control" id="valorHora" placeholder="Valor R$" min="0">
               </div>
             </div>
 
@@ -271,7 +271,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
-  
+
   <script>
     function gerarCodigoSala() {
       return Math.floor(100 + Math.random() * 900);
