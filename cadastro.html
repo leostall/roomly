@@ -51,44 +51,62 @@
       color: #ff6b6b;
       display: none;
     }
+    .required {
+
+      margin-left: 4px;
+    }
+    .required-info {
+      position: absolute;
+      top: 75px;
+      right: 100px;
+      font-size: 0.8em;
+    
+    }
   </style>
 </head>
 <body>
   <div class="container-fluid">
     <div class="row">
       <div class="col-md-6 d-none d-md-block login-image"></div>
-      <div class="col-md-6 d-flex align-items-center justify-content-center">
+      <div class="col-md-6 d-flex align-items-center justify-content-center position-relative">
         <div class="w-75">
           <h2 class="mb-4 text-center">Cadastro</h2>
           <form id="registrationForm">
+            <p class="required-info">* Campos obrigatórios</p>
             <div class="mb-3">
-              <label for="email" class="form-label">Email</label>
+              <label for="email" class="form-label">Email<span class="required">*</span></label>
               <input type="text" class="form-control" id="email" placeholder="nome@exemplo.com">
             </div>
             <div class="mb-3">
-              <label for="nome" class="form-label">Nome completo ( No máximo 100 caracteres )</label>
+              <label for="nome" class="form-label">Nome completo (No máximo 100 caracteres)<span class="required">*</span></label>
               <input type="text" class="form-control" id="nome" placeholder="Insira o nome">
             </div>
             <div class="mb-3">
-              <label for="telefone" class="form-label">Telefone</label>
+              <label for="telefone" class="form-label">Telefone<span class="required">*</span></label>
               <input type="tel" class="form-control" id="telefone" placeholder="(00) 00000-0000">
             </div>
             <div class="mb-3">
-              <label for="cpf" class="form-label">CPF</label>
+              <label for="cpf" class="form-label">CPF<span class="required">*</span></label>
               <input type="text" class="form-control" id="cpf" placeholder="000.000.000-00" maxlength="14">
             </div>
             <div class="mb-3 password-wrapper">
-              <label for="password" class="form-label">Senha</label>
+              <label for="password" class="form-label">Senha<span class="required">*</span></label>
               <input type="password" class="form-control" id="password" placeholder="Inserir Senha">
               <i class="bi bi-eye toggle-password" onclick="togglePassword('password', this)"></i>
               <div class="password-hint">A senha deve ter pelo menos 8 caracteres, incluindo uma letra maiúscula, uma minúscula, um número e um caractere especial.</div>
             </div>
             <div class="mb-3 password-wrapper">
-              <label for="confirm-password" class="form-label">Confirme sua senha</label>
+              <label for="confirm-password" class="form-label">Confirme sua senha<span class="required">*</span></label>
               <input type="password" class="form-control" id="confirm-password" placeholder="Inserir Senha">
               <i class="bi bi-eye toggle-password" onclick="togglePassword('confirm-password', this)"></i>
             </div>
             <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
+            <div class="text-center mt-3">
+              <small><a href="#">Esqueceu a senha?</a></small>
+            </div>
+            <div class="text-center mt-2">
+              <small>Já tem uma conta? <a href="login.html">Entrar</a></small>
+            </div>
           </form>
         </div>
       </div>
@@ -101,77 +119,96 @@
       icon.classList.toggle("bi-eye");
       icon.classList.toggle("bi-eye-slash");
     }
-
+  
     function formatCPF(input) {
       let cpf = input.value.replace(/\D/g, "").slice(0, 11);
       input.value = cpf.replace(/(\d{3})(\d{3})?(\d{3})?(\d{2})?/, (m, p1, p2, p3, p4) =>
         [p1, p2, p3].filter(Boolean).join(".") + (p4 ? "-" + p4 : ""));
     }
-
+  
     function formatTelefone(input) {
       let telefone = input.value.replace(/\D/g, "").slice(0, 11);
       input.value = telefone.replace(/(\d{2})(\d{5})?(\d{4})?/, (m, p1, p2, p3) =>
         `(${p1}) ${p2 || ""}${p3 ? "-" + p3 : ""}`);
     }
-
+  
     document.getElementById("telefone").addEventListener("input", function () {
       formatTelefone(this);
     });
-
+  
     document.getElementById("cpf").addEventListener("input", function () {
       formatCPF(this);
     });
-
+  
     function isValidCPF(cpf) {
       return cpf.length === 11 && !/^(\d)\1+$/.test(cpf);
     }
-
+  
     function isValidTelefone(telefone) {
       return telefone.length === 11 && !/^(\d)\1+$/.test(telefone);
     }
-
+  
     function isValidEmail(email) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
-
+  
     function isValidPassword(password) {
       return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
     }
-
+  
     document.getElementById("password").addEventListener("input", function () {
       const hint = this.nextElementSibling.nextElementSibling;
-      if (!isValidPassword(this.value)) {
-        hint.style.display = "block";
-      } else {
-        hint.style.display = "none";
-      }
+      hint.style.display = isValidPassword(this.value) ? "none" : "block";
     });
-
+  
     document.getElementById("registrationForm").addEventListener("submit", function (event) {
       event.preventDefault();
       let errors = [];
-
+  
       let email = document.getElementById("email").value.trim();
       let nome = document.getElementById("nome").value.trim();
       let telefone = document.getElementById("telefone").value.replace(/\D/g, "").trim();
       let cpf = document.getElementById("cpf").value.replace(/\D/g, "").trim();
       let senha = document.getElementById("password").value.trim();
       let confirmSenha = document.getElementById("confirm-password").value.trim();
-
+  
       if (!email || !nome || !telefone || !cpf || !senha || !confirmSenha) {
-        return Swal.fire("Erro", "Todos os campos são obrigatórios!", "error");
+        return Swal.fire({
+          title: "Erro",
+          text: "Todos os campos são obrigatórios!",
+          icon: "error",
+          background: "#121212",
+          color: "#ffffff"
+        });
       }
-
+  
       if (!isValidEmail(email)) errors.push("Email inválido");
       if (!isValidCPF(cpf)) errors.push("CPF inválido");
       if (!isValidTelefone(telefone)) errors.push("Telefone inválido");
       if (!isValidPassword(senha)) errors.push("Senha fraca");
       if (senha !== confirmSenha) errors.push("As senhas não coincidem");
-
-      if (errors.length) return Swal.fire("Erro", errors.join(", "), "error");
-
-      Swal.fire("Sucesso!", "Cadastro realizado com sucesso!", "success");
+  
+      if (errors.length) {
+        return Swal.fire({
+          title: "Erro",
+          text: errors.join(", "),
+          icon: "error",
+          background: "#121212",
+          color: "#ffffff"
+        });
+      }
+  
+      Swal.fire({
+        title: "Sucesso!",
+        text: "Cadastro realizado com sucesso!",
+        icon: "success",
+        background: "#121212",
+        color: "#ffffff"
+      }).then(() => {
+        document.getElementById("registrationForm").reset();
+      });
     });
   </script>
+  
 </body>
 </html>
