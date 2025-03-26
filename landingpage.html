@@ -143,7 +143,8 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <!-- Modal -->
-  <div class="modal fade" id="cadastroSalaModal" tabindex="-1" aria-labelledby="cadastroSalaModalLabel" aria-hidden="true">
+  <div class="modal fade" id="cadastroSalaModal" tabindex="-1" aria-labelledby="cadastroSalaModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog" style="width: 1050px; max-width: 1050px; height: 650px;">
       <div class="modal-content bg-dark text-white" style="height: 100%;">
         <div class="modal-header">
@@ -159,7 +160,7 @@
               </div>
               <div class="col-5 mb-3">
                 <label for="tipoSala" class="form-label">Tipo da Sala *</label>
-                <select class="form-control" id="tipoSala" required>
+                <select class="form-control" id="tipoSala">
                   <option value="" disabled selected>Selecione um tipo</option>
                   <option value="Sala de reunião">Sala de reunião</option>
                   <option value="Auditório">Auditório</option>
@@ -184,7 +185,7 @@
             <div class="row">
               <div class="col-2 mb-3">
                 <label for="cep" class="form-label">CEP *</label>
-                <input type="text" class="form-control" id="cep" placeholder="Digite o CEP" required>
+                <input type="text" class="form-control" id="cep" placeholder="Digite o CEP">
               </div>
               <div class="col-3 mb-3">
                 <label for="rua" class="form-label">Rua</label>
@@ -212,7 +213,7 @@
               </div>
               <div class="col-6 mb-3">
                 <label for="horario" class="form-label">Horário de funcionamento *</label>
-                <input type="text" class="form-control" id="horario" placeholder="Ex: 08:00 - 18:00" required>
+                <input type="text" class="form-control" id="horario" placeholder="Ex: 08:00 - 18:00">
               </div>
             </div>
 
@@ -227,8 +228,12 @@
               <label class="form-label">Disponibilidade (dias da semana) *</label>
               <div class="d-flex flex-wrap gap-2">
                 <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="selecionarTodos">
+                  <input class="form-check-input" type="checkbox" id="selecionarTodos" onchange="selecionarTodos()">
                   <label class="form-check-label" for="selecionarTodos">Selecionar todos</label>
+                </div>
+                <div class="form-check">
+                </div>
+                <div class="form-check">
                 </div>
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="domingo">
@@ -264,7 +269,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-          <button type="submit" class="btn btn-primary" form="cadastroSalaForm">Salvar</button>
+          <button type="submit" class="btn btn-primary" form="cadastroSalaForm" id="botaoSalvar">Salvar</button>
         </div>
       </div>
     </div>
@@ -289,6 +294,13 @@
       let capacidade = document.getElementById("capacidade").value;
       let titulo = tipoSala + " (Código: " + codigo + " / Capacidade: " + capacidade + ")";
       document.getElementById("cadastroSalaModalLabel").innerText = titulo;
+    }
+
+    function selecionarTodos() {
+      let checkboxes = document.querySelectorAll('.form-check-input:not(#selecionarTodos)');
+      let selecionarTodosCheckbox = document.getElementById('selecionarTodos');
+
+      checkboxes.forEach(checkbox => checkbox.checked = selecionarTodosCheckbox.checked);
     }
 
     // Validations
@@ -324,72 +336,72 @@
       e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, ''); // Allow only letters and spaces
     });
 
-   // Máscara para o CEP (formato XXXXX-XXX)
-document.getElementById("cep").addEventListener("input", function (e) {
-  let cep = e.target.value.replace(/\D/g, ''); // Remove tudo que não for número
-  if (cep.length <= 5) {
-    e.target.value = cep.replace(/(\d{5})(\d{0,3})/, '$1-$2'); // Formata como 12345-xxx
-  } else {
-    cep = cep.slice(0, 8); // Limita o CEP a 8 dígitos
-    e.target.value = cep.replace(/(\d{5})(\d{3})/, '$1-$2'); // Formata como 12345-678
-  }
-});
+    // Máscara para o CEP (formato XXXXX-XXX)
+    document.getElementById("cep").addEventListener("input", function (e) {
+      let cep = e.target.value.replace(/\D/g, ''); // Remove tudo que não for número
+      if (cep.length <= 5) {
+        e.target.value = cep.replace(/(\d{5})(\d{0,3})/, '$1-$2'); // Formata como 12345-xxx
+      } else {
+        cep = cep.slice(0, 8); // Limita o CEP a 8 dígitos
+        e.target.value = cep.replace(/(\d{5})(\d{3})/, '$1-$2'); // Formata como 12345-678
+      }
+    });
 
-// Máscara para o horário (formato XX:XX-XX:XX)
-document.getElementById("horario").addEventListener("input", function (e) {
-  let horario = e.target.value.replace(/\D/g, ''); // Remove tudo que não for número
+    // Máscara para o horário (formato XX:XX-XX:XX)
+    document.getElementById("horario").addEventListener("input", function (e) {
+      let horario = e.target.value.replace(/\D/g, ''); // Remove tudo que não for número
 
-  if (horario.length <= 4) {
-    e.target.value = horario.replace(/(\d{2})(\d{0,2})/, '$1:$2'); // Formata como 12:34
-  } else if (horario.length <= 6) {
-    e.target.value = horario.replace(/(\d{2})(\d{2})(\d{0,2})/, '$1:$2-$3'); // Formata como 12:34-56
-  } else {
-    horario = horario.slice(0, 8); // Limita o horário a 8 dígitos
-    e.target.value = horario.replace(/(\d{2})(\d{2})(\d{2})(\d{0,2})/, '$1:$2-$3:$4'); // Formata como 12:34-56:78
-  }
-});
+      if (horario.length <= 4) {
+        e.target.value = horario.replace(/(\d{2})(\d{0,2})/, '$1:$2'); // Formata como 12:34
+      } else if (horario.length <= 6) {
+        e.target.value = horario.replace(/(\d{2})(\d{2})(\d{0,2})/, '$1:$2-$3'); // Formata como 12:34-56
+      } else {
+        horario = horario.slice(0, 8); // Limita o horário a 8 dígitos
+        e.target.value = horario.replace(/(\d{2})(\d{2})(\d{2})(\d{0,2})/, '$1:$2-$3:$4'); // Formata como 12:34-56:78
+      }
+    });
 
 
-  document.getElementById('cadastroSalaForm').addEventListener('submit', function (e) {
-    e.preventDefault(); // Impede o envio padrão do formulário
+    document.getElementById('cadastroSalaForm').addEventListener('submit', function (e) {
+      e.preventDefault(); // Impede o envio padrão do formulário
 
-    let tipoSala = document.getElementById('tipoSala').value;
-    let capacidade = document.getElementById('capacidade').value;
-    let valorHora = document.getElementById('valorHora').value;
-    let horario = document.getElementById('horario').value;
-    let cep = document.getElementById('cep').value;
+      let tipoSala = document.getElementById('tipoSala').value;
+      let capacidade = document.getElementById('capacidade').value;
+      let valorHora = document.getElementById('valorHora').value;
+      let horario = document.getElementById('horario').value;
+      let cep = document.getElementById('cep').value;
 
-    // Verificação de campos obrigatórios
-    if (!tipoSala || !capacidade || !valorHora || !horario || !cep) {
-      // Exibe SweetAlert com erro
+      // Verificação de campos obrigatórios
+      if (!tipoSala || !capacidade || !valorHora || !horario || !cep) {
+        // Exibe SweetAlert com erro
+        Swal.fire({
+          title: 'Erro!',
+          text: 'Preencha todos os campos obrigatórios.',
+          icon: 'error',
+          confirmButtonText: 'Ok',
+          background: '#121212',
+          color: '#fff'
+        });
+        return;
+      }
+
+      // Exibe SweetAlert com sucesso
       Swal.fire({
-        title: 'Erro!',
-        text: 'Preencha todos os campos obrigatórios.',
-        icon: 'error',
+        title: 'Cadastro Realizado!',
+        text: 'A sala foi cadastrada com sucesso.',
+        icon: 'success',
         confirmButtonText: 'Ok',
         background: '#121212',
         color: '#fff'
+      }).then(() => {
+        // Limpar o formulário após a confirmação
+        document.getElementById('cadastroSalaForm').reset();
+        $('#cadastroSalaModal').modal('hide');
       });
-      return;
-    }
-
-    // Exibe SweetAlert com sucesso
-    Swal.fire({
-      title: 'Cadastro Realizado!',
-      text: 'A sala foi cadastrada com sucesso.',
-      icon: 'success',
-      confirmButtonText: 'Ok',
-      background: '#121212',
-      color: '#fff'
-    }).then(() => {
-      // Limpar o formulário após a confirmação
-      document.getElementById('cadastroSalaForm').reset();
-      $('#cadastroSalaModal').modal('hide');
     });
-  });
 
   </script>
- 
+
 
 </body>
 
