@@ -83,6 +83,60 @@
     footer a:hover {
       text-decoration: underline;
     }
+
+    /* Garante que os inputs ocupem toda a largura disponível */
+.modal-content input:not([type="checkbox"]),
+.modal-content select,
+.modal-content textarea {
+    width: 100%;  /* Faz os inputs ocuparem todo o espaço disponível */
+    max-width: 100%;
+    min-height: 40px; /* Evita que fiquem muito pequenos */
+    font-size: 16px; /* Tamanho de fonte adequado para celular */
+    padding: 8px;
+    border-radius: 5px; /* Deixa os campos mais bonitos */
+}
+
+/* Checkboxes continuam pequenos */
+.modal-content input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+/* Garante que os labels e inputs fiquem um abaixo do outro */
+.modal-content .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Dá um espaçamento entre o label e o campo */
+}
+
+/* Ajusta o layout para telas menores */
+@media (max-width: 768px) {
+    .modal-dialog {
+        width: 95%;
+        max-width: 95vw;
+        height: auto;
+        max-height: 90vh;
+    }
+
+    .modal-content {
+        padding: 15px;
+    }
+
+    .modal-content input:not([type="checkbox"]),
+    .modal-content select,
+    .modal-content textarea {
+        font-size: 16px; /* Maior legibilidade */
+        min-height: 45px; /* Aumenta a altura dos inputs */
+    }
+
+    /* Evita que inputs pequenos fiquem lado a lado */
+    .form-row {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+
   </style>
 </head>
 
@@ -142,11 +196,13 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Modal -->
+   <!-- Modal -->
+
   <div class="modal fade" id="cadastroSalaModal" tabindex="-1" aria-labelledby="cadastroSalaModalLabel"
     aria-hidden="true">
-    <div class="modal-dialog" style="width: 1050px; max-width: 1050px; height: 650px;">
-      <div class="modal-content bg-dark text-white" style="height: 100%;">
+    <div class="modal-dialog" style="width: 90%; max-width: 95vw; height: auto; max-height: 90vh;">
+      <div class="modal-content bg-dark text-white p-3" style="width: 100%; height: auto;">
+  
         <div class="modal-header">
           <h5 class="modal-title" id="cadastroSalaModalLabel">Cadastro da Sala</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -154,11 +210,11 @@
         <div class="modal-body">
           <form id="cadastroSalaForm">
             <div class="row">
-              <div class="col-1 mb-3">
+              <div class="col-12 col-md-3 mb-3">
                 <label for="codigoSala" class="form-label">Código</label>
                 <input type="text" class="form-control" id="codigoSala" readonly>
               </div>
-              <div class="col-5 mb-3">
+              <div class="col-12 col-md-6 mb-3">
                 <label for="tipoSala" class="form-label">Tipo da Sala *</label>
                 <select class="form-control" id="tipoSala">
                   <option value="" disabled selected>Selecione um tipo</option>
@@ -167,15 +223,15 @@
                   <option value="Sala de treinamento">Sala de treinamento</option>
                 </select>
               </div>
-              <div class="col-2 mb-3">
+              <div class="col-6 col-md-3 mb-3">
                 <label for="capacidade" class="form-label">Capacidade *</label>
                 <input type="number" class="form-control" id="capacidade" placeholder="Capacidade" min="1">
               </div>
-              <div class="col-2 mb-3">
+              <div class="col-6 col-md-3 mb-3">
                 <label for="tamanhoM2" class="form-label">Tamanho m²</label>
                 <input type="number" class="form-control" id="tamanhoM2" placeholder="Tamanho m²" min="1">
               </div>
-              <div class="col-2 mb-3">
+              <div class="col-6 col-md-3 mb-3">
                 <label for="valorHora" class="form-label">Valor hora (R$) *</label>
                 <input type="number" class="form-control" id="valorHora" placeholder="Valor R$" min="0">
               </div>
@@ -183,23 +239,23 @@
 
             <!-- Localização -->
             <div class="row">
-              <div class="col-2 mb-3">
+              <div class="col-6 col-md-3 mb-3">
                 <label for="cep" class="form-label">CEP *</label>
                 <input type="text" class="form-control" id="cep" placeholder="Digite o CEP">
               </div>
-              <div class="col-3 mb-3">
+              <div class="col-6 col-md-3 mb-3">
                 <label for="rua" class="form-label">Rua</label>
                 <input type="text" class="form-control" id="rua">
               </div>
-              <div class="col-3 mb-3">
+              <div class="col-6 col-md-3 mb-3">
                 <label for="cidade" class="form-label">Cidade</label>
                 <input type="text" class="form-control" id="cidade">
               </div>
-              <div class="col-2 mb-3">
+              <div class="col-6 col-md-3 mb-3">
                 <label for="estado" class="form-label">Estado</label>
                 <input type="text" class="form-control" id="estado">
               </div>
-              <div class="col-2 mb-3">
+              <div class="col-6 col-md-3 mb-3">
                 <label for="numero" class="form-label">Número</label>
                 <input type="text" class="form-control" id="numero" placeholder="Número">
               </div>
@@ -207,11 +263,11 @@
 
             <!-- Recursos disponíveis -->
             <div class="row">
-              <div class="col-6 mb-3">
+              <div class="col-12 mb-3">
                 <label for="recursos" class="form-label">Recursos disponíveis</label>
                 <input type="text" class="form-control" id="recursos" placeholder="Wi-Fi, projetor, TV, etc.">
               </div>
-              <div class="col-6 mb-3">
+              <div class="col-12 mb-3">
                 <label for="horario" class="form-label">Horário de funcionamento *</label>
                 <input type="text" class="form-control" id="horario" placeholder="Ex: 08:00 - 18:00">
               </div>
@@ -230,10 +286,6 @@
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="selecionarTodos" onchange="selecionarTodos()">
                   <label class="form-check-label" for="selecionarTodos">Selecionar todos</label>
-                </div>
-                <div class="form-check">
-                </div>
-                <div class="form-check">
                 </div>
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="domingo">
@@ -274,6 +326,7 @@
       </div>
     </div>
   </div>
+
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
