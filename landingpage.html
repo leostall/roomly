@@ -274,6 +274,8 @@
         </div>
       </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   </body>
   <script>
     function gerarCodigoSala() {
@@ -304,8 +306,6 @@
           .then(data => {
             if (!data.erro) {
               document.getElementById("endereco").value = `${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`;
-            } else {
-              alert("CEP não encontrado!");
             }
           })
           .catch(error => console.error("Erro ao buscar endereço:", error));
@@ -320,6 +320,83 @@
 
       checkboxes.forEach(checkbox => checkbox.checked = selecionarTodosCheckbox.checked);
     }
+
+    // Validação e envio do formulário
+  document.getElementById("cadastroSalaForm").addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    // Validação dos campos obrigatórios
+    let tipoSala = document.getElementById("tipoSala").value;
+    let capacidade = document.getElementById("capacidade").value;
+    let valorHora = document.getElementById("valorHora").value;
+    let cep = document.getElementById("cep").value;
+    let horario = document.getElementById("horario").value;
+
+    let camposInvalidos = [];
+    let camposFaltando = [];
+
+    if (!tipoSala) camposFaltando.push("Tipo da Sala");
+    if (!capacidade) camposFaltando.push("Capacidade");
+    if (!valorHora) camposFaltando.push("Valor Hora");
+    if (!cep || cep.length !== 10) camposInvalidos.push("CEP");
+    if (!horario) camposFaltando.push("Horário de Funcionamento");
+
+    if (camposInvalidos.length > 0) {
+      Swal.fire({
+        title: 'Campos Inválidos!',
+        text: 'Os seguintes campos estão inválidos: ' + camposInvalidos.join(', '),
+        icon: 'error',
+        background: '#121212', // Fundo preto
+        color: '#fff',
+      });
+      return;
+    }
+
+    if (camposFaltando.length > 0) {
+      Swal.fire({
+        title: 'Campos Faltando!',
+        text: 'Os seguintes campos estão faltando: ' + camposFaltando.join(', '),
+        icon: 'warning',
+        background: '#121212', // Fundo preto
+        color: '#fff',
+      });
+      return;
+    }
+
+    // Sucesso no cadastro
+    Swal.fire({
+      title: 'Cadastro realizado com sucesso!',
+      text: 'A sala foi cadastrada corretamente.',
+      icon: 'success',
+      background: '#121212', // Fundo preto
+      color: '#fff',
+    });
+
+  
+  });
+
+    document.getElementById("numero").addEventListener("input", function(event) {
+    this.value = this.value.replace(/\D/g, ''); // Permitir apenas números
+});
+
+document.getElementById("cep").addEventListener("input", function(event) {
+    let valor = this.value.replace(/\D/g, ''); // Remover tudo que não for número
+    if (valor.length > 5) {
+        valor = valor.slice(0, 5) + "-" + valor.slice(5, 8); // Formatar como CEP: 12345-678
+    }
+    this.value = valor;
+});
+
+// Formatação do campo Horário de funcionamento no formato XX:XX-XX:XX
+document.getElementById("horario").addEventListener("input", function(event) {
+    let valor = this.value.replace(/\D/g, ''); // Remover tudo que não for número
+    if (valor.length >= 4) {
+        valor = valor.slice(0, 2) + ":" + valor.slice(2, 4) + "-" + valor.slice(4, 6) + ":" + valor.slice(6, 8);
+    } else if (valor.length >= 2) {
+        valor = valor.slice(0, 2) + ":" + valor.slice(2, 4);
+    }
+    this.value = valor;
+});
 
   </script>
 
