@@ -71,56 +71,60 @@
 </head>
 
 <body>
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-md-6 d-none d-md-block login-image"></div>
-      <div class="col-md-6 d-flex align-items-center justify-content-center position-relative">
-        <div class="w-75">
-          <h2 class="mb-4 text-center">Cadastro</h2>
-          <form id="registrationForm">
-            <div class="mb-3">
-              <label for="email" class="form-label">Email<span class="required">*</span></label>
-              <input type="text" class="form-control" id="email" placeholder="nome@exemplo.com">
-            </div>
-            <div class="mb-3">
-              <label for="nome" class="form-label">Nome completo (No máximo 100 caracteres)<span
-                  class="required">*</span></label>
-              <input type="text" class="form-control" id="nome" placeholder="Insira o nome">
-            </div>
-            <div class="mb-3">
-              <label for="telefone" class="form-label">Telefone<span class="required">*</span></label>
-              <input type="tel" class="form-control" id="telefone" placeholder="(00) 00000-0000">
-            </div>
-            <div class="mb-3">
-              <label for="cpf" class="form-label">CPF<span class="required">*</span></label>
-              <input type="text" class="form-control" id="cpf" placeholder="000.000.000-00" maxlength="14">
-            </div>
-            <div class="mb-3 password-wrapper">
-              <label for="password" class="form-label">Senha<span class="required">*</span></label>
-              <input type="password" class="form-control" id="password" placeholder="Inserir Senha">
-              <i class="bi bi-eye toggle-password" onclick="togglePassword('password', this)"
-                style="position: absolute; top: 50px; right: 10px; cursor: pointer;"></i>
-              <div class="password-hint">A senha deve ter pelo menos 8 caracteres, incluindo uma letra maiúscula, uma
-                minúscula, um número e um caractere especial.</div>
-            </div>
-            <div class="mb-3 password-wrapper">
-              <label for="confirm-password" class="form-label">Confirme sua senha<span class="required">*</span></label>
-              <input type="password" class="form-control" id="confirm-password" placeholder="Inserir Senha">
-              <i class="bi bi-eye toggle-password" onclick="togglePassword('confirm-password', this)"
-                style="position: absolute; top: 50px; right: 10px; cursor: pointer;"></i>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
-            <div class="text-center mt-3">
-              <small><a href="#">Esqueceu a senha?</a></small>
-            </div>
-            <div class="text-center mt-2">
-              <small>Já tem uma conta? <a href="login.html">Entrar</a></small>
-            </div>
-          </form>
+  <body>
+    <div class="container-fluid pt-5">
+      <div class="row">
+        <!-- Imagem da esquerda - aparece apenas em telas grandes -->
+        <div class="col-md-6 d-none d-md-block login-image"></div>
+  
+        <!-- Formulário -->
+        <div class="col-md-6 d-flex align-items-center justify-content-center position-relative">
+          <div class="w-75">
+            <h2 class="mb-4 text-center">Cadastro</h2>
+            <form id="registrationForm">
+              <div class="mb-3">
+                <label for="email" class="form-label">Email<span class="required">*</span></label>
+                <input type="text" class="form-control" id="email" placeholder="nome@exemplo.com">
+              </div>
+              <div class="mb-3">
+                <label for="nome" class="form-label">Nome completo (No máximo 100 caracteres)<span class="required">*</span></label>
+                <input type="text" class="form-control" id="nome" placeholder="Insira o nome">
+              </div>
+              <div class="mb-3">
+                <label for="telefone" class="form-label">Telefone<span class="required">*</span></label>
+                <input type="tel" class="form-control" id="telefone" placeholder="(00) 00000-0000">
+              </div>
+              <div class="mb-3">
+                <label for="cpf" class="form-label">CPF<span class="required">*</span></label>
+                <input type="text" class="form-control" id="cpf" placeholder="000.000.000-00" maxlength="14">
+              </div>
+              <div class="mb-3 password-wrapper position-relative">
+                <label for="password" class="form-label">Senha<span class="required">*</span></label>
+                <input type="password" class="form-control" id="password" placeholder="Inserir Senha">
+                <i class="bi bi-eye toggle-password" onclick="togglePassword('password', this)"
+                  style="position: absolute; top: 70%; right: 10px; transform: translateY(-50%); cursor: pointer;"></i>
+                <div class="password-hint">A senha deve ter pelo menos 8 caracteres, incluindo uma letra maiúscula, uma minúscula, um número e um caractere especial.</div>
+              </div>
+              <div class="mb-3 password-wrapper position-relative">
+                <label for="confirm-password" class="form-label">Confirme sua senha<span class="required">*</span></label>
+                <input type="password" class="form-control" id="confirm-password" placeholder="Inserir Senha">
+                <i class="bi bi-eye toggle-password" onclick="togglePassword('confirm-password', this)"
+                  style="position: absolute; top: 70%; right: 10px; transform: translateY(-50%); cursor: pointer;"></i>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
+              <div class="text-center mt-3">
+                <small><a href="#">Esqueceu a senha?</a></small>
+              </div>
+              <div class="text-center mt-2">
+                <small>Já tem uma conta? <a href="login.html">Entrar</a></small>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </body>
+  
   <script>
     function togglePassword(id, icon) {
       const input = document.getElementById(id);

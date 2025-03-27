@@ -102,42 +102,45 @@
 </head>
 <body>
 
-  <div class="container-fluid">
-    <div class="row">
-      <!-- Image Side -->
-      <div class="col-md-6 d-none d-md-block login-image"></div>
-
-      <!-- Login Form -->
-      <div class="col-md-6 d-flex align-items-center justify-content-center">
-        <div class="w-75">
-          <h2 class="mb-4 text-center">Bem Vindo</h2>
-          <form id="loginForm">
-            <div class="mb-3">
-              <label for="email" class="form-label">Email</label>
-              <input type="text" class="form-control" id="email" placeholder="nome@exemplo.com">
-            </div>
-            <div class="mb-3 position-relative">
-              <label for="password" class="form-label">Senha</label>
-              <input type="password" class="form-control pr-5" id="password" placeholder="Inserir Senha">
-              <i class="bi bi-eye-slash toggle-password" onclick="togglePassword('password', this)"
-                style="position: absolute; top: 48px; right: 10px; cursor: pointer;"></i>
-            </div>
-            <div class="mb-3 form-check">
-              <input type="checkbox" class="form-check-input" id="remember">
-              <label class="form-check-label" for="remember">Manter login</label>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Login</button>
-            <div class="text-center mt-3">
-              <small><a href="#">Esqueceu a senha?</a></small>
-            </div>
-            <div class="text-center mt-2">
-              <small>Não tem uma conta? <a href="cadastro.html">Registrar-se!</a></small>
-            </div>
-          </form>
+  <body>
+    <div class="container-fluid pt-5">
+      <div class="row">
+        <!-- Imagem da esquerda - aparece apenas em telas grandes -->
+        <div class="col-md-6 d-none d-md-block login-image"></div>
+  
+        <!-- Formulário de login -->
+        <div class="col-md-6 d-flex align-items-center justify-content-center">
+          <div class="w-75">
+            <h2 class="mb-4 text-center">Bem Vindo</h2>
+            <form id="loginForm">
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="text" class="form-control" id="email" placeholder="nome@exemplo.com">
+              </div>
+              <div class="mb-3 position-relative">
+                <label for="password" class="form-label">Senha</label>
+                <input type="password" class="form-control pr-5" id="password" placeholder="Inserir Senha">
+                <i class="bi bi-eye-slash toggle-password" onclick="togglePassword('password', this)"
+                  style="position: absolute; top: 70%; right: 10px; transform: translateY(-50%); cursor: pointer;"></i>
+              </div>
+              <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="remember">
+                <label class="form-check-label" for="remember">Manter login</label>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Login</button>
+              <div class="text-center mt-3">
+                <small><a href="#">Esqueceu a senha?</a></small>
+              </div>
+              <div class="text-center mt-2">
+                <small>Não tem uma conta? <a href="cadastro.html">Registrar-se!</a></small>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </body>
+  
 
   <script>
     function togglePassword(inputId, icon) {
