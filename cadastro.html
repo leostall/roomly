@@ -154,12 +154,39 @@
     });
 
     function isValidCPF(cpf) {
-      return cpf.length === 11 && !/^(\d)\1+$/.test(cpf);
-    }
+  cpf = cpf.replace(/\D/g, ""); // Remove tudo que não for número
+  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false; // Checa tamanho e sequências repetidas
 
-    function isValidTelefone(telefone) {
-      return telefone.length === 11 && !/^(\d)\1+$/.test(telefone);
-    }
+  // Cálculo do primeiro dígito verificador
+  let soma = 0;
+  for (let i = 0; i < 9; i++) {
+    soma += parseInt(cpf[i]) * (10 - i);
+  }
+  let resto = (soma * 10) % 11;
+  let digito1 = resto === 10 || resto === 11 ? 0 : resto;
+
+  // Cálculo do segundo dígito verificador
+  soma = 0;
+  for (let i = 0; i < 10; i++) {
+    soma += parseInt(cpf[i]) * (11 - i);
+  }
+  resto = (soma * 10) % 11;
+  let digito2 = resto === 10 || resto === 11 ? 0 : resto;
+
+  // Verifica se os dígitos calculados são iguais aos do CPF
+  return digito1 === parseInt(cpf[9]) && digito2 === parseInt(cpf[10]);
+}
+
+function isValidTelefone(telefone) {
+  // Remove tudo que não for número
+  telefone = telefone.replace(/\D/g, "");
+
+  // Verifica se o telefone tem 11 dígitos e se começa com um número válido para celulares
+  const dddValido = /^[1-9]{2}/.test(telefone.substring(0, 2)); // DDD válido (começa de 1 a 9)
+  const numeroValido = telefone.length === 11; // 11 dígitos para celular
+
+  return dddValido && numeroValido;
+}
 
     function isValidEmail(email) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
