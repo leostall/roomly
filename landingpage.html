@@ -26,6 +26,21 @@
       color: #fff;
     }
 
+    .navbar-brand img {
+        width: 80px; 
+        height: 70x; 
+        object-fit: contain; 
+        margin: 0;
+        padding: 0;
+    }
+
+    
+    .navbar {
+        min-height: 72px; 
+        display: flex;
+        align-items: center;
+    }
+
     .btn-login {
       color: #fff;
       border: 1px solid #0d6efd;
@@ -40,7 +55,6 @@
 
     .main-section {
       min-height: calc(100vh - 72px - 80px);
-      /* subtrai navbar + footer */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -84,16 +98,17 @@
       text-decoration: underline;
     }
 
+
+
   </style>
 </head>
 
 <body>
 
-  <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
     <a class="navbar-brand" href="#">
-      <img src="logo.png" alt="Logo" width="40" height="40" class="d-inline-block align-text-middle me-2">
-      Roomly
+      <img src="LogoSemFundo (2).png" alt="Logo" class="Logo">
+      
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
@@ -117,7 +132,7 @@
       <div class="col-md-6 main-text">
         <h1>Seja bem-vindo ao Roomly</h1>
         <p>O site perfeito para fazer a reserva da sua sala de reunião com agilidade, praticidade e modernidade.</p>
-        <!-- Botão para abrir a modal -->
+        
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cadastroSalaModal">
           Cadastrar Sala
         </button>
