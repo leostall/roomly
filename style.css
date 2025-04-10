@@ -435,6 +435,7 @@ h1 {
 
 .form-check-label {
     color: #ccc;
+    padding-top: 5px;
 }
 
 /* Login e Cadastro */
@@ -490,6 +491,7 @@ h1 {
     border-radius: 10px;
     padding: 12px;
     transition: 0.3s;
+    margin-right: 10px;
 }
 
 .form-control-login:focus {
