@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Roomly - Cadastro de Salas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="images/favicon.png">
+
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --dark-color: #121212;
+            --light-color: #f8f9fa;
+            --success-color: #4bb543;
+        }
+
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
+            color: var(--light-color);
+        }
+
+        .navbar {
+            background: rgba(18, 18, 18, 0.9) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+        }
+
+        .navbar-brand img {
+            height: 50px;
+        }
+
+        .nav-link {
+            color: #ddd !important;
+            font-weight: 500;
+            margin: 0 0.5rem;
+        }
+
+        .nav-link:hover {
+            color: #fff !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+
+        .form-container {
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 1000px;
+        }
+
+        .form-title {
+            color: var(--accent-color);
+            margin-bottom: 2rem;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 1rem;
+        }
+
+        .form-label {
+            color: #ddd;
+            font-weight: 500;
+        }
+
+        .form-control {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .form-control:focus {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-color);
+            color: white;
+            box-shadow: 0 0 0 0.25rem rgba(76, 201, 240, 0.25);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .form-check-label {
+            color: #ccc;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 1.5rem;
+                margin: 1rem auto;
+            }
+
+            .navbar {
+                padding: 0.75rem 1rem;
+            }
+
+            .navbar-brand img {
+                height: 40px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .form-container {
+                padding: 1rem;
+                border-radius: 10px;
+            }
+
+            .form-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <img src="images/logoSemFundo.png" alt="Roomly Logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="index.html#features">Vantagens</a></li>
+                    <li class="nav-item"><a class="nav-link" href="index.html#rooms">Salas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contato.html">Contato</a></li>
+                </ul>
+                <div class="ms-lg-3 mt-3 mt-lg-0">
+                    <a href="login.html" class="btn btn-outline-primary">Login</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="form-container">
+            <h2 class="form-title">Cadastro de Sala</h2>
+            <form id="cadastroSalaForm">
+                <div class="row g-3">
+                    <!-- Código -->
+                    <div class="col-12 col-md-3">
+                        <label for="codigoSala" class="form-label">Código</label>
+                        <input type="text" class="form-control" id="codigoSala" readonly>
+                    </div>
+
+                    <!-- Tipo da Sala -->
+                    <div class="col-12 col-md-6">
+                        <label for="tipoSala" class="form-label">Tipo da Sala *</label>
+                        <select class="form-control" id="tipoSala" required>
+                            <option value="" disabled selected>Selecione um tipo</option>
+                            <option value="Sala de reunião">Sala de reunião</option>
+                            <option value="Auditório">Auditório</option>
+                            <option value="Sala de treinamento">Sala de treinamento</option>
+                        </select>
+                    </div>
+
+                    <!-- Capacidade -->
+                    <div class="col-12 col-md-3">
+                        <label for="capacidade" class="form-label">Capacidade *</label>
+                        <input type="number" class="form-control" id="capacidade" placeholder="Capacidade" min="1"
+                            required>
+                    </div>
+
+                    <!-- Tamanho m² -->
+                    <div class="col-12 col-md-3">
+                        <label for="tamanhoM2" class="form-label">Tamanho m² *</label>
+                        <input type="number" class="form-control" id="tamanhoM2" placeholder="Tamanho m²" min="1"
+                            required>
+                    </div>
+
+                    <!-- Valor Hora -->
+                    <div class="col-12 col-md-3">
+                        <label for="valorHora" class="form-label">Valor hora (R$) *</label>
+                        <input type="number" class="form-control" id="valorHora" placeholder="Valor R$" min="1"
+                            required>
+                    </div>
+
+                    <!-- Localização -->
+                    <div class="col-12 col-md-3">
+                        <label for="cep" class="form-label">CEP *</label>
+                        <input type="text" class="form-control" id="cep" placeholder="Digite o CEP" required>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label for="rua" class="form-label">Rua *</label>
+                        <input type="text" class="form-control" id="rua" required>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label for="cidade" class="form-label">Cidade *</label>
+                        <input type="text" class="form-control" id="cidade" required>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label for="estado" class="form-label">Estado *</label>
+                        <input type="text" class="form-control" id="estado" required>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label for="numero" class="form-label">Número *</label>
+                        <input type="text" class="form-control" id="numero" placeholder="Número" required>
+                    </div>
+
+                    <!-- Recursos -->
+                    <div class="col-12">
+                        <label for="recursos" class="form-label">Recursos disponíveis *</label>
+                        <input type="text" class="form-control" id="recursos" placeholder="Wi-Fi, projetor, TV, etc."
+                            required>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="horario" class="form-label">Horário de funcionamento *</label>
+                        <input type="text" class="form-control" id="horario" placeholder="Ex: 08:00 - 18:00" required>
+                    </div>
+
+                    <!-- Mobiliário -->
+                    <div class="col-12">
+                        <label for="mobilario" class="form-label">Tipo de mobiliário *</label>
+                        <input type="text" class="form-control" id="mobilario" placeholder="Cadeiras, mesas, sofá, etc."
+                            required>
+                    </div>
+
+                    <!-- Disponibilidade -->
+                    <div class="col-12">
+                        <label class="form-label">Disponibilidade (dias da semana) *</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="selecionarTodos"
+                                    onchange="selecionarTodos()">
+                                <label class="form-check-label" for="selecionarTodos">Selecionar todos</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="domingo" required>
+                                <label class="form-check-label" for="domingo">Domingo</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="segunda" required>
+                                <label class="form-check-label" for="segunda">Segunda-feira</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="terca" required>
+                                <label class="form-check-label" for="terca">Terça-feira</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="quarta" required>
+                                <label class="form-check-label" for="quarta">Quarta-feira</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="quinta" required>
+                                <label class="form-check-label" for="quinta">Quinta-feira</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sexta" required>
+                                <label class="form-check-label" for="sexta">Sexta-feira</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sabado" required>
+                                <label class="form-check-label" for="sabado">Sábado</label>
+                            </div>
+                        </div>
+                        <div class="invalid-feedback">Selecione pelo menos um dia da semana</div>
+                    </div>
+
+                    <div class="col-12 mt-4">
+                        <button type="submit" class="btn btn-primary px-5 py-2">Salvar Cadastro</button>
+                        <!-- <a href="index.html" class="btn btn-outline-primary ms-3 px-5 py-2">Cancelar</a> -->
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Gera código aleatório ao carregar a página
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("codigoSala").value = gerarCodigoSala();
+        });
+
+        function gerarCodigoSala() {
+            return Math.floor(100 + Math.random() * 900);
+        }
+
+        function selecionarTodos() {
+            let checkboxes = document.querySelectorAll('.form-check-input:not(#selecionarTodos)');
+            let selecionarTodosCheckbox = document.getElementById('selecionarTodos');
+
+            checkboxes.forEach(checkbox => checkbox.checked = selecionarTodosCheckbox.checked);
+        }
+
+        // Validações
+        document.getElementById("cep").addEventListener("input", function (e) {
+            e.target.value = e.target.value.replace(/\D/g, ''); // Só números
+        });
+
+        document.getElementById("numero").addEventListener("input", function (e) {
+            e.target.value = e.target.value.replace(/\D/g, ''); // Só números
+        });
+
+        document.getElementById("tamanhoM2").addEventListener("input", function (e) {
+            e.target.value = e.target.value.replace(/\D/g, ''); // Só números
+        });
+
+        document.getElementById("capacidade").addEventListener("input", function (e) {
+            e.target.value = e.target.value.replace(/\D/g, ''); // Só números
+        });
+
+        document.getElementById("valorHora").addEventListener("input", function (e) {
+            e.target.value = e.target.value.replace(/\D/g, ''); // Só números
+        });
+
+        document.getElementById("cidade").addEventListener("input", function (e) {
+            e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, ''); // Só letras e espaços
+        });
+
+        document.getElementById("estado").addEventListener("input", function (e) {
+            e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, ''); // Só letras e espaços
+        });
+
+        // Máscara para o CEP (formato XXXXX-XXX)
+        document.getElementById("cep").addEventListener("input", function (e) {
+            let cep = e.target.value.replace(/\D/g, ''); // Remove tudo que não for número
+            if (cep.length <= 5) {
+                e.target.value = cep.replace(/(\d{5})(\d{0,3})/, '$1-$2'); // Formata como 12345-xxx
+            } else {
+                cep = cep.slice(0, 8); // Limita o CEP a 8 dígitos
+                e.target.value = cep.replace(/(\d{5})(\d{3})/, '$1-$2'); // Formata como 12345-678
+            }
+        });
+
+        // Máscara para o horário (formato XX:XX-XX:XX)
+        document.getElementById("horario").addEventListener("input", function (e) {
+            let horario = e.target.value.replace(/\D/g, ''); // Remove tudo que não for número
+
+            if (horario.length <= 4) {
+                e.target.value = horario.replace(/(\d{2})(\d{0,2})/, '$1:$2'); // Formata como 12:34
+            } else if (horario.length <= 6) {
+                e.target.value = horario.replace(/(\d{2})(\d{2})(\d{0,2})/, '$1:$2-$3'); // Formata como 12:34-56
+            } else {
+                horario = horario.slice(0, 8); // Limita o horário a 8 dígitos
+                e.target.value = horario.replace(/(\d{2})(\d{2})(\d{2})(\d{0,2})/, '$1:$2-$3:$4'); // Formata como 12:34-56:78
+            }
+        });
+
+        // Validação do formulário
+        document.getElementById('cadastroSalaForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Verifica se pelo menos um dia da semana foi selecionado
+            const checkboxes = document.querySelectorAll('.form-check-input:not(#selecionarTodos)');
+            let atLeastOneChecked = false;
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) atLeastOneChecked = true;
+            });
+
+            if (!atLeastOneChecked) {
+                document.querySelector('.invalid-feedback').style.display = 'block';
+                return;
+            } else {
+                document.querySelector('.invalid-feedback').style.display = 'none';
+            }
+
+            // Verificação de campos obrigatórios
+            const requiredFields = document.querySelectorAll('[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.value) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            if (!isValid) {
+                Swal.fire({
+                    title: 'Erro!',
+                    text: 'Preencha todos os campos obrigatórios.',
+                    icon: 'error',
+                    confirmButtonText: 'Ok',
+                    background: '#121212',
+                    color: '#fff'
+                });
+                return;
+            }
+
+            // Se tudo estiver válido, exibe mensagem de sucesso
+            Swal.fire({
+                title: 'Cadastro Realizado!',
+                text: 'A sala foi cadastrada com sucesso.',
+                icon: 'success',
+                confirmButtonText: 'Ok',
+                background: '#121212',
+                color: '#fff'
+            }).then(() => {
+                // Redireciona para a página principal
+                //window.location.href = 'index.html';
+            });
+        });
+
+        // Validação em tempo real para campos obrigatórios
+        document.querySelectorAll('[required]').forEach(field => {
+            field.addEventListener('input', function () {
+                if (this.value) {
+                    this.classList.remove('is-invalid');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
