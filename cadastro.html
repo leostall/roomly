@@ -17,7 +17,7 @@
     }
 
     .login-image {
-      background-image: url('ImagemFundoLogin.png');
+      background-image: url('images/ImagemFundoLogin.png');
       background-size: cover;
       background-position: center;
       height: 100vh;
@@ -65,18 +65,17 @@
 
       margin-left: 4px;
     }
-
-  
   </style>
 </head>
 
 <body>
+
   <body>
     <div class="container-fluid pt-5">
       <div class="row">
         <!-- Imagem da esquerda - aparece apenas em telas grandes -->
         <div class="col-md-6 d-none d-md-block login-image"></div>
-  
+
         <!-- Formulário -->
         <div class="col-md-6 d-flex align-items-center justify-content-center position-relative">
           <div class="w-75">
@@ -87,7 +86,8 @@
                 <input type="text" class="form-control" id="email" placeholder="nome@exemplo.com">
               </div>
               <div class="mb-3">
-                <label for="nome" class="form-label">Nome completo (No máximo 100 caracteres)<span class="required">*</span></label>
+                <label for="nome" class="form-label">Nome completo (No máximo 100 caracteres)<span
+                    class="required">*</span></label>
                 <input type="text" class="form-control" id="nome" placeholder="Insira o nome">
               </div>
               <div class="mb-3">
@@ -103,10 +103,12 @@
                 <input type="password" class="form-control" id="password" placeholder="Inserir Senha">
                 <i class="bi bi-eye toggle-password" onclick="togglePassword('password', this)"
                   style="position: absolute; top: 70%; right: 10px; transform: translateY(-50%); cursor: pointer;"></i>
-                <div class="password-hint">A senha deve ter pelo menos 8 caracteres, incluindo uma letra maiúscula, uma minúscula, um número e um caractere especial.</div>
+                <div class="password-hint">A senha deve ter pelo menos 8 caracteres, incluindo uma letra maiúscula, uma
+                  minúscula, um número e um caractere especial.</div>
               </div>
               <div class="mb-3 password-wrapper position-relative">
-                <label for="confirm-password" class="form-label">Confirme sua senha<span class="required">*</span></label>
+                <label for="confirm-password" class="form-label">Confirme sua senha<span
+                    class="required">*</span></label>
                 <input type="password" class="form-control" id="confirm-password" placeholder="Inserir Senha">
                 <i class="bi bi-eye toggle-password" onclick="togglePassword('confirm-password', this)"
                   style="position: absolute; top: 70%; right: 10px; transform: translateY(-50%); cursor: pointer;"></i>
@@ -124,7 +126,7 @@
       </div>
     </div>
   </body>
-  
+
   <script>
     function togglePassword(id, icon) {
       const input = document.getElementById(id);
@@ -154,39 +156,39 @@
     });
 
     function isValidCPF(cpf) {
-  cpf = cpf.replace(/\D/g, ""); // Remove tudo que não for número
-  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false; // Checa tamanho e sequências repetidas
+      cpf = cpf.replace(/\D/g, ""); // Remove tudo que não for número
+      if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false; // Checa tamanho e sequências repetidas
 
-  // Cálculo do primeiro dígito verificador
-  let soma = 0;
-  for (let i = 0; i < 9; i++) {
-    soma += parseInt(cpf[i]) * (10 - i);
-  }
-  let resto = (soma * 10) % 11;
-  let digito1 = resto === 10 || resto === 11 ? 0 : resto;
+      // Cálculo do primeiro dígito verificador
+      let soma = 0;
+      for (let i = 0; i < 9; i++) {
+        soma += parseInt(cpf[i]) * (10 - i);
+      }
+      let resto = (soma * 10) % 11;
+      let digito1 = resto === 10 || resto === 11 ? 0 : resto;
 
-  // Cálculo do segundo dígito verificador
-  soma = 0;
-  for (let i = 0; i < 10; i++) {
-    soma += parseInt(cpf[i]) * (11 - i);
-  }
-  resto = (soma * 10) % 11;
-  let digito2 = resto === 10 || resto === 11 ? 0 : resto;
+      // Cálculo do segundo dígito verificador
+      soma = 0;
+      for (let i = 0; i < 10; i++) {
+        soma += parseInt(cpf[i]) * (11 - i);
+      }
+      resto = (soma * 10) % 11;
+      let digito2 = resto === 10 || resto === 11 ? 0 : resto;
 
-  // Verifica se os dígitos calculados são iguais aos do CPF
-  return digito1 === parseInt(cpf[9]) && digito2 === parseInt(cpf[10]);
-}
+      // Verifica se os dígitos calculados são iguais aos do CPF
+      return digito1 === parseInt(cpf[9]) && digito2 === parseInt(cpf[10]);
+    }
 
-function isValidTelefone(telefone) {
-  // Remove tudo que não for número
-  telefone = telefone.replace(/\D/g, "");
+    function isValidTelefone(telefone) {
+      // Remove tudo que não for número
+      telefone = telefone.replace(/\D/g, "");
 
-  // Verifica se o telefone tem 11 dígitos e se começa com um número válido para celulares
-  const dddValido = /^[1-9]{2}/.test(telefone.substring(0, 2)); // DDD válido (começa de 1 a 9)
-  const numeroValido = telefone.length === 11; // 11 dígitos para celular
+      // Verifica se o telefone tem 11 dígitos e se começa com um número válido para celulares
+      const dddValido = /^[1-9]{2}/.test(telefone.substring(0, 2)); // DDD válido (começa de 1 a 9)
+      const numeroValido = telefone.length === 11; // 11 dígitos para celular
 
-  return dddValido && numeroValido;
-}
+      return dddValido && numeroValido;
+    }
 
     function isValidEmail(email) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

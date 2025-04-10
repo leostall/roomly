@@ -27,18 +27,18 @@
     }
 
     .navbar-brand img {
-        width: 80px; 
-        height: 70x; 
-        object-fit: contain; 
-        margin: 0;
-        padding: 0;
+      width: 80px;
+      height: 70x;
+      object-fit: contain;
+      margin: 0;
+      padding: 0;
     }
 
-    
+
     .navbar {
-        min-height: 72px; 
-        display: flex;
-        align-items: center;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
     }
 
     .btn-login {
@@ -97,9 +97,6 @@
     footer a:hover {
       text-decoration: underline;
     }
-
-
-
   </style>
 </head>
 
@@ -107,8 +104,8 @@
 
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
     <a class="navbar-brand" href="#">
-      <img src="LogoSemFundo (2).png" alt="Logo" class="Logo">
-      
+      <img src="images/LogoSemFundo (2).png" alt="Logo" class="Logo">
+
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
@@ -132,13 +129,13 @@
       <div class="col-md-6 main-text">
         <h1>Seja bem-vindo ao Roomly</h1>
         <p>O site perfeito para fazer a reserva da sua sala de reunião com agilidade, praticidade e modernidade.</p>
-        
+
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cadastroSalaModal">
           Cadastrar Sala
         </button>
       </div>
       <div class="col-md-6 main-image">
-        <img src="Sala de Reunião.jpg" alt="Sala de Reunião">
+        <img src="images/Sala de Reunião.jpg" alt="Sala de Reunião">
       </div>
     </div>
   </section>
@@ -158,145 +155,146 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <!-- Modal -->
-<div class="modal fade" id="cadastroSalaModal" tabindex="-1" aria-labelledby="cadastroSalaModalLabel" aria-hidden="true">
-  <div class="modal-dialog" style="width: 90%; max-width: 95vw; height: auto; max-height: 90vh;">
-    <div class="modal-content bg-dark text-white p-3" style="width: 100%; height: auto;">
+  <div class="modal fade" id="cadastroSalaModal" tabindex="-1" aria-labelledby="cadastroSalaModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" style="width: 90%; max-width: 95vw; height: auto; max-height: 90vh;">
+      <div class="modal-content bg-dark text-white p-3" style="width: 100%; height: auto;">
 
-      <div class="modal-header">
-        <h5 class="modal-title" id="cadastroSalaModalLabel">Cadastro da Sala</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
+        <div class="modal-header">
+          <h5 class="modal-title" id="cadastroSalaModalLabel">Cadastro da Sala</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
 
-      <div class="modal-body">
-        <form id="cadastroSalaForm">
-          <div class="row g-3">
-            <!-- Código -->
-            <div class="col-12 col-md-3">
-              <label for="codigoSala" class="form-label">Código</label>
-              <input type="text" class="form-control" id="codigoSala" readonly>
-            </div>
+        <div class="modal-body">
+          <form id="cadastroSalaForm">
+            <div class="row g-3">
+              <!-- Código -->
+              <div class="col-12 col-md-3">
+                <label for="codigoSala" class="form-label">Código</label>
+                <input type="text" class="form-control" id="codigoSala" readonly>
+              </div>
 
-            <!-- Tipo da Sala -->
-            <div class="col-12 col-md-6">
-              <label for="tipoSala" class="form-label">Tipo da Sala *</label>
-              <select class="form-control" id="tipoSala">
-                <option value="" disabled selected>Selecione um tipo</option>
-                <option value="Sala de reunião">Sala de reunião</option>
-                <option value="Auditório">Auditório</option>
-                <option value="Sala de treinamento">Sala de treinamento</option>
-              </select>
-            </div>
+              <!-- Tipo da Sala -->
+              <div class="col-12 col-md-6">
+                <label for="tipoSala" class="form-label">Tipo da Sala *</label>
+                <select class="form-control" id="tipoSala">
+                  <option value="" disabled selected>Selecione um tipo</option>
+                  <option value="Sala de reunião">Sala de reunião</option>
+                  <option value="Auditório">Auditório</option>
+                  <option value="Sala de treinamento">Sala de treinamento</option>
+                </select>
+              </div>
 
-            <!-- Capacidade -->
-            <div class="col-12 col-md-3">
-              <label for="capacidade" class="form-label">Capacidade *</label>
-              <input type="number" class="form-control" id="capacidade" placeholder="Capacidade" min="1">
-            </div>
+              <!-- Capacidade -->
+              <div class="col-12 col-md-3">
+                <label for="capacidade" class="form-label">Capacidade *</label>
+                <input type="number" class="form-control" id="capacidade" placeholder="Capacidade" min="1">
+              </div>
 
-            <!-- Tamanho m² -->
-            <div class="col-12 col-md-3">
-              <label for="tamanhoM2" class="form-label">Tamanho m² *</label>
-              <input type="number" class="form-control" id="tamanhoM2" placeholder="Tamanho m²" min="1">
-            </div>
+              <!-- Tamanho m² -->
+              <div class="col-12 col-md-3">
+                <label for="tamanhoM2" class="form-label">Tamanho m² *</label>
+                <input type="number" class="form-control" id="tamanhoM2" placeholder="Tamanho m²" min="1">
+              </div>
 
-            <!-- Valor Hora -->
-            <div class="col-12 col-md-3">
-              <label for="valorHora" class="form-label">Valor hora (R$) *</label>
-              <input type="number" class="form-control" id="valorHora" placeholder="Valor R$" min="1">
-            </div>
+              <!-- Valor Hora -->
+              <div class="col-12 col-md-3">
+                <label for="valorHora" class="form-label">Valor hora (R$) *</label>
+                <input type="number" class="form-control" id="valorHora" placeholder="Valor R$" min="1">
+              </div>
 
-            <!-- Localização -->
-            <div class="col-12 col-md-3">
-              <label for="cep" class="form-label">CEP *</label>
-              <input type="text" class="form-control" id="cep" placeholder="Digite o CEP">
-            </div>
+              <!-- Localização -->
+              <div class="col-12 col-md-3">
+                <label for="cep" class="form-label">CEP *</label>
+                <input type="text" class="form-control" id="cep" placeholder="Digite o CEP">
+              </div>
 
-            <div class="col-12 col-md-3">
-              <label for="rua" class="form-label">Rua *</label>
-              <input type="text" class="form-control" id="rua">
-            </div>
+              <div class="col-12 col-md-3">
+                <label for="rua" class="form-label">Rua *</label>
+                <input type="text" class="form-control" id="rua">
+              </div>
 
-            <div class="col-12 col-md-3">
-              <label for="cidade" class="form-label">Cidade *</label>
-              <input type="text" class="form-control" id="cidade">
-            </div>
+              <div class="col-12 col-md-3">
+                <label for="cidade" class="form-label">Cidade *</label>
+                <input type="text" class="form-control" id="cidade">
+              </div>
 
-            <div class="col-12 col-md-3">
-              <label for="estado" class="form-label">Estado *</label>
-              <input type="text" class="form-control" id="estado">
-            </div>
+              <div class="col-12 col-md-3">
+                <label for="estado" class="form-label">Estado *</label>
+                <input type="text" class="form-control" id="estado">
+              </div>
 
-            <div class="col-12 col-md-3">
-              <label for="numero" class="form-label">Número *</label>
-              <input type="text" class="form-control" id="numero" placeholder="Número">
-            </div>
+              <div class="col-12 col-md-3">
+                <label for="numero" class="form-label">Número *</label>
+                <input type="text" class="form-control" id="numero" placeholder="Número">
+              </div>
 
-            <!-- Recursos -->
-            <div class="col-12">
-              <label for="recursos" class="form-label">Recursos disponíveis *</label>
-              <input type="text" class="form-control" id="recursos" placeholder="Wi-Fi, projetor, TV, etc.">
-            </div>
+              <!-- Recursos -->
+              <div class="col-12">
+                <label for="recursos" class="form-label">Recursos disponíveis *</label>
+                <input type="text" class="form-control" id="recursos" placeholder="Wi-Fi, projetor, TV, etc.">
+              </div>
 
-            <div class="col-12">
-              <label for="horario" class="form-label">Horário de funcionamento *</label>
-              <input type="text" class="form-control" id="horario" placeholder="Ex: 08:00 - 18:00">
-            </div>
+              <div class="col-12">
+                <label for="horario" class="form-label">Horário de funcionamento *</label>
+                <input type="text" class="form-control" id="horario" placeholder="Ex: 08:00 - 18:00">
+              </div>
 
-            <!-- Mobiliário -->
-            <div class="col-12">
-              <label for="mobilario" class="form-label">Tipo de mobiliário *</label>
-              <input type="text" class="form-control" id="mobilario" placeholder="Cadeiras, mesas, sofá, etc.">
-            </div>
+              <!-- Mobiliário -->
+              <div class="col-12">
+                <label for="mobilario" class="form-label">Tipo de mobiliário *</label>
+                <input type="text" class="form-control" id="mobilario" placeholder="Cadeiras, mesas, sofá, etc.">
+              </div>
 
-            <!-- Disponibilidade -->
-            <div class="col-12">
-              <label class="form-label">Disponibilidade (dias da semana) *</label>
-              <div class="d-flex flex-wrap gap-2">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="selecionarTodos" onchange="selecionarTodos()">
-                  <label class="form-check-label" for="selecionarTodos">Selecionar todos</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="domingo">
-                  <label class="form-check-label" for="domingo">Domingo</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="segunda">
-                  <label class="form-check-label" for="segunda">Segunda-feira</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="terca">
-                  <label class="form-check-label" for="terca">Terça-feira</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="quarta">
-                  <label class="form-check-label" for="quarta">Quarta-feira</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="quinta">
-                  <label class="form-check-label" for="quinta">Quinta-feira</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="sexta">
-                  <label class="form-check-label" for="sexta">Sexta-feira</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="sabado">
-                  <label class="form-check-label" for="sabado">Sábado</label>
+              <!-- Disponibilidade -->
+              <div class="col-12">
+                <label class="form-label">Disponibilidade (dias da semana) *</label>
+                <div class="d-flex flex-wrap gap-2">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="selecionarTodos" onchange="selecionarTodos()">
+                    <label class="form-check-label" for="selecionarTodos">Selecionar todos</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="domingo">
+                    <label class="form-check-label" for="domingo">Domingo</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="segunda">
+                    <label class="form-check-label" for="segunda">Segunda-feira</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="terca">
+                    <label class="form-check-label" for="terca">Terça-feira</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="quarta">
+                    <label class="form-check-label" for="quarta">Quarta-feira</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="quinta">
+                    <label class="form-check-label" for="quinta">Quinta-feira</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="sexta">
+                    <label class="form-check-label" for="sexta">Sexta-feira</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="sabado">
+                    <label class="form-check-label" for="sabado">Sábado</label>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </form>
-      </div>
+          </form>
+        </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-        <button type="submit" class="btn btn-primary" form="cadastroSalaForm" id="botaoSalvar">Salvar</button>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          <button type="submit" class="btn btn-primary" form="cadastroSalaForm" id="botaoSalvar">Salvar</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 
 
@@ -383,49 +381,49 @@
     });
 
     document.getElementById('cadastroSalaForm').addEventListener('submit', function (e) {
-  e.preventDefault(); // Impede o envio padrão do formulário
+      e.preventDefault(); // Impede o envio padrão do formulário
 
-  let tipoSala = document.getElementById('tipoSala').value;
-  let capacidade = document.getElementById('capacidade').value;
-  let valorHora = document.getElementById('valorHora').value;
-  let horario = document.getElementById('horario').value;
-  let cep = document.getElementById('cep').value;
-  let tamanhoM2 = document.getElementById('tamanhoM2').value;
-  let rua = document.getElementById('rua').value;
-  let cidade = document.getElementById('cidade').value;
-  let estado = document.getElementById('estado').value;
-  let numero = document.getElementById('numero').value;
-  let recursos = document.getElementById('recursos').value;
-  let mobiliario = document.getElementById('mobilario').value;
+      let tipoSala = document.getElementById('tipoSala').value;
+      let capacidade = document.getElementById('capacidade').value;
+      let valorHora = document.getElementById('valorHora').value;
+      let horario = document.getElementById('horario').value;
+      let cep = document.getElementById('cep').value;
+      let tamanhoM2 = document.getElementById('tamanhoM2').value;
+      let rua = document.getElementById('rua').value;
+      let cidade = document.getElementById('cidade').value;
+      let estado = document.getElementById('estado').value;
+      let numero = document.getElementById('numero').value;
+      let recursos = document.getElementById('recursos').value;
+      let mobiliario = document.getElementById('mobilario').value;
 
-  // Verificação de campos obrigatórios
-  if (!tipoSala || !capacidade || !valorHora || !horario || !cep || !tamanhoM2 || !rua || !cidade || !estado || !numero || !recursos || !mobiliario) {
-    // Exibe SweetAlert com erro
-    Swal.fire({
-      title: 'Erro!',
-      text: 'Preencha todos os campos obrigatórios.',
-      icon: 'error',
-      confirmButtonText: 'Ok',
-      background: '#121212',
-      color: '#fff'
+      // Verificação de campos obrigatórios
+      if (!tipoSala || !capacidade || !valorHora || !horario || !cep || !tamanhoM2 || !rua || !cidade || !estado || !numero || !recursos || !mobiliario) {
+        // Exibe SweetAlert com erro
+        Swal.fire({
+          title: 'Erro!',
+          text: 'Preencha todos os campos obrigatórios.',
+          icon: 'error',
+          confirmButtonText: 'Ok',
+          background: '#121212',
+          color: '#fff'
+        });
+        return;
+      }
+
+      // Exibe SweetAlert com sucesso
+      Swal.fire({
+        title: 'Cadastro Realizado!',
+        text: 'A sala foi cadastrada com sucesso.',
+        icon: 'success',
+        confirmButtonText: 'Ok',
+        background: '#121212',
+        color: '#fff'
+      }).then(() => {
+        // Limpar o formulário após a confirmação
+        document.getElementById('cadastroSalaForm').reset();
+        $('#cadastroSalaModal').modal('hide');
+      });
     });
-    return;
-  }
-
-  // Exibe SweetAlert com sucesso
-  Swal.fire({
-    title: 'Cadastro Realizado!',
-    text: 'A sala foi cadastrada com sucesso.',
-    icon: 'success',
-    confirmButtonText: 'Ok',
-    background: '#121212',
-    color: '#fff'
-  }).then(() => {
-    // Limpar o formulário após a confirmação
-    document.getElementById('cadastroSalaForm').reset();
-    $('#cadastroSalaModal').modal('hide');
-  });
-});
 
 
   </script>
