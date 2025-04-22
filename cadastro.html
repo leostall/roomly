@@ -183,15 +183,48 @@
         });
       }
 
-      Swal.fire({
-        title: "Sucesso!",
-        text: "Cadastro realizado com sucesso!",
-        icon: "success",
-        background: "#121212",
-        color: "#ffffff"
-      }).then(() => {
-        document.getElementById("registrationForm").reset();
-      });
+      fetch("http://127.0.0.1:8000/register", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    email: email,
+    nome: nome,
+    telefone: telefone,
+    cpf: cpf,
+    senha: senha
+  })
+})
+.then(response => {
+  if (!response.ok) {
+    return response.json().then(data => {
+      throw new Error(data.detail || "Erro ao cadastrar");
+    });
+  }
+  return response.json();
+})
+.then(data => {
+  Swal.fire({
+    title: "Sucesso!",
+    text: data.message,
+    icon: "success",
+    background: "#121212",
+    color: "#ffffff"
+  }).then(() => {
+    document.getElementById("registrationForm").reset();
+  });
+})
+.catch(error => {
+  Swal.fire({
+    title: "Erro!",
+    text: error.message,
+    icon: "error",
+    background: "#121212",
+    color: "#ffffff"
+  });
+});
+
     });
   </script>
 

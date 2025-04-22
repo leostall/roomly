@@ -68,55 +68,88 @@
     }
 
     // Validação de login
-    document.getElementById("loginForm").addEventListener("submit", function (event) {
-      event.preventDefault();
+    // Validação de login e chamada ao backend
+document.getElementById("loginForm").addEventListener("submit", function (event) {
+  event.preventDefault();
 
-      let email = document.getElementById("email").value.trim();
-      let password = document.getElementById("password").value.trim();
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i; // Garante que tenha "@" e um domínio válido
+  let email = document.getElementById("email").value.trim();
+  let password = document.getElementById("password").value.trim();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 
-      if (!email) {
-        Swal.fire({
-          title: "Erro",
-          text: "O campo Email é obrigatório!",
-          icon: "error",
-          background: "#121212",
-          color: "#ffffff"
+  if (!email) {
+    Swal.fire({
+      title: "Erro",
+      text: "O campo Email é obrigatório!",
+      icon: "error",
+      background: "#121212",
+      color: "#ffffff"
+    });
+    return;
+  } else if (!emailRegex.test(email)) {
+    Swal.fire({
+      title: "Erro",
+      text: "Digite um email válido! Exemplo: nome@exemplo.com",
+      icon: "error",
+      background: "#121212",
+      color: "#ffffff"
+    });
+    return;
+  }
+
+  if (!password) {
+    Swal.fire({
+      title: "Erro",
+      text: "O campo Senha é obrigatório!",
+      icon: "error",
+      background: "#121212",
+      color: "#ffffff"
+    });
+    return;
+  }
+
+  // Enviando dados para o backend FastAPI
+  fetch("http://127.0.0.1:8000/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      email: email,
+      senha: password
+    })
+  })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(error => {
+          throw new Error(error.detail);
         });
-        return;
-      } else if (!emailRegex.test(email)) {
-        Swal.fire({
-          title: "Erro",
-          text: "Digite um email válido! Exemplo: nome@exemplo.com",
-          icon: "error",
-          background: "#121212",
-          color: "#ffffff"
-        });
-        return;
       }
-
-      if (!password) {
-        Swal.fire({
-          title: "Erro",
-          text: "O campo Senha é obrigatório!",
-          icon: "error",
-          background: "#121212",
-          color: "#ffffff"
-        });
-        return;
-      }
-
-      // Se tudo estiver correto, exibe sucesso
+      return response.json();
+    })
+    .then(data => {
       Swal.fire({
-        title: "Login realizado com sucesso!",
+        title: "Sucesso!",
+        text: data.message,
         icon: "success",
         background: "#121212",
         color: "#ffffff"
       }).then(() => {
-        document.getElementById("email").value = "";
-        document.getElementById("password").value = "";
+        // Redirecionar ou salvar os dados do usuário
+        window.location.href = "index.html";
+        console.log("Usuário:", data.nome, data.email);
+      });
+    })
+    .catch(error => {
+      Swal.fire({
+        title: "Erro no login",
+        text: error.message,
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
       });
     });
+});
+
   </script>
 
 
