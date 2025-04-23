@@ -36,9 +36,9 @@ class LoginData(BaseModel):
 # Conexão com banco
 def get_db_connection():
     return mysql.connector.connect(
-        host="127.0.0.1",
-        user="root",
-        password="Mimiteteu123@",
+        host="",
+        user="",
+        password="",
         database="Roomly"
     )
 
