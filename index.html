@@ -31,8 +31,8 @@
           <li class="nav-item"><a class="nav-link" href="#rooms">Salas</a></li>
           <li class="nav-item"><a class="nav-link" href="contato.html">Contato</a></li>
         </ul>
-        <div class="ms-lg-3 mt-3 mt-lg-0">
-          <a href="login.html" class="btn btn-outline-primary">Login</a>
+        <div class="ms-lg-3 mt-3 mt-lg-0" id="auth-buttons">
+          <a href="login.html" class="btn btn-outline-primary" id="login-btn">Login</a>
         </div>
       </div>
     </div>
@@ -322,6 +322,62 @@
         });
       });
     });
+    async function verificarLogin() {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/usuario-logado", {
+        credentials: "include"
+      });
+      const data = await response.json();
+
+      const authDiv = document.getElementById("auth-buttons");
+
+      if (data.logado) {
+        // Se logado, mostra nome + logout
+        authDiv.innerHTML = `
+          <span class="me-2">Olá, ${data.nome}!</span>
+          <a href = "editarcadastro.html" class="btn btn-outline-light btn-sm me-2">Editar usuário?</a>
+          <button class="btn btn-outline-danger" onclick="logout()">Logout</button>
+          
+        `;
+      }
+    } catch (error) {
+      console.error("Erro ao verificar login:", error);
+    }
+  }
+
+  async function logout() {
+    try {
+      await fetch("http://127.0.0.1:8000/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+      window.location.reload(); // Recarrega a página para atualizar o botão
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    }
+  }
+
+  // Chama quando a página carrega
+  window.addEventListener("DOMContentLoaded", verificarLogin);
+
+  // Já existia
+  window.addEventListener('scroll', function () {
+    const navbar = document.querySelector('.navbar');
+    if (window.scrollY > 50) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+  });
+
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      document.querySelector(this.getAttribute('href')).scrollIntoView({
+        behavior: 'smooth'
+      });
+    });
+  });
   </script>
 </body>
 
