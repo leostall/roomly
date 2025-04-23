@@ -18,6 +18,21 @@ html {
     overflow-x: hidden;
 }
 
+select.form-control {
+    color: white;
+}
+
+select.form-control option {
+    color: #000; 
+    background-color: #fff;
+}
+
+#capacidade::placeholder {
+    color: white;
+    opacity: 0.5;
+}
+
+
 /* Navbar */
 .navbar {
     background: rgba(18, 18, 18, 0.9) !important;
