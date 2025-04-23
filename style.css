@@ -91,6 +91,28 @@ select.form-control option {
     box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
 }
 
+.btn-editar {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+}
+
+.btn-excluir {
+    background: red;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(238, 67, 67, 0.3);
+}
+
 .btn-primary:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
