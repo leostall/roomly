@@ -110,15 +110,17 @@ document.getElementById("loginForm").addEventListener("submit", function (event)
 
   // Enviando dados para o backend FastAPI
   fetch("http://127.0.0.1:8000/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      email: email,
-      senha: password
-    })
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  credentials: "include", // ADICIONE ISSO AQUI
+  body: JSON.stringify({
+    email: email,
+    senha: password
   })
+})
+
     .then(response => {
       if (!response.ok) {
         return response.json().then(error => {
