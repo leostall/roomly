@@ -34,6 +34,11 @@
                 <div class="ms-lg-3 mt-3 mt-lg-0">
                     <a href="login.html" class="btn btn-outline-primary">Login</a>
                 </div>
+                <div class="ms-lg-3 mt-3 mt-lg-0 d-flex align-items-center">
+                    <span id="userName" class="text-white me-3"></span>
+                    <button id="editProfile" class="btn btn-outline-light me-2">Editar usuário?</button>
+                    <button id="logout" class="btn btn-outline-danger">Logout</button>
+                </div>
             </div>
         </div>
     </nav>
@@ -54,12 +59,8 @@
                         <label for="tipoSala" class="form-label">Tipo da Sala *</label>
                         <select class="form-control" id="tipoSala" required>
                             <option value="" disabled selected>Selecione um tipo</option>
-                            <option value="Sala de reunião">Sala de reunião</option>
-                            <option value="Auditório">Auditório</option>
-                            <option value="Sala de treinamento">Sala de treinamento</option>
                         </select>
                     </div>
-
                     <!-- Capacidade -->
                     <div class="col-12 col-md-3">
                         <label for="capacidade" class="form-label">Capacidade *</label>
@@ -126,6 +127,13 @@
                             required>
                     </div>
 
+                    <!-- Descrição -->
+                    <div class="col-12">
+                        <label for="descricao" class="form-label">Descrição *</label>
+                        <input type="text" class="form-control" id="descricao" placeholder="Breve descrição da sala."
+                            required>
+                    </div>
+
                     <!-- Disponibilidade -->
                     <div class="col-12">
                         <label class="form-label">Disponibilidade (dias da semana) *</label>
@@ -179,6 +187,12 @@
         document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("codigoSala").value = gerarCodigoSala();
         });
+        document.addEventListener("DOMContentLoaded", async function () {
+    const usuario = await fetchUsuarioLogado();
+    if (usuario) {
+        console.log("ID do usuário logado:", usuario.id); // Certifique-se de que o ID está sendo exibido
+    }
+});
 
         function gerarCodigoSala() {
             return Math.floor(100 + Math.random() * 900);
@@ -312,6 +326,165 @@
         console.error(error);
     }
 });
+async function fetchUsuarioLogado() {
+    try {
+        const response = await fetch("http://127.0.0.1:8000/usuario-logado", {
+            method: "GET",
+            credentials: "include"
+        });
+        const data = await response.json();
+
+        if (data.logado) {
+            document.getElementById("userName").textContent = `Olá, ${data.nome}`;
+            document.querySelector(".btn-outline-primary").style.display = "none"; // Esconde o botão de login
+            return data;
+        } else {
+            window.location.href = "login.html";
+        }
+    } catch (error) {
+        console.error("Erro ao buscar usuário logado:", error);
+        window.location.href = "login.html";
+    }
+}
+document.getElementById("logout").addEventListener("click", async function () {
+    try {
+        await fetch("http://127.0.0.1:8000/logout", {
+            method: "POST",
+            credentials: "include"
+        });
+        window.location.href = "index.html";
+    } catch (error) {
+        console.error("Erro ao fazer logout:", error);
+    }
+});
+document.getElementById("editProfile").addEventListener("click", function () {
+    window.location.href = "editarcadastro.html";
+});
+
+// Preenche o campo "Tipo da Sala" com os dados do banco
+async function carregarTiposSala() {
+    try {
+        const response = await fetch('http://127.0.0.1:8000/tipos-sala'); // URL do endpoint
+        const tiposSala = await response.json();
+
+        const selectTipoSala = document.getElementById('tipoSala');
+        tiposSala.forEach(tipo => {
+            const option = document.createElement('option');
+            option.value = tipo.ID_Tipo_Sala; // Salva o ID do tipo de sala
+            option.textContent = tipo.Tipo; // Mostra o nome do tipo de sala
+            selectTipoSala.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar tipos de sala:', error);
+    }
+}
+
+// Chama a função ao carregar a página
+document.addEventListener('DOMContentLoaded', carregarTiposSala);
+
+document.getElementById("cadastroSalaForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    // Captura os valores do formulário
+    const tipoSalaId = document.getElementById("tipoSala").value;
+    const capacidade = document.getElementById("capacidade").value;
+    const tamanhoM2 = document.getElementById("tamanhoM2").value;
+    const valorHora = document.getElementById("valorHora").value;
+    const recursos = document.getElementById("recursos").value;
+    const tipoMobilia = document.getElementById("mobilario").value;
+    const cep = document.getElementById("cep").value.replace(/\D/g, '');
+    const rua = document.getElementById("rua").value;
+    const cidade = document.getElementById("cidade").value;
+    const estado = document.getElementById("estado").value;
+    const numero = document.getElementById("numero").value;
+    const complemento = document.getElementById("complemento").value;
+    const descricao = document.getElementById("descricao").value;
+
+    // Captura os valores dos checkboxes
+    const domingo = document.getElementById("domingo").checked ? 1 : 0;
+    const segunda = document.getElementById("segunda").checked ? 1 : 0;
+    const terca = document.getElementById("terca").checked ? 1 : 0;
+    const quarta = document.getElementById("quarta").checked ? 1 : 0;
+    const quinta = document.getElementById("quinta").checked ? 1 : 0;
+    const sexta = document.getElementById("sexta").checked ? 1 : 0;
+    const sabado = document.getElementById("sabado").checked ? 1 : 0;
+
+    // ID do usuário logado
+    const usuario = await fetchUsuarioLogado();
+    const fkUsuarioId = usuario.id;
+
+    // Monta o objeto para enviar ao backend
+    const sala = {
+        capacidade: parseInt(capacidade),
+        tamanho: parseFloat(tamanhoM2),
+        valor_hora: parseFloat(valorHora),
+        recursos,
+        tipo_mobilia: tipoMobilia,
+        cep,
+        rua,
+        cidade,
+        estado,
+        numero: parseInt(numero),
+        complemento,
+        descricao,
+        fk_tipo_sala_id: parseInt(tipoSalaId),
+        fk_usuario_id: parseInt(fkUsuarioId),
+        domingo,
+        segunda,
+        terca,
+        quarta,
+        quinta,
+        sexta,
+        sabado,
+        status: 1 // Status padrão
+    };
+
+    try {
+        // Envia os dados ao backend
+        const response = await fetch("http://127.0.0.1:8000/salas", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(sala)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            Swal.fire({
+                title: "Sucesso!",
+                text: result.message,
+                icon: "success",
+                confirmButtonText: "Ok",
+                background: "#121212",
+                color: "#fff"
+            }).then(() => {
+                window.location.href = "index.html"; // Redireciona após o cadastro
+            });
+        } else {
+            Swal.fire({
+                title: "Erro!",
+                text: result.message,
+                icon: "error",
+                confirmButtonText: "Ok",
+                background: "#121212",
+                color: "#fff"
+            });
+        }
+    } catch (error) {
+        console.error("Erro ao cadastrar sala:", error);
+        Swal.fire({
+            title: "Erro!",
+            text: "Ocorreu um erro ao cadastrar a sala.",
+            icon: "error",
+            confirmButtonText: "Ok",
+            background: "#121212",
+            color: "#fff"
+        });
+    }
+});
+
     </script>
 </body>
 

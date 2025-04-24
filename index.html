@@ -33,6 +33,8 @@
         </ul>
         <div class="ms-lg-3 mt-3 mt-lg-0" id="auth-buttons">
           <a href="login.html" class="btn btn-outline-primary" id="login-btn">Login</a>
+    
+
         </div>
       </div>
     </div>
@@ -324,28 +326,44 @@
       });
     });
     async function verificarLogin() {
-    try {
-      const response = await fetch("http://127.0.0.1:8000/usuario-logado", {
-        credentials: "include"
-      });
-      const data = await response.json();
+  try {
+    const response = await fetch("http://127.0.0.1:8000/usuario-logado", {
+      credentials: "include"
+    });
+    const data = await response.json();
 
-      const authDiv = document.getElementById("auth-buttons");
+    const authDiv = document.getElementById("auth-buttons");
 
-      if (data.logado) {
-        // Se logado, mostra nome + logout
-        authDiv.innerHTML = `
-          <span class="me-2">Olá, ${data.nome}!</span>
-          <a href = "editarcadastro.html" class="btn btn-outline-light btn-sm me-2">Editar usuário?</a>
-          <button class="btn btn-outline-danger" onclick="logout()">Logout</button>
-          
-        `;
+    if (data.logado) {
+      // Se logado, mostra nome + logout
+      authDiv.innerHTML = `
+        <span class="me-2">Olá, ${data.nome}!</span>
+        <a href="editarcadastro.html" class="btn btn-outline-light btn-sm me-2" id="editProfile">Editar usuário?</a>
+        <button class="btn btn-outline-danger" id="logout">Logout</button>
+      `;
+
+      // Exibe o botão "Editar Salas" apenas para usuários com papel = 2
+      if (data.papel === 2) {
+        const editSalasButton = document.createElement("button");
+        editSalasButton.className = "btn btn-outline-light btn-sm me-2";
+        editSalasButton.textContent = "Editar Salas";
+        editSalasButton.onclick = () => {
+          window.location.href = "editarsala.html";
+        };
+
+        // Insere o botão "Editar Salas" após o botão "Editar Usuário"
+        const editProfileButton = document.getElementById("editProfile");
+        editProfileButton.insertAdjacentElement("afterend", editSalasButton);
       }
-    } catch (error) {
-      console.error("Erro ao verificar login:", error);
-    }
-  }
 
+      // Reatribui o evento ao botão "Logout"
+      document.getElementById("logout").addEventListener("click", logout);
+
+    }
+  } catch (error) {
+    console.error("Erro ao verificar login:", error);
+  }
+}
   async function logout() {
     try {
       await fetch("http://127.0.0.1:8000/logout", {
@@ -379,6 +397,8 @@
       });
     });
   });
+
+  
   </script>
 </body>
 

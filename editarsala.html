@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editar Salas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">
+        <img src="images/logoSemFundo.png" alt="Roomly Logo">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="cadastroSala.html">Cadastrar Sala</a></li>
+          <li class="nav-item"><a class="nav-link" href="contato.html">Contato</a></li>
+        </ul>
+        <div class="ms-lg-3 mt-3 mt-lg-0 d-flex align-items-center">
+          <span id="userName" class="text-white me-3"></span>
+          <button id="logout" class="btn btn-outline-danger">Logout</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="container mt-5 pt-5">
+    <h1 class="text-center mb-4">Minhas Salas</h1>
+    <div id="salas-container" class="row g-4">
+      <!-- Blocos de salas serão inseridos aqui dinamicamente -->
+    </div>
+  </section>
+
+  <script>
+    async function fetchSalas() {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/minhas-salas", {
+          method: "GET",
+          credentials: "include"
+        });
+        const salas = await response.json();
+  
+        const salasContainer = document.getElementById("salas-container");
+        salasContainer.innerHTML = ""; // Limpa o container antes de adicionar as salas
+  
+        salas.forEach(sala => {
+          const salaCard = document.createElement("div");
+          salaCard.className = "col-md-4";
+  
+          salaCard.innerHTML = `
+            <div class="card shadow-sm">
+              <div class="card-body">
+                <p class="card-text"><strong>Tipo:</strong> ${sala.tipo}</p>
+                <p class="card-text"><strong>Endereço:</strong> ${sala.rua}, ${sala.numero}, ${sala.cidade} - ${sala.estado}</p>
+                <div class="d-flex justify-content-between">
+                  <button class="btn btn-primary btn-sm" onclick="editarSala(${sala.id})">Editar</button>
+                  <button class="btn btn-danger btn-sm" onclick="excluirSala(${sala.id})">Excluir</button>
+                </div>
+              </div>
+            </div>
+          `;
+  
+          salasContainer.appendChild(salaCard);
+        });
+      } catch (error) {
+        console.error("Erro ao buscar salas:", error);
+      }
+    }
+  
+    function editarSala(id) {
+      // Redireciona para a página de edição com o ID da sala
+      window.location.href = `formularioEdicao.html?salaId=${id}`;
+    }
+  
+    async function excluirSala(id) {
+  if (confirm("Tem certeza que deseja excluir esta sala?")) {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/salas/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        alert("Sala excluída com sucesso!");
+        window.location.reload(); // Recarrega a página para atualizar a lista
+      } else {
+        alert("Erro ao excluir sala: " + result.message);
+      }
+    } catch (error) {
+      console.error("Erro ao excluir sala:", error);
+    }
+  }
+}
+  
+    // Chama a função para buscar as salas ao carregar a página
+    document.addEventListener("DOMContentLoaded", () => {
+      verificarLogin();
+      fetchSalas();
+    });
+  
+    async function verificarLogin() {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/usuario-logado", {
+          credentials: "include"
+        });
+        const data = await response.json();
+  
+        const userNameSpan = document.getElementById("userName");
+  
+        if (data.logado) {
+          // Exibe o nome do usuário logado
+          userNameSpan.textContent = `Olá, ${data.nome}!`;
+  
+          // Configura o botão de logout
+          document.getElementById("logout").addEventListener("click", async () => {
+            try {
+              await fetch("http://127.0.0.1:8000/logout", {
+                method: "POST",
+                credentials: "include"
+              });
+              window.location.href = "index.html"; // Redireciona para a página inicial após o logout
+            } catch (error) {
+              console.error("Erro ao fazer logout:", error);
+            }
+          });
+        } else {
+          // Redireciona para a página de login se o usuário não estiver logado
+          window.location.href = "login.html";
+        }
+      } catch (error) {
+        console.error("Erro ao verificar login:", error);
+      }
+    }
+  </script>
+
+
+</body>
+
+</html>
