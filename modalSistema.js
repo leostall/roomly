@@ -1,0 +1,940 @@
+// ***  MODAL DE EDIÇÃO DE USUÁRIO  ***
+function showEditUserModal() {
+  if (document.getElementById('editUserModal')) {
+    document.getElementById('editUserModal').remove();
+  }
+
+  // Cria a estrutura da modal
+  const modalHTML = `
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editUserModalLabel">Editar cadastro</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="registrationForm">
+              <div class="mb-3">
+                <label for="modalEmail" class="form-label">Email<span class="required">*</span></label>
+                <input type="text" class="form-control" id="modalEmail" placeholder="nome@exemplo.com">
+              </div>
+              <div class="mb-3">
+                <label for="modalNome" class="form-label">Nome completo (No máximo 100 caracteres)<span class="required">*</span></label>
+                <input type="text" class="form-control" id="modalNome" placeholder="Insira o nome">
+              </div>
+              <div class="mb-3">
+                <label for="modalTelefone" class="form-label">Telefone<span class="required">*</span></label>
+                <input type="tel" class="form-control" id="modalTelefone" placeholder="(00) 00000-0000">
+              </div>
+              <div class="mb-3">
+                <label for="modalCpf" class="form-label">CPF<span class="required">*</span></label>
+                <input type="text" class="form-control" id="modalCpf" placeholder="000.000.000-00" maxlength="14">
+              </div>
+              <div class="mb-3 password-wrapper position-relative">
+                <label for="modalPassword" class="form-label">Senha<span class="required">*</span></label>
+                <input type="password" class="form-control" id="modalPassword" placeholder="Inserir Senha">
+                <i class="bi bi-eye toggle-password" onclick="togglePassword('modalPassword', this)"
+                  style="position: absolute; top: 70%; right: 10px; transform: translateY(-50%); cursor: pointer;"></i>
+                <div class="password-hint">A senha deve ter pelo menos 8 caracteres, incluindo uma letra maiúscula, uma
+                  minúscula, um número e um caractere especial.</div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" id="modalExcluirConta">Excluir Conta</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="modalEditarConta">Salvar alterações</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Adiciona a modal ao body
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+  // Carrega os dados do usuário
+  loadUserData();
+
+  // Inicializa a modal
+  const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+  modal.show();
+
+  // Configura os eventos
+  setupModalEvents();
+}
+
+// Função para carregar os dados do usuário
+function loadUserData() {
+  fetch("http://127.0.0.1:8000/usuario-logado", {
+    method: "GET",
+    credentials: "include",
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.logado) {
+        document.getElementById("modalNome").value = data.nome;
+        document.getElementById("modalEmail").value = data.email;
+        document.getElementById("modalTelefone").value = data.telefone;
+        document.getElementById("modalCpf").value = data.cpf;
+      } else {
+        window.location.href = "/login.html";
+      }
+    })
+    .catch(error => {
+      console.error("Erro ao buscar dados do usuário:", error);
+    });
+}
+
+// Função para configurar os eventos da modal
+function setupModalEvents() {
+  // Evento para mostrar/ocultar senha
+  document.getElementById("modalPassword").addEventListener("input", function () {
+    const hint = this.nextElementSibling.nextElementSibling;
+    hint.style.display = isValidPassword(this.value) ? "none" : "block";
+  });
+
+  // Evento para excluir conta
+  document.getElementById("modalExcluirConta").addEventListener("click", function () {
+    Swal.fire({
+      title: "Tem certeza?",
+      text: "Essa ação irá excluir sua conta permanentemente.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sim, excluir",
+      cancelButtonText: "Cancelar",
+      background: "#121212",
+      color: "#ffffff",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#6c757d"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch("http://127.0.0.1:8000/excluir-conta", {
+          method: "DELETE",
+          credentials: "include"
+        })
+          .then(response => response.json())
+          .then(data => {
+            Swal.fire({
+              title: "Conta excluída!",
+              text: data.message,
+              icon: "success",
+              background: "#121212",
+              color: "#ffffff"
+            }).then(() => {
+              window.location.href = "login.html";
+            });
+          })
+          .catch(error => {
+            Swal.fire({
+              title: "Erro!",
+              text: error.message,
+              icon: "error",
+              background: "#121212",
+              color: "#ffffff"
+            });
+          });
+      }
+    });
+  });
+
+  // Evento para editar conta
+  document.getElementById("modalEditarConta").addEventListener("click", function () {
+    const nome = document.getElementById("modalNome").value;
+    const email = document.getElementById("modalEmail").value;
+    const telefone = document.getElementById("modalTelefone").value;
+    const cpf = document.getElementById("modalCpf").value;
+    const senha = document.getElementById("modalPassword").value;
+
+    fetch("http://127.0.0.1:8000/editar-usuario", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        nome: nome,
+        email: email,
+        telefone: telefone,
+        cpf: cpf,
+        senha: senha
+      })
+    })
+      .then(response => response.json())
+      .then(data => {
+        Swal.fire({
+          title: "Alterações salvas!",
+          text: data.message,
+          icon: "success",
+          background: "#121212",
+          color: "#ffffff"
+        }).then(() => {
+          // Fecha a modal após salvar
+          bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+        });
+      })
+      .catch(error => {
+        Swal.fire({
+          title: "Erro!",
+          text: error.message,
+          icon: "error",
+          background: "#121212",
+          color: "#ffffff"
+        });
+      });
+  });
+}
+
+function togglePassword(id, icon) {
+  const input = document.getElementById(id);
+  input.type = input.type === "password" ? "text" : "password";
+  icon.classList.toggle("bi-eye");
+  icon.classList.toggle("bi-eye-slash");
+}
+
+function isValidPassword(password) {
+  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
+}
+
+
+
+// *** MODAL DE CADASTRO DE SALA ***
+function showCadastroSalaModal() {
+  if (document.getElementById('cadastroSalaModal')) {
+    document.getElementById('cadastroSalaModal').remove();
+  }
+
+  // Cria a estrutura da modal
+  const modalHTML = `
+    <div class="modal fade" id="cadastroSalaModal" tabindex="-1" aria-labelledby="cadastroSalaModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="cadastroSalaModalLabel">Cadastro de Sala</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="cadastroSalaForm">
+              <div class="row g-3">
+                <!-- Tipo da Sala -->
+                <div class="col-12 col-md-6">
+                  <label for="modalTipoSala" class="form-label">Tipo da Sala *</label>
+                  <select class="form-control" id="modalTipoSala" required>
+                    <option value="" disabled selected>Selecione um tipo</option>
+                  </select>
+                </div>
+                
+                <!-- Capacidade -->
+                <div class="col-12 col-md-6">
+                  <label for="modalCapacidade" class="form-label">Capacidade *</label>
+                  <input type="number" class="form-control" id="modalCapacidade" placeholder="Capacidade" min="1" required>
+                </div>
+
+                <!-- Tamanho m² -->
+                <div class="col-12 col-md-4">
+                  <label for="modalTamanhoM2" class="form-label">Tamanho m² *</label>
+                  <input type="number" class="form-control" id="modalTamanhoM2" placeholder="Tamanho m²" min="1" required>
+                </div>
+
+                <!-- Valor Hora -->
+                <div class="col-12 col-md-4">
+                  <label for="modalValorHora" class="form-label">Valor hora (R$) *</label>
+                  <input type="number" class="form-control" id="modalValorHora" placeholder="Valor R$" min="1" required>
+                </div>
+
+                <!-- CEP -->
+                <div class="col-12 col-md-4">
+                  <label for="modalCep" class="form-label">CEP *</label>
+                  <input type="text" class="form-control" id="modalCep" placeholder="Digite o CEP" required>
+                </div>
+
+                <!-- Endereço -->
+                <div class="col-12 col-md-8">
+                  <label for="modalRua" class="form-label">Rua *</label>
+                  <input type="text" class="form-control" id="modalRua" required>
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <label for="modalNumero" class="form-label">Número *</label>
+                  <input type="text" class="form-control" id="modalNumero" placeholder="Número" required>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="modalCidade" class="form-label">Cidade *</label>
+                  <input type="text" class="form-control" id="modalCidade" required>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="modalEstado" class="form-label">Estado *</label>
+                  <input type="text" class="form-control" id="modalEstado" required>
+                </div>
+
+                <div class="col-12">
+                  <label for="modalComplemento" class="form-label">Complemento</label>
+                  <input type="text" class="form-control" id="modalComplemento" placeholder="Complemento">
+                </div>
+
+                <!-- Recursos -->
+                <div class="col-12">
+                  <label for="modalRecursos" class="form-label">Recursos disponíveis *</label>
+                  <input type="text" class="form-control" id="modalRecursos" placeholder="Wi-Fi, projetor, TV, etc." required>
+                </div>
+
+                <!-- Mobiliário -->
+                <div class="col-12">
+                  <label for="modalMobilario" class="form-label">Tipo de mobiliário *</label>
+                  <input type="text" class="form-control" id="modalMobilario" placeholder="Cadeiras, mesas, sofá, etc." required>
+                </div>
+
+                <!-- Descrição -->
+                <div class="col-12">
+                  <label for="modalDescricao" class="form-label">Descrição *</label>
+                  <input type="text" class="form-control" id="modalDescricao" placeholder="Breve descrição da sala." required>
+                </div>
+
+                <!-- Disponibilidade -->
+                <div class="col-12">
+                  <label class="form-label">Disponibilidade (dias da semana) *</label>
+                  <div class="d-flex flex-wrap gap-2">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="modalDomingo">
+                      <label class="form-check-label" for="modalDomingo">Domingo</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="modalSegunda">
+                      <label class="form-check-label" for="modalSegunda">Segunda-feira</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="modalTerca">
+                      <label class="form-check-label" for="modalTerca">Terça-feira</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="modalQuarta">
+                      <label class="form-check-label" for="modalQuarta">Quarta-feira</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="modalQuinta">
+                      <label class="form-check-label" for="modalQuinta">Quinta-feira</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="modalSexta">
+                      <label class="form-check-label" for="modalSexta">Sexta-feira</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="modalSabado">
+                      <label class="form-check-label" for="modalSabado">Sábado</label>
+                    </div>
+                  </div>
+                  <div class="invalid-feedback">Selecione pelo menos um dia da semana</div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="modalSalvarSala">Salvar Sala</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Adiciona a modal ao body
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+  // Configura os eventos e carrega os dados necessários
+  setupCadastroSalaModal();
+
+  // Inicializa a modal
+  const modal = new bootstrap.Modal(document.getElementById('cadastroSalaModal'));
+  modal.show();
+}
+
+// Função para configurar a modal de cadastro de sala
+function setupCadastroSalaModal() {
+  // Carrega os tipos de sala
+  carregarTiposSalaModal();
+
+  // Configura máscara para o CEP
+  document.getElementById("modalCep").addEventListener("input", function (e) {
+    let cep = e.target.value.replace(/\D/g, '');
+    if (cep.length <= 5) {
+      e.target.value = cep.replace(/(\d{5})(\d{0,3})/, '$1-$2');
+    } else {
+      cep = cep.slice(0, 8);
+      e.target.value = cep.replace(/(\d{5})(\d{3})/, '$1-$2');
+    }
+  });
+
+  // Busca endereço pelo CEP
+  document.getElementById('modalCep').addEventListener('blur', async function () {
+    const cep = this.value.replace(/\D/g, '');
+    if (cep.length !== 8) return;
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await response.json();
+
+      if (!data.erro) {
+        document.getElementById('modalRua').value = data.logradouro || '';
+        document.getElementById('modalCidade').value = data.localidade || '';
+        document.getElementById('modalEstado').value = data.uf || '';
+      }
+    } catch (error) {
+      console.error("Erro ao buscar CEP:", error);
+    }
+  });
+
+  // Validação em tempo real para campos obrigatórios
+  document.querySelectorAll('#cadastroSalaForm [required]').forEach(field => {
+    field.addEventListener('input', function () {
+      if (this.value) {
+        this.classList.remove('is-invalid');
+      }
+    });
+  });
+
+  // Evento para salvar a sala
+  document.getElementById("modalSalvarSala").addEventListener("click", async function () {
+    // Verifica se pelo menos um dia foi selecionado
+    const checkboxes = document.querySelectorAll('#cadastroSalaForm .form-check-input');
+    let atLeastOneChecked = false;
+    checkboxes.forEach(checkbox => {
+      if (checkbox.checked) atLeastOneChecked = true;
+    });
+
+    if (!atLeastOneChecked) {
+      document.querySelector('#cadastroSalaForm .invalid-feedback').style.display = 'block';
+      return;
+    }
+
+    // Verifica campos obrigatórios
+    const requiredFields = document.querySelectorAll('#cadastroSalaForm [required]');
+    let isValid = true;
+
+    requiredFields.forEach(field => {
+      if (!field.value) {
+        field.classList.add('is-invalid');
+        isValid = false;
+      }
+    });
+
+    if (!isValid) {
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Preencha todos os campos obrigatórios.',
+        icon: 'error',
+        confirmButtonText: 'Ok',
+        background: '#121212',
+        color: '#fff'
+      });
+      return;
+    }
+
+    // Captura os dados do formulário
+    const tipoSalaId = document.getElementById("modalTipoSala").value;
+    const capacidade = document.getElementById("modalCapacidade").value;
+    const tamanhoM2 = document.getElementById("modalTamanhoM2").value;
+    const valorHora = document.getElementById("modalValorHora").value;
+    const recursos = document.getElementById("modalRecursos").value;
+    const tipoMobilia = document.getElementById("modalMobilario").value;
+    const cep = document.getElementById("modalCep").value.replace(/\D/g, '');
+    const rua = document.getElementById("modalRua").value;
+    const cidade = document.getElementById("modalCidade").value;
+    const estado = document.getElementById("modalEstado").value;
+    const numero = document.getElementById("modalNumero").value;
+    const complemento = document.getElementById("modalComplemento").value;
+    const descricao = document.getElementById("modalDescricao").value;
+
+    // Captura a disponibilidade
+    const domingo = document.getElementById("modalDomingo").checked ? 1 : 0;
+    const segunda = document.getElementById("modalSegunda").checked ? 1 : 0;
+    const terca = document.getElementById("modalTerca").checked ? 1 : 0;
+    const quarta = document.getElementById("modalQuarta").checked ? 1 : 0;
+    const quinta = document.getElementById("modalQuinta").checked ? 1 : 0;
+    const sexta = document.getElementById("modalSexta").checked ? 1 : 0;
+    const sabado = document.getElementById("modalSabado").checked ? 1 : 0;
+
+    // Obtém o ID do usuário logado
+    const usuario = await fetchUsuarioLogado();
+    const fkUsuarioId = usuario.id;
+
+    // Monta o objeto para enviar ao backend
+    const sala = {
+      capacidade: parseInt(capacidade),
+      tamanho: parseFloat(tamanhoM2),
+      valor_hora: parseFloat(valorHora),
+      recursos,
+      tipo_mobilia: tipoMobilia,
+      cep,
+      rua,
+      cidade,
+      estado,
+      numero: parseInt(numero),
+      complemento,
+      descricao,
+      fk_tipo_sala_id: parseInt(tipoSalaId),
+      fk_usuario_id: parseInt(fkUsuarioId),
+      domingo,
+      segunda,
+      terca,
+      quarta,
+      quinta,
+      sexta,
+      sabado,
+      status: 1
+    };
+
+    try {
+      // Envia os dados ao backend
+      const response = await fetch("http://127.0.0.1:8000/salas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(sala)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        Swal.fire({
+          title: "Sucesso!",
+          text: result.message,
+          icon: "success",
+          confirmButtonText: "Ok",
+          background: "#121212",
+          color: "#fff"
+        }).then(() => {
+          // Fecha a modal
+          bootstrap.Modal.getInstance(document.getElementById('cadastroSalaModal')).hide();
+          // Redireciona para a página de edição de salas
+          window.location.href = "editarsala.html";
+        });
+      } else {
+        Swal.fire({
+          title: "Erro!",
+          text: result.message,
+          icon: "error",
+          confirmButtonText: "Ok",
+          background: "#121212",
+          color: "#fff"
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao cadastrar sala:", error);
+      Swal.fire({
+        title: "Erro!",
+        text: "Ocorreu um erro ao cadastrar a sala.",
+        icon: "error",
+        confirmButtonText: "Ok",
+        background: "#121212",
+        color: "#fff"
+      });
+    }
+  });
+}
+
+// Função para carregar os tipos de sala na modal
+async function carregarTiposSalaModal() {
+  try {
+    const response = await fetch('http://127.0.0.1:8000/tipos-sala');
+    const tiposSala = await response.json();
+
+    const selectTipoSala = document.getElementById('modalTipoSala');
+    tiposSala.forEach(tipo => {
+      const option = document.createElement('option');
+      option.value = tipo.ID_Tipo_Sala;
+      option.textContent = tipo.Tipo;
+      selectTipoSala.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Erro ao carregar tipos de sala:', error);
+  }
+}
+
+// Função auxiliar para obter usuário logado
+async function fetchUsuarioLogado() {
+  try {
+    const response = await fetch("http://127.0.0.1:8000/usuario-logado", {
+      method: "GET",
+      credentials: "include"
+    });
+    const data = await response.json();
+
+    if (data.logado) {
+      return data;
+    } else {
+      window.location.href = "login.html";
+      return null;
+    }
+  } catch (error) {
+    console.error("Erro ao buscar usuário logado:", error);
+    window.location.href = "login.html";
+    return null;
+  }
+}
+
+// *** MODAL DE EDIÇÃO DE SALA ***
+function showEditSalaModal(salaId) {
+  if (document.getElementById('editSalaModal')) {
+    document.getElementById('editSalaModal').remove();
+  }
+
+  // Cria a estrutura da modal
+  const modalHTML = `
+    <div class="modal fade" id="editSalaModal" tabindex="-1" aria-labelledby="editSalaModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editSalaModalLabel">Editar Sala</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="editarSalaForm" class="row g-3">
+              <div class="col-md-6">
+                <label for="modalEditTipoSala" class="form-label">Tipo de Sala</label>
+                <select id="modalEditTipoSala" class="form-select" required>
+                  <!-- Tipos de sala serão preenchidos dinamicamente -->
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="modalEditCapacidade" class="form-label">Capacidade</label>
+                <input type="number" class="form-control" id="modalEditCapacidade" required>
+              </div>
+              <div class="col-md-6">
+                <label for="modalEditTamanhoM2" class="form-label">Tamanho (m²)</label>
+                <input type="number" class="form-control" id="modalEditTamanhoM2" step="0.01" required>
+              </div>
+              <div class="col-md-6">
+                <label for="modalEditValorHora" class="form-label">Valor por Hora</label>
+                <input type="number" class="form-control" id="modalEditValorHora" step="0.01" required>
+              </div>
+              <div class="col-md-12">
+                <label for="modalEditRecursos" class="form-label">Recursos Disponíveis</label>
+                <input type="text" class="form-control" id="modalEditRecursos" required>
+              </div>
+              <div class="col-md-12">
+                <label for="modalEditMobilario" class="form-label">Tipo de Mobiliário</label>
+                <input type="text" class="form-control" id="modalEditMobilario" required>
+              </div>
+              <div class="col-md-6">
+                <label for="modalEditCep" class="form-label">CEP</label>
+                <input type="text" class="form-control" id="modalEditCep" required>
+              </div>
+              <div class="col-md-6">
+                <label for="modalEditRua" class="form-label">Rua</label>
+                <input type="text" class="form-control" id="modalEditRua" required>
+              </div>
+              <div class="col-md-6">
+                <label for="modalEditNumero" class="form-label">Número</label>
+                <input type="number" class="form-control" id="modalEditNumero" required>
+              </div>
+              <div class="col-md-6">
+                <label for="modalEditCidade" class="form-label">Cidade</label>
+                <input type="text" class="form-control" id="modalEditCidade" required>
+              </div>
+              <div class="col-md-6">
+                <label for="modalEditEstado" class="form-label">Estado</label>
+                <input type="text" class="form-control" id="modalEditEstado" required>
+              </div>
+              <div class="col-md-6">
+                <label for="modalEditComplemento" class="form-label">Complemento</label>
+                <input type="text" class="form-control" id="modalEditComplemento">
+              </div>
+              <div class="col-md-12">
+                <label for="modalEditDescricao" class="form-label">Descrição</label>
+                <textarea class="form-control" id="modalEditDescricao" rows="3" required></textarea>
+              </div>
+              <div class="col-md-12">
+                <label class="form-label">Disponibilidade</label>
+                <div class="d-flex flex-wrap gap-3">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="modalEditDomingo">
+                    <label class="form-check-label" for="modalEditDomingo">Domingo</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="modalEditSegunda">
+                    <label class="form-check-label" for="modalEditSegunda">Segunda</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="modalEditTerca">
+                    <label class="form-check-label" for="modalEditTerca">Terça</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="modalEditQuarta">
+                    <label class="form-check-label" for="modalEditQuarta">Quarta</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="modalEditQuinta">
+                    <label class="form-check-label" for="modalEditQuinta">Quinta</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="modalEditSexta">
+                    <label class="form-check-label" for="modalEditSexta">Sexta</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="modalEditSabado">
+                    <label class="form-check-label" for="modalEditSabado">Sábado</label>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" id="modalExcluirSala">Excluir Sala</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="modalSalvarSala">Salvar Alterações</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Adiciona a modal ao body
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+  // Carrega os dados da sala
+  loadSalaData(salaId);
+
+  // Configura os eventos
+  setupEditSalaModal(salaId);
+
+  // Inicializa a modal
+  const modal = new bootstrap.Modal(document.getElementById('editSalaModal'));
+  modal.show();
+}
+
+// Função para carregar os dados da sala
+async function loadSalaData(salaId) {
+  try {
+    const response = await fetch(`http://127.0.0.1:8000/salas/${salaId}`, {
+      method: "GET",
+      credentials: "include"
+    });
+    const sala = await response.json();
+
+    if (!sala || response.status !== 200) {
+      console.error("Erro: Sala não encontrada ou dados inválidos.");
+      return;
+    }
+
+    // Preenche os campos do formulário com os dados da sala
+    await preencherTiposSalaModal(sala.tipo_sala_id);
+    document.getElementById("modalEditCapacidade").value = sala.capacidade || "";
+    document.getElementById("modalEditTamanhoM2").value = sala.tamanho || "";
+    document.getElementById("modalEditValorHora").value = sala.valor_hora || "";
+    document.getElementById("modalEditRecursos").value = sala.recursos || "";
+    document.getElementById("modalEditMobilario").value = sala.tipo_mobilia || "";
+    document.getElementById("modalEditCep").value = sala.cep || "";
+    document.getElementById("modalEditRua").value = sala.rua || "";
+    document.getElementById("modalEditNumero").value = sala.numero || "";
+    document.getElementById("modalEditCidade").value = sala.cidade || "";
+    document.getElementById("modalEditEstado").value = sala.estado || "";
+    document.getElementById("modalEditComplemento").value = sala.complemento || "";
+    document.getElementById("modalEditDescricao").value = sala.descricao || "";
+
+    // Preenche os checkboxes
+    document.getElementById("modalEditDomingo").checked = sala.disponibilidade.domingo;
+    document.getElementById("modalEditSegunda").checked = sala.disponibilidade.segunda;
+    document.getElementById("modalEditTerca").checked = sala.disponibilidade.terca;
+    document.getElementById("modalEditQuarta").checked = sala.disponibilidade.quarta;
+    document.getElementById("modalEditQuinta").checked = sala.disponibilidade.quinta;
+    document.getElementById("modalEditSexta").checked = sala.disponibilidade.sexta;
+    document.getElementById("modalEditSabado").checked = sala.disponibilidade.sabado;
+
+  } catch (error) {
+    console.error("Erro ao buscar dados da sala:", error);
+    Swal.fire({
+      title: "Erro!",
+      text: "Não foi possível carregar os dados da sala.",
+      icon: "error",
+      background: "#121212",
+      color: "#ffffff"
+    });
+  }
+}
+
+// Função para configurar a modal de edição de sala
+function setupEditSalaModal(salaId) {
+  // Configura máscara para o CEP
+  document.getElementById("modalEditCep").addEventListener("input", function (e) {
+    let cep = e.target.value.replace(/\D/g, '');
+    if (cep.length <= 5) {
+      e.target.value = cep.replace(/(\d{5})(\d{0,3})/, '$1-$2');
+    } else {
+      cep = cep.slice(0, 8);
+      e.target.value = cep.replace(/(\d{5})(\d{3})/, '$1-$2');
+    }
+  });
+
+  // Busca endereço pelo CEP
+  document.getElementById('modalEditCep').addEventListener('blur', async function () {
+    const cep = this.value.replace(/\D/g, '');
+    if (cep.length !== 8) return;
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await response.json();
+
+      if (!data.erro) {
+        document.getElementById('modalEditRua').value = data.logradouro || '';
+        document.getElementById('modalEditCidade').value = data.localidade || '';
+        document.getElementById('modalEditEstado').value = data.uf || '';
+      }
+    } catch (error) {
+      console.error("Erro ao buscar CEP:", error);
+    }
+  });
+
+  // Evento para excluir sala
+  document.getElementById("modalExcluirSala").addEventListener("click", function () {
+    Swal.fire({
+      title: "Tem certeza?",
+      text: "Essa ação irá excluir a sala permanentemente.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sim, excluir",
+      cancelButtonText: "Cancelar",
+      background: "#121212",
+      color: "#ffffff",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#6c757d"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await fetch(`http://127.0.0.1:8000/salas/${salaId}`, {
+            method: "DELETE",
+            credentials: "include"
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            Swal.fire({
+              title: "Sala excluída!",
+              text: result.message,
+              icon: "success",
+              background: "#121212",
+              color: "#ffffff"
+            }).then(() => {
+              // Fecha a modal e recarrega a página
+              bootstrap.Modal.getInstance(document.getElementById('editSalaModal')).hide();
+              window.location.reload();
+            });
+          } else {
+            throw new Error(result.detail || "Erro ao excluir sala");
+          }
+        } catch (error) {
+          Swal.fire({
+            title: "Erro!",
+            text: error.message,
+            icon: "error",
+            background: "#121212",
+            color: "#ffffff"
+          });
+        }
+      }
+    });
+  });
+
+  // Evento para salvar alterações
+  document.getElementById("modalSalvarSala").addEventListener("click", async function () {
+    const userId = await obterIdUsuarioLogado();
+
+    const sala = {
+      capacidade: parseInt(document.getElementById("modalEditCapacidade").value, 10),
+      tamanho: parseFloat(document.getElementById("modalEditTamanhoM2").value),
+      valor_hora: parseFloat(document.getElementById("modalEditValorHora").value),
+      recursos: document.getElementById("modalEditRecursos").value,
+      tipo_mobilia: document.getElementById("modalEditMobilario").value,
+      cep: document.getElementById("modalEditCep").value,
+      rua: document.getElementById("modalEditRua").value,
+      numero: parseInt(document.getElementById("modalEditNumero").value, 10),
+      cidade: document.getElementById("modalEditCidade").value,
+      estado: document.getElementById("modalEditEstado").value,
+      complemento: document.getElementById("modalEditComplemento").value,
+      descricao: document.getElementById("modalEditDescricao").value,
+      fk_tipo_sala_id: parseInt(document.getElementById("modalEditTipoSala").value, 10),
+      domingo: document.getElementById("modalEditDomingo").checked ? 1 : 0,
+      segunda: document.getElementById("modalEditSegunda").checked ? 1 : 0,
+      terca: document.getElementById("modalEditTerca").checked ? 1 : 0,
+      quarta: document.getElementById("modalEditQuarta").checked ? 1 : 0,
+      quinta: document.getElementById("modalEditQuinta").checked ? 1 : 0,
+      sexta: document.getElementById("modalEditSexta").checked ? 1 : 0,
+      sabado: document.getElementById("modalEditSabado").checked ? 1 : 0,
+      status: 1,
+      fk_usuario_id: userId
+    };
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/salas/${salaId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(sala)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        Swal.fire({
+          title: "Sucesso!",
+          text: result.message,
+          icon: "success",
+          background: "#121212",
+          color: "#ffffff"
+        }).then(() => {
+          // Fecha a modal e recarrega a página
+          bootstrap.Modal.getInstance(document.getElementById('editSalaModal')).hide();
+          window.location.reload();
+        });
+      } else {
+        throw new Error(result.detail || "Erro ao atualizar sala");
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Erro!",
+        text: error.message,
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+    }
+  });
+}
+
+// Função para preencher os tipos de sala na modal
+async function preencherTiposSalaModal(tipoSalaSelecionado) {
+  try {
+    const response = await fetch("http://127.0.0.1:8000/tipos-sala", {
+      method: "GET",
+      credentials: "include"
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao buscar tipos de sala");
+    }
+
+    const tiposSala = await response.json();
+    const dropdown = document.getElementById("modalEditTipoSala");
+    dropdown.innerHTML = "";
+
+    tiposSala.forEach(tipo => {
+      const option = document.createElement("option");
+      option.value = tipo.ID_Tipo_Sala;
+      option.textContent = tipo.Tipo;
+      dropdown.appendChild(option);
+    });
+
+    // Seleciona o tipo de sala correspondente
+    if (tipoSalaSelecionado) {
+      dropdown.value = tipoSalaSelecionado;
+    }
+  } catch (error) {
+    console.error("Erro ao buscar tipos de sala:", error);
+  }
+}

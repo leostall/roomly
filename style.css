@@ -23,7 +23,7 @@ select.form-control {
 }
 
 select.form-control option {
-    color: #000; 
+    color: #000;
     background-color: #fff;
 }
 
@@ -581,6 +581,147 @@ h1 {
     max-width: 100%;
 }
 
+
+/* Dropdown styles */
+.dropdown-menu {
+    background: rgba(30, 30, 30, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 0.5rem 0;
+}
+
+.dropdown-item {
+    color: #ddd;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(67, 97, 238, 0.2);
+    color: var(--accent-color);
+}
+
+.dropdown-divider {
+    border-color: rgba(255, 255, 255, 0.1);
+    margin: 0.5rem 0;
+}
+
+.dropdown-toggle::after {
+    margin-left: 0.5rem;
+}
+
+/* Ajuste para o botão do dropdown */
+.btn-outline-primary.dropdown-toggle {
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+}
+
+/* Adicione ao arquivo style.css */
+
+/* Estilo para o link "Registrar sala" na navbar */
+.navbar-nav .nav-link[href="cadastroSala.html"] {
+    color: var(--accent-color) !important;
+    font-weight: 500;
+    position: relative;
+}
+
+.navbar-nav .nav-link[href="cadastroSala.html"]::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--accent-color);
+    transition: width 0.3s ease;
+}
+
+.navbar-nav .nav-link[href="cadastroSala.html"]:hover::after {
+    width: 100%;
+}
+
+.navbar-nav .nav-link[href="cadastroSala.html"]:hover {
+    color: var(--accent-color) !important;
+}
+
+/* Modal styles */
+.modal-content {
+    background: rgba(30, 30, 30, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-title {
+    color: var(--accent-color);
+}
+
+.btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.password-hint {
+    font-size: 0.9em;
+    color: #ff6b6b;
+    display: none;
+    margin-top: 5px;
+}
+
+/* Estilos para a modal de cadastro de sala */
+#cadastroSalaModal .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+#cadastroSalaModal .form-check {
+    display: inline-block;
+    margin-right: 15px;
+}
+
+#cadastroSalaModal .invalid-feedback {
+    display: none;
+    color: #ff6b6b;
+    font-size: 0.85em;
+    margin-top: 5px;
+}
+
+/* Ajustes para formulário dentro da modal */
+#cadastroSalaModal .form-control {
+    margin-bottom: 10px;
+}
+
+/* Estilos para a modal de edição de sala */
+#editSalaModal .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+#editSalaModal .form-check {
+    margin-right: 15px;
+    margin-bottom: 5px;
+}
+
+#editSalaModal .d-flex.flex-wrap {
+    gap: 10px;
+}
+
+/* Ajustes para formulário dentro da modal */
+#editSalaModal .form-control,
+#editSalaModal .form-select {
+    margin-bottom: 10px;
+}
+
+
 @keyframes float {
     0% {
         transform: translateY(0px);
@@ -641,6 +782,18 @@ h1 {
 }
 
 @media (max-width: 768px) {
+
+    #cadastroSalaModal .col-md-6,
+    #cadastroSalaModal .col-md-4,
+    #cadastroSalaModal .col-md-8 {
+        width: 100%;
+    }
+
+    #cadastroSalaModal .form-check {
+        display: block;
+        margin-bottom: 10px;
+    }
+
     h1 {
         font-size: 2rem;
     }
@@ -673,6 +826,31 @@ h1 {
     .form-container {
         padding: 1.5rem;
         margin: 1rem auto;
+    }
+
+    .modal-dialog {
+        margin: 1rem auto;
+    }
+
+    .modal-content {
+        border-radius: 10px;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+
+    #editSalaModal .col-md-6 {
+        width: 100%;
+    }
+
+    #editSalaModal .form-check {
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    #editSalaModal .d-flex.flex-wrap {
+        gap: 5px;
     }
 }
 

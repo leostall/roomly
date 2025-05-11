@@ -26,23 +26,44 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="index.html#features">Vantagens</a></li>
                     <li class="nav-item"><a class="nav-link" href="index.html#rooms">Salas</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="contato.html">Contato</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contato.html">Contato</a></li>
+                    <li class="nav-item" id="register-room-item" style="display: none;">
+                        <a class="nav-link" onclick="showCadastroSalaModal();">Registrar sala</a>
+                    </li>
                 </ul>
-                <div class="ms-lg-3 mt-3 mt-lg-0">
-                    <a href="login.html" class="btn btn-outline-primary">Login</a>
+                <div class="ms-lg-3 mt-3 mt-lg-0" id="auth-buttons">
+                    <div class="dropdown" id="user-dropdown" style="display: none;">
+                        <button class="btn btn-outline-primary dropdown-toggle" type="button" id="dropdownMenuButton"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <span id="user-greeting">Olá, Usuário!</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                            <li><a class="dropdown-item" onclick="showEditUserModal()">Editar usuário</a></li>
+                            <li><a class="dropdown-item" href="#" id="editRooms" style="display: none;">Editar salas</a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#" id="logout">Logout</a></li>
+                        </ul>
+                    </div>
+                    <a href="login.html" class="btn btn-outline-primary" id="login-btn">Login</a>
                 </div>
             </div>
         </div>
     </nav>
+
     <section class="contact-hero">
-        <div class="container py-5 d-flex justify-content-center align-items-center flex-column" style="min-height: 60vh;">
+        <div class="container py-5 d-flex justify-content-center align-items-center flex-column"
+            style="min-height: 60vh;">
             <h1 class="display-4 fw-bold mb-3 text-center" style="margin-top: 80px;">Fale Conosco</h1>
             <p class="lead text-center">Estamos aqui para ajudar você a encontrar o espaço perfeito</p>
         </div>
     </section>
+
     <section class="py-5">
         <div class="container">
             <div class="row g-4 mb-5">
@@ -252,11 +273,112 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="modalSistema.js"></script>
+
     <script>
         window.addEventListener('scroll', function () {
             const navbar = document.querySelector('.navbar');
-            navbar.classList.toggle('scrolled', window.scrollY > 50);
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
         });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        async function verificarLogin() {
+            try {
+                const response = await fetch("http://127.0.0.1:8000/usuario-logado", {
+                    credentials: "include"
+                });
+                const data = await response.json();
+
+                const authDiv = document.getElementById("auth-buttons");
+                const loginBtn = document.getElementById("login-btn");
+                const dropdown = document.getElementById("user-dropdown");
+                const greeting = document.getElementById("user-greeting");
+                const editRooms = document.getElementById("editRooms");
+                const registerRoomItem = document.getElementById("register-room-item");
+
+                if (data.logado) {
+                    // Esconde o botão de login
+                    loginBtn.style.display = "none";
+
+                    // Mostra o dropdown
+                    dropdown.style.display = "block";
+                    greeting.textContent = `Olá, ${data.nome}!`;
+
+                    // Mostra o botão "Editar Salas" e "Registrar Sala" apenas para usuários com papel = 2
+                    if (data.papel === 2) {
+                        editRooms.style.display = "block";
+                        registerRoomItem.style.display = "block";
+                        editRooms.onclick = () => {
+                            window.location.href = "editarSalas.html";
+                        };
+                    } else {
+                        editRooms.style.display = "none";
+                        registerRoomItem.style.display = "none";
+                    }
+
+                    // Configura o evento de logout
+                    document.getElementById("logout").addEventListener("click", function (e) {
+                        e.preventDefault();
+                        logout();
+                    });
+                } else {
+                    // Se não estiver logado, mostra o botão de login e esconde o dropdown e o item de registrar sala
+                    loginBtn.style.display = "block";
+                    dropdown.style.display = "none";
+                    registerRoomItem.style.display = "none";
+                }
+            } catch (error) {
+                console.error("Erro ao verificar login:", error);
+            }
+        }
+        async function logout() {
+            try {
+                await fetch("http://127.0.0.1:8000/logout", {
+                    method: "POST",
+                    credentials: "include"
+                });
+                window.location.reload(); // Recarrega a página para atualizar o botão
+            } catch (error) {
+                console.error("Erro ao fazer logout:", error);
+            }
+        }
+
+        // Chama quando a página carrega
+        window.addEventListener("DOMContentLoaded", verificarLogin);
+
+        // Já existia
+        window.addEventListener('scroll', function () {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+
     </script>
 </body>
 

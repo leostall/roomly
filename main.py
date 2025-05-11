@@ -14,7 +14,7 @@ app.add_middleware(SessionMiddleware, secret_key="roomly")
 # Middleware de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:3000"],  # ou o IP/porta onde seu frontend roda
+    allow_origins=["http://127.0.0.1:5500"],  # ou o IP/porta onde seu frontend roda
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -61,10 +61,10 @@ class Sala(BaseModel):
 # Conexão com banco
 def get_db_connection():
     return mysql.connector.connect(
-        host="",
-        user="",
+        host="127.0.0.1",
+        user="root",
         password="",
-        database=""
+        database="roomly"
     )
 
 # Criptografia
