@@ -27,9 +27,6 @@
           <li class="nav-item"><a class="nav-link" href="index.html#features">Vantagens</a></li>
           <li class="nav-item"><a class="nav-link" href="index.html#rooms">Salas</a></li>
           <li class="nav-item"><a class="nav-link" href="contato.html">Contato</a></li>
-          <li class="nav-item" id="register-room-item" style="display: none;">
-            <a class="nav-link" onclick="showCadastroSalaModal();">Registrar sala</a>
-          </li>
         </ul>
         <div class="ms-lg-3 mt-3 mt-lg-0" id="auth-buttons">
           <div class="dropdown" id="user-dropdown" style="display: none;">
@@ -38,13 +35,21 @@
               <span id="user-greeting">Olá, Usuário!</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
-              <li><a class="dropdown-item" onclick="showEditUserModal()">Editar usuário</a></li>
-              <li><a class="dropdown-item" href="#" id="editRooms" style="display: none;">Editar salas</a>
-              </li>
-              <li>
-                <hr class="dropdown-divider">
-              </li>
-              <li><a class="dropdown-item" href="#" id="logout">Logout</a></li>
+              <li><a class="dropdown-item" onclick="showEditUserModal()"><i class="bi bi-person me-2"></i>Editar
+                  usuário</a></li>
+              <!-- Itens administrativos (só aparecem para papel = 2) -->
+              <div id="admin-items" style="display: none;">
+                <li><a class="dropdown-item" href="#" id="editRooms"><i class="bi bi-pencil-square me-2"></i>Minhas
+                    Salas</a></li>
+                <li><a class="dropdown-item" onclick="showCadastroSalaModal();"><i
+                      class="bi bi-plus-circle me-2"></i>Registrar Sala</a></li>
+                <li><a class="dropdown-item" href="#" id="manage-room-types"><i class="bi bi-tags me-2"></i>Tipos de
+                    Sala</a></li>
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+              </div>
+              <li><a class="dropdown-item" href="#" id="logout"><i class="bi bi-box-arrow-right me-2"></i>Sair</a></li>
             </ul>
           </div>
           <a href="login.html" class="btn btn-outline-primary" id="login-btn">Login</a>
@@ -53,13 +58,19 @@
     </div>
   </nav>
 
+  <section class="edit-room-hero">
+    <div class="container py-5 d-flex justify-content-center align-items-center flex-column" style="min-height: 60vh;">
+      <h1 class="display-4 fw-bold mb-3 text-center" style="margin-top: 80px;">Minhas salas</h1>
+      <p class="lead text-center">Aqui você pode editar ou excluir suas salas.</p>
+    </div>
+  </section>
+
   <section class="container mt-5 pt-5">
-    <h1 class="text-center mb-4">Minhas Salas</h1>
     <div id="salas-container" class="row g-4">
     </div>
   </section>
 
-  <footer class="footer">
+  <footer class="footer" style="margin-top: 100px;">
     <div class="container">
       <div class="row g-4">
         <div class="col-lg-5 mb-4 mb-lg-0">
@@ -112,6 +123,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="modalSistema.js"></script>
+  <script src="auth.js"></script>
 
   <script>
     async function fetchSalas() {
@@ -125,27 +137,56 @@
         const salasContainer = document.getElementById("salas-container");
         salasContainer.innerHTML = ""; // Limpa o container antes de adicionar as salas
 
-        salas.forEach(sala => {
-          const salaCard = document.createElement("div");
-          salaCard.className = "col-md-4";
+        if (salas.length === 0) {
+          // Exibe mensagem quando não há salas (estilo do tema escuro)
+          salasContainer.innerHTML = `
+        <div class="col-12 text-center py-5">
+          <div class="alert alert-dark border-secondary text-white">
+            <i class="bi bi-info-circle-fill me-2 text-accent"></i>
+            Ops, parece que você ainda não registrou nenhuma sala.
+            <div class="mt-3">
+              <a onclick="showCadastroSalaModal();" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Registrar Sala
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+        } else {
+          // Adiciona as salas ao container com estilo do tema escuro
+          salas.forEach(sala => {
+            const salaCard = document.createElement("div");
+            salaCard.className = "col-md-4 mb-4";
 
-          salaCard.innerHTML = `
-            <div class="card shadow-sm">
-              <div class="card-body">
-                <p class="card-text"><strong>Tipo:</strong> ${sala.tipo}</p>
-                <p class="card-text"><strong>Endereço:</strong> ${sala.rua}, ${sala.numero}, ${sala.cidade} - ${sala.estado}</p>
-                <div class="d-flex justify-content-between">
-                  <button class="btn btn-primary btn-sm" onclick="showEditSalaModal(${sala.id})">Editar</button>
-                  <button class="btn btn-danger btn-sm" onclick="excluirSala(${sala.id})">Excluir</button>
-                </div>
+            salaCard.innerHTML = `
+          <div class="card shadow-sm h-100 bg-dark text-white" style="border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title text-accent">${sala.tipo}</h5>
+              <p class="card-text"><strong>Capacidade:</strong> ${sala.capacidade} pessoas</p>
+              <p class="card-text"><strong>Endereço:</strong> ${sala.rua}, ${sala.numero}, ${sala.cidade} - ${sala.estado}</p>
+              <div class="mt-auto d-flex justify-content-between">
+                <button class="btn btn-sm btn-editar" onclick="showEditSalaModal(${sala.id})">
+                  <i class="bi bi-pencil"></i> Editar
+                </button>
               </div>
             </div>
-          `;
+          </div>
+        `;
 
-          salasContainer.appendChild(salaCard);
-        });
+            salasContainer.appendChild(salaCard);
+          });
+        }
       } catch (error) {
         console.error("Erro ao buscar salas:", error);
+        // Mostra mensagem de erro no estilo do tema escuro
+        document.getElementById("salas-container").innerHTML = `
+      <div class="col-12 text-center py-5">
+        <div class="alert alert-dark border-danger text-white">
+          <i class="bi bi-exclamation-triangle-fill me-2 text-accent"></i>
+          Ocorreu um erro ao carregar suas salas. Por favor, tente novamente.
+        </div>
+      </div>
+    `;
       }
     }
 
@@ -172,146 +213,8 @@
 
     // Chama a função para buscar as salas ao carregar a página
     document.addEventListener("DOMContentLoaded", () => {
-      verificarLogin();
       fetchSalas();
     });
-
-    async function verificarLogin() {
-      try {
-        const response = await fetch("http://127.0.0.1:8000/usuario-logado", {
-          credentials: "include"
-        });
-        const data = await response.json();
-
-        const userNameSpan = document.getElementById("userName");
-
-        if (data.logado) {
-          // Exibe o nome do usuário logado
-          userNameSpan.textContent = `Olá, ${data.nome}!`;
-
-          // Configura o botão de logout
-          document.getElementById("logout").addEventListener("click", async () => {
-            try {
-              await fetch("http://127.0.0.1:8000/logout", {
-                method: "POST",
-                credentials: "include"
-              });
-              window.location.href = "index.html"; // Redireciona para a página inicial após o logout
-            } catch (error) {
-              console.error("Erro ao fazer logout:", error);
-            }
-          });
-        } else {
-          // Redireciona para a página de login se o usuário não estiver logado
-          window.location.href = "login.html";
-        }
-      } catch (error) {
-        console.error("Erro ao verificar login:", error);
-      }
-    }
-
-    window.addEventListener('scroll', function () {
-      const navbar = document.querySelector('.navbar');
-      if (window.scrollY > 50) {
-        navbar.classList.add('scrolled');
-      } else {
-        navbar.classList.remove('scrolled');
-      }
-    });
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        document.querySelector(this.getAttribute('href')).scrollIntoView({
-          behavior: 'smooth'
-        });
-      });
-    });
-
-    async function verificarLogin() {
-      try {
-        const response = await fetch("http://127.0.0.1:8000/usuario-logado", {
-          credentials: "include"
-        });
-        const data = await response.json();
-
-        const authDiv = document.getElementById("auth-buttons");
-        const loginBtn = document.getElementById("login-btn");
-        const dropdown = document.getElementById("user-dropdown");
-        const greeting = document.getElementById("user-greeting");
-        const editRooms = document.getElementById("editRooms");
-        const registerRoomItem = document.getElementById("register-room-item");
-
-        if (data.logado) {
-          // Esconde o botão de login
-          loginBtn.style.display = "none";
-
-          // Mostra o dropdown
-          dropdown.style.display = "block";
-          greeting.textContent = `Olá, ${data.nome}!`;
-
-          // Mostra o botão "Editar Salas" e "Registrar Sala" apenas para usuários com papel = 2
-          if (data.papel === 2) {
-            editRooms.style.display = "block";
-            registerRoomItem.style.display = "block";
-            editRooms.onclick = () => {
-              window.location.href = "editarSalas.html";
-            };
-          } else {
-            editRooms.style.display = "none";
-            registerRoomItem.style.display = "none";
-          }
-
-          // Configura o evento de logout
-          document.getElementById("logout").addEventListener("click", function (e) {
-            e.preventDefault();
-            logout();
-          });
-        } else {
-          // Se não estiver logado, mostra o botão de login e esconde o dropdown e o item de registrar sala
-          loginBtn.style.display = "block";
-          dropdown.style.display = "none";
-          registerRoomItem.style.display = "none";
-        }
-      } catch (error) {
-        console.error("Erro ao verificar login:", error);
-      }
-    }
-    async function logout() {
-      try {
-        await fetch("http://127.0.0.1:8000/logout", {
-          method: "POST",
-          credentials: "include"
-        });
-        window.location.reload(); // Recarrega a página para atualizar o botão
-      } catch (error) {
-        console.error("Erro ao fazer logout:", error);
-      }
-    }
-
-    // Chama quando a página carrega
-    window.addEventListener("DOMContentLoaded", verificarLogin);
-
-    // Já existia
-    window.addEventListener('scroll', function () {
-      const navbar = document.querySelector('.navbar');
-      if (window.scrollY > 50) {
-        navbar.classList.add('scrolled');
-      } else {
-        navbar.classList.remove('scrolled');
-      }
-    });
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        document.querySelector(this.getAttribute('href')).scrollIntoView({
-          behavior: 'smooth'
-        });
-      });
-    });
-
-
   </script>
 </body>
 

@@ -721,6 +721,163 @@ h1 {
     margin-bottom: 10px;
 }
 
+/* Estilo para campos readonly no tema escuro */
+.form-control[readonly] {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #eee !important;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+/* Remove o highlight ao clicar */
+.form-control[readonly]:focus {
+    box-shadow: none;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Estilo para campos com máscara */
+input[data-mask] {
+    letter-spacing: 0.5px;
+}
+
+/* Placeholder mais visível no tema escuro */
+.form-control::placeholder {
+    color: #6c757d;
+    opacity: 0.7;
+}
+
+.edit-room-hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+        url('https://www.rsdesign.com.br/wp-content/uploads/2023/06/mobiliario-corporativo-para-coworking-como-planejar-um-espaco-funcional-e-acolhedor.jpg');
+    background-size: cover;
+    background-position: center;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+}
+
+/* Estilos para os cards no tema escuro */
+.card.bg-dark {
+    background: rgba(30, 30, 30, 0.7) !important;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.card.bg-dark:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-color: rgba(67, 97, 238, 0.3) !important;
+}
+
+/* Estilo para os botões dentro dos cards */
+.btn-editar {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+}
+
+.btn-excluir {
+    background: #dc3545;
+    color: white;
+    border: none;
+}
+
+/* Estilo para a mensagem de nenhuma sala */
+.alert.alert-dark {
+    background: rgba(30, 30, 30, 0.7) !important;
+    backdrop-filter: blur(10px);
+}
+
+.text-accent {
+    color: var(--accent-color);
+}
+
+/* Estilo personalizado para selects no tema escuro */
+.form-select-dark {
+    background-color: rgba(30, 30, 30, 0.8) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+}
+
+/* Estilo para as opções do dropdown */
+.form-select-dark option {
+    background-color: #121212 !important;
+    color: #fff !important;
+}
+
+/* Estilo quando o select está aberto */
+.form-select-dark:focus {
+    border-color: var(--accent-color) !important;
+    box-shadow: 0 0 0 0.25rem rgba(76, 201, 240, 0.25) !important;
+}
+
+/* Estilo para o dropdown aberto (necessário para alguns navegadores) */
+.form-select-dark>option {
+    background: #1e1e1e !important;
+}
+
+/* Corrige o fundo branco no Chrome */
+.form-select-dark::-ms-expand {
+    display: none;
+}
+
+/* Estilo para o hover nas opções */
+.form-select-dark option:hover {
+    background-color: var(--primary-color) !important;
+}
+
+/* Remove o fundo branco padrão do Bootstrap */
+.form-select-dark:not([multiple]):not([size]) {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.75rem center !important;
+    background-size: 16px 12px !important;
+}
+
+/* Estilos para a modal de tipos de sala */
+#tiposSalaModal .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+#tiposSalaModal .table {
+    color: #eee;
+    margin-top: 1rem;
+}
+
+#tiposSalaModal .table th {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-weight: 500;
+}
+
+#tiposSalaModal .table td {
+    vertical-align: middle;
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+#tiposSalaModal .btn-editar {
+    background: linear-gradient(45deg, #4361ee, #3f37c9);
+    color: white;
+    border: none;
+}
+
+#tiposSalaModal .btn-excluir {
+    background: linear-gradient(45deg, #dc3545, #c82333);
+    color: white;
+    border: none;
+}
+
+#tiposSalaModal .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+#tiposSalaModal .bi {
+    margin-right: 5px;
+}
+
 
 @keyframes float {
     0% {
@@ -851,6 +1008,28 @@ h1 {
 
     #editSalaModal .d-flex.flex-wrap {
         gap: 5px;
+    }
+
+    #tiposSalaModal .d-flex {
+        flex-direction: column;
+    }
+
+    #tiposSalaModal .input-group {
+        width: 100% !important;
+        margin-top: 1rem;
+    }
+
+    #tiposSalaModal .btn {
+        width: 100%;
+    }
+
+    #tiposSalaModal .table-responsive {
+        font-size: 0.9rem;
+    }
+
+    #tiposSalaModal .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.8rem;
     }
 }
 

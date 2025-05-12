@@ -292,7 +292,7 @@ async def minhas_salas(request: Request):
     try:
         cursor.execute("""
             SELECT DISTINCT s.ID_Sala AS id, s.Rua AS rua, s.Numero AS numero, s.Cidade AS cidade, s.Estado AS estado,
-                            ts.Tipo AS tipo
+                            ts.Tipo AS tipo, s.Capacidade AS capacidade
             FROM salas s
             JOIN tipo_sala ts ON s.fk_tipo_sala_ID_Tipo_Sala = ts.ID_Tipo_Sala
             WHERE s.fk_usuario_ID_Usuario = %s
@@ -519,6 +519,107 @@ async def excluir_sala(id: int, request: Request):
     except Exception as e:
         connection.rollback()
         raise HTTPException(status_code=500, detail=f"Erro ao excluir sala: {str(e)}")
+    finally:
+        cursor.close()
+        connection.close()
+
+# CRUD para Tipos de Sala (apenas para papel 2 - locador)
+@app.get("/tipos-sala")
+async def get_tipos_sala(request: Request):
+    # Verifica se o usuário está logado e tem papel 2
+    usuario = request.session.get("usuario")
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Usuário não autenticado")
+    
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    
+    try:
+        cursor.execute("SELECT ID_Tipo_Sala, Tipo FROM tipo_sala")
+        tipos_sala = cursor.fetchall()
+        return tipos_sala
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Erro ao buscar tipos de sala")
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.post("/tipos-sala")
+async def criar_tipo_sala(request: Request, data: dict):
+    usuario = request.session.get("usuario")
+        
+    tipo = data.get("tipo")
+    if not tipo:
+        raise HTTPException(status_code=400, detail="Nome do tipo é obrigatório")
+    
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
+    try:
+        cursor.execute("INSERT INTO tipo_sala (Tipo) VALUES (%s)", (tipo,))
+        connection.commit()
+        return {"success": True, "message": "Tipo de sala criado com sucesso!"}
+    except Exception as e:
+        connection.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao criar tipo de sala: {str(e)}")
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.put("/tipos-sala/{id}")
+async def atualizar_tipo_sala(id: int, request: Request, data: dict):
+    usuario = request.session.get("usuario")
+    
+    tipo = data.get("tipo")
+    if not tipo:
+        raise HTTPException(status_code=400, detail="Nome do tipo é obrigatório")
+    
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
+    try:
+        cursor.execute("UPDATE tipo_sala SET Tipo = %s WHERE ID_Tipo_Sala = %s", (tipo, id))
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Tipo de sala não encontrado")
+        
+        connection.commit()
+        return {"success": True, "message": "Tipo de sala atualizado com sucesso!"}
+    except Exception as e:
+        connection.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao atualizar tipo de sala: {str(e)}")
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.delete("/tipos-sala/{id}")
+async def excluir_tipo_sala(id: int, request: Request):
+    usuario = request.session.get("usuario")
+    
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
+    try:
+        # Verifica se existem salas usando este tipo
+        cursor.execute("SELECT COUNT(*) FROM salas WHERE fk_tipo_sala_ID_Tipo_Sala = %s", (id,))
+        count = cursor.fetchone()[0]
+        
+        if count > 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Não é possível excluir, pois há registro vinculado."
+            )
+        
+        cursor.execute("DELETE FROM tipo_sala WHERE ID_Tipo_Sala = %s", (id,))
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Tipo de sala não encontrado")
+        
+        connection.commit()
+        return {"success": True, "message": "Tipo de sala excluído com sucesso!"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        connection.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao excluir tipo de sala: {str(e)}")
     finally:
         cursor.close()
         connection.close()

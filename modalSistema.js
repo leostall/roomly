@@ -16,11 +16,11 @@ function showEditUserModal() {
           <div class="modal-body">
             <form id="registrationForm">
               <div class="mb-3">
-                <label for="modalEmail" class="form-label">Email<span class="required">*</span></label>
+                <label for="modalEmail" class="form-label">E-mail<span class="required">*</span></label>
                 <input type="text" class="form-control" id="modalEmail" placeholder="nome@exemplo.com">
               </div>
               <div class="mb-3">
-                <label for="modalNome" class="form-label">Nome completo (No máximo 100 caracteres)<span class="required">*</span></label>
+                <label for="modalNome" class="form-label">Nome completo<span class="required">*</span></label>
                 <input type="text" class="form-control" id="modalNome" placeholder="Insira o nome">
               </div>
               <div class="mb-3">
@@ -28,8 +28,8 @@ function showEditUserModal() {
                 <input type="tel" class="form-control" id="modalTelefone" placeholder="(00) 00000-0000">
               </div>
               <div class="mb-3">
-                <label for="modalCpf" class="form-label">CPF<span class="required">*</span></label>
-                <input type="text" class="form-control" id="modalCpf" placeholder="000.000.000-00" maxlength="14">
+                <label for="modalCpf" class="form-label">CPF<span class="required"></span></label>
+                <input type="text" class="form-control bg-light" id="modalCpf" placeholder="000.000.000-00" maxlength="14" readonly>
               </div>
               <div class="mb-3 password-wrapper position-relative">
                 <label for="modalPassword" class="form-label">Senha<span class="required">*</span></label>
@@ -42,7 +42,7 @@ function showEditUserModal() {
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-danger" id="modalExcluirConta">Excluir Conta</button>
+            <button type="button" class="btn btn-danger me-auto" id="modalExcluirConta">Excluir Conta</button>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             <button type="button" class="btn btn-primary" id="modalEditarConta">Salvar alterações</button>
           </div>
@@ -76,8 +76,8 @@ function loadUserData() {
       if (data.logado) {
         document.getElementById("modalNome").value = data.nome;
         document.getElementById("modalEmail").value = data.email;
-        document.getElementById("modalTelefone").value = data.telefone;
-        document.getElementById("modalCpf").value = data.cpf;
+        document.getElementById("modalTelefone").value = data.telefone ? formatarTelefone(data.telefone) : '';
+        document.getElementById("modalCpf").value = data.cpf ? formatarCPF(data.cpf) : '';
       } else {
         window.location.href = "/login.html";
       }
@@ -89,6 +89,40 @@ function loadUserData() {
 
 // Função para configurar os eventos da modal
 function setupModalEvents() {
+  // Máscara para CPF
+  document.getElementById("modalCpf").addEventListener("input", function (e) {
+    let cpf = e.target.value.replace(/\D/g, '');
+    if (cpf.length > 11) cpf = cpf.substring(0, 11);
+
+    // Aplica a máscara
+    if (cpf.length <= 3) {
+      e.target.value = cpf;
+    } else if (cpf.length <= 6) {
+      e.target.value = cpf.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+    } else if (cpf.length <= 9) {
+      e.target.value = cpf.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+    } else {
+      e.target.value = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+    }
+  });
+
+  // Máscara para Telefone
+  document.getElementById("modalTelefone").addEventListener("input", function (e) {
+    let telefone = e.target.value.replace(/\D/g, '');
+    if (telefone.length > 11) telefone = telefone.substring(0, 11);
+
+    // Aplica a máscara
+    if (telefone.length <= 2) {
+      e.target.value = telefone;
+    } else if (telefone.length <= 7) {
+      e.target.value = telefone.replace(/(\d{2})(\d{1,5})/, '($1) $2');
+    } else if (telefone.length <= 10) {
+      e.target.value = telefone.replace(/(\d{2})(\d{5})(\d{1,4})/, '($1) $2-$3');
+    } else {
+      e.target.value = telefone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    }
+  });
+
   // Evento para mostrar/ocultar senha
   document.getElementById("modalPassword").addEventListener("input", function () {
     const hint = this.nextElementSibling.nextElementSibling;
@@ -143,8 +177,8 @@ function setupModalEvents() {
   document.getElementById("modalEditarConta").addEventListener("click", function () {
     const nome = document.getElementById("modalNome").value;
     const email = document.getElementById("modalEmail").value;
-    const telefone = document.getElementById("modalTelefone").value;
-    const cpf = document.getElementById("modalCpf").value;
+    const telefone = document.getElementById("modalTelefone").value.replace(/\D/g, '');
+    const cpf = document.getElementById("modalCpf").value.replace(/\D/g, '');
     const senha = document.getElementById("modalPassword").value;
 
     fetch("http://127.0.0.1:8000/editar-usuario", {
@@ -220,7 +254,7 @@ function showCadastroSalaModal() {
                 <!-- Tipo da Sala -->
                 <div class="col-12 col-md-6">
                   <label for="modalTipoSala" class="form-label">Tipo da Sala *</label>
-                  <select class="form-control" id="modalTipoSala" required>
+                  <select class="form-control form-select-dark" id="modalTipoSala" required>
                     <option value="" disabled selected>Selecione um tipo</option>
                   </select>
                 </div>
@@ -240,19 +274,19 @@ function showCadastroSalaModal() {
                 <!-- Valor Hora -->
                 <div class="col-12 col-md-4">
                   <label for="modalValorHora" class="form-label">Valor hora (R$) *</label>
-                  <input type="number" class="form-control" id="modalValorHora" placeholder="Valor R$" min="1" required>
+                  <input type="number" class="form-control" id="modalValorHora" placeholder="Valor R$" min="1" max="99999.99" required>
                 </div>
 
                 <!-- CEP -->
                 <div class="col-12 col-md-4">
                   <label for="modalCep" class="form-label">CEP *</label>
-                  <input type="text" class="form-control" id="modalCep" placeholder="Digite o CEP" required>
+                  <input type="text" class="form-control" id="modalCep" placeholder="CEP" required>
                 </div>
 
                 <!-- Endereço -->
                 <div class="col-12 col-md-8">
                   <label for="modalRua" class="form-label">Rua *</label>
-                  <input type="text" class="form-control" id="modalRua" required>
+                  <input type="text" class="form-control" id="modalRua" placeholder="Rua" required>
                 </div>
 
                 <div class="col-12 col-md-4">
@@ -262,12 +296,12 @@ function showCadastroSalaModal() {
 
                 <div class="col-12 col-md-6">
                   <label for="modalCidade" class="form-label">Cidade *</label>
-                  <input type="text" class="form-control" id="modalCidade" required>
+                  <input type="text" class="form-control" id="modalCidade" placeholder="Cidade" required>
                 </div>
 
                 <div class="col-12 col-md-6">
                   <label for="modalEstado" class="form-label">Estado *</label>
-                  <input type="text" class="form-control" id="modalEstado" required>
+                  <input type="text" class="form-control" id="modalEstado" placeholder="Estado" required>
                 </div>
 
                 <div class="col-12">
@@ -510,7 +544,7 @@ function setupCadastroSalaModal() {
           // Fecha a modal
           bootstrap.Modal.getInstance(document.getElementById('cadastroSalaModal')).hide();
           // Redireciona para a página de edição de salas
-          window.location.href = "editarsala.html";
+          window.location.href = "editarSalas.html";
         });
       } else {
         Swal.fire({
@@ -595,13 +629,13 @@ function showEditSalaModal(salaId) {
             <form id="editarSalaForm" class="row g-3">
               <div class="col-md-6">
                 <label for="modalEditTipoSala" class="form-label">Tipo de Sala</label>
-                <select id="modalEditTipoSala" class="form-select" required>
+                <select id="modalEditTipoSala" class="form-control form-select-dark" required>
                   <!-- Tipos de sala serão preenchidos dinamicamente -->
                 </select>
               </div>
               <div class="col-md-6">
                 <label for="modalEditCapacidade" class="form-label">Capacidade</label>
-                <input type="number" class="form-control" id="modalEditCapacidade" required>
+                <input type="number" class="form-control" id="modalEditCapacidade" step="0.01" min="1" max="999999.99" required>
               </div>
               <div class="col-md-6">
                 <label for="modalEditTamanhoM2" class="form-label">Tamanho (m²)</label>
@@ -609,7 +643,7 @@ function showEditSalaModal(salaId) {
               </div>
               <div class="col-md-6">
                 <label for="modalEditValorHora" class="form-label">Valor por Hora</label>
-                <input type="number" class="form-control" id="modalEditValorHora" step="0.01" required>
+                <input type="number" class="form-control" id="modalEditValorHora" step="0.01" min="1" max="99999.99" required>
               </div>
               <div class="col-md-12">
                 <label for="modalEditRecursos" class="form-label">Recursos Disponíveis</label>
@@ -621,7 +655,8 @@ function showEditSalaModal(salaId) {
               </div>
               <div class="col-md-6">
                 <label for="modalEditCep" class="form-label">CEP</label>
-                <input type="text" class="form-control" id="modalEditCep" required>
+                <input type="text" class="form-control" id="modalEditCep" 
+                      placeholder="00000-000" maxlength="9" required>
               </div>
               <div class="col-md-6">
                 <label for="modalEditRua" class="form-label">Rua</label>
@@ -683,7 +718,7 @@ function showEditSalaModal(salaId) {
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-danger" id="modalExcluirSala">Excluir Sala</button>
+            <button type="button" class="btn btn-danger me-auto" id="modalExcluirSala">Excluir Sala</button>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             <button type="button" class="btn btn-primary" id="modalSalvarSala">Salvar Alterações</button>
           </div>
@@ -727,7 +762,7 @@ async function loadSalaData(salaId) {
     document.getElementById("modalEditValorHora").value = sala.valor_hora || "";
     document.getElementById("modalEditRecursos").value = sala.recursos || "";
     document.getElementById("modalEditMobilario").value = sala.tipo_mobilia || "";
-    document.getElementById("modalEditCep").value = sala.cep || "";
+    document.getElementById('modalEditCep').value = formatarCEP(sala.cep || '');
     document.getElementById("modalEditRua").value = sala.rua || "";
     document.getElementById("modalEditNumero").value = sala.numero || "";
     document.getElementById("modalEditCidade").value = sala.cidade || "";
@@ -841,7 +876,7 @@ function setupEditSalaModal(salaId) {
 
   // Evento para salvar alterações
   document.getElementById("modalSalvarSala").addEventListener("click", async function () {
-    const userId = await obterIdUsuarioLogado();
+    console.log("Salvando alterações...");
 
     const sala = {
       capacidade: parseInt(document.getElementById("modalEditCapacidade").value, 10),
@@ -865,7 +900,7 @@ function setupEditSalaModal(salaId) {
       sexta: document.getElementById("modalEditSexta").checked ? 1 : 0,
       sabado: document.getElementById("modalEditSabado").checked ? 1 : 0,
       status: 1,
-      fk_usuario_id: userId
+      fk_usuario_id: 0 // O ID do usuário logado é recuperado no backend   
     };
 
     try {
@@ -874,7 +909,7 @@ function setupEditSalaModal(salaId) {
         headers: {
           "Content-Type": "application/json"
         },
-        credentials: "include",
+        credentials: "include", // Importante para enviar os cookies de sessão
         body: JSON.stringify(sala)
       });
 
@@ -888,12 +923,15 @@ function setupEditSalaModal(salaId) {
           background: "#121212",
           color: "#ffffff"
         }).then(() => {
-          // Fecha a modal e recarrega a página
           bootstrap.Modal.getInstance(document.getElementById('editSalaModal')).hide();
           window.location.reload();
         });
       } else {
-        throw new Error(result.detail || "Erro ao atualizar sala");
+        let errorMsg = "Erro ao atualizar sala";
+        if (result.detail) {
+          errorMsg = typeof result.detail === 'string' ? result.detail : JSON.stringify(result.detail);
+        }
+        throw new Error(errorMsg);
       }
     } catch (error) {
       Swal.fire({
@@ -937,4 +975,311 @@ async function preencherTiposSalaModal(tipoSalaSelecionado) {
   } catch (error) {
     console.error("Erro ao buscar tipos de sala:", error);
   }
+}
+
+// *** MODAL DE TIPOS DE SALA ***
+function showTiposSalaModal() {
+  if (document.getElementById('tiposSalaModal')) {
+    document.getElementById('tiposSalaModal').remove();
+  }
+
+  // Cria a estrutura da modal
+  const modalHTML = `
+    <div class="modal fade" id="tiposSalaModal" tabindex="-1" aria-labelledby="tiposSalaModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="tiposSalaModalLabel">Gerenciar Tipos de Sala</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="d-flex justify-content-between mb-3">
+              <button type="button" class="btn btn-primary" id="btnAdicionarTipo">
+                <i class="bi bi-plus-circle"></i> Adicionar Tipo
+              </button>
+              <div class="input-group" style="width: 300px;">
+                <input type="text" class="form-control" id="searchTipoSala" placeholder="Pesquisar tipo...">
+                <button class="btn btn-outline-secondary" type="button">
+                  <i class="bi bi-search"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="table-responsive">
+              <table class="table table-dark table-hover">
+                <thead>
+                  <tr>
+                    <th>Tipo</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tiposSalaTableBody">
+                  <!-- Tipos serão carregados dinamicamente -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para adicionar/editar tipo -->
+    <div class="modal fade" id="editarTipoSalaModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editarTipoSalaModalLabel">Adicionar Tipo</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formTipoSala">
+              <input type="hidden" id="tipoSalaId">
+              <div class="mb-3">
+                <label for="tipoSalaNome" class="form-label">Nome do Tipo *</label>
+                <input type="text" class="form-control" id="tipoSalaNome" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btnSalvarTipo">Salvar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Adiciona a modal ao body
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+  // Carrega os tipos de sala
+  carregarTiposSala();
+
+  // Configura os eventos
+  setupTiposSalaModal();
+
+  // Inicializa a modal
+  const modal = new bootstrap.Modal(document.getElementById('tiposSalaModal'));
+  modal.show();
+}
+
+async function carregarTiposSala() {
+  try {
+    const response = await fetch("http://127.0.0.1:8000/tipos-sala");
+    const tipos = await response.json();
+
+    const tableBody = document.getElementById("tiposSalaTableBody");
+    tableBody.innerHTML = "";
+
+    tipos.forEach(tipo => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${tipo.Tipo}</td>
+        <td>
+          <button class="btn btn-sm btn-editar me-2" data-id="${tipo.ID_Tipo_Sala}">
+            <i class="bi bi-pencil"></i> Editar
+          </button>
+          <button class="btn btn-sm btn-excluir" data-id="${tipo.ID_Tipo_Sala}">
+            <i class="bi bi-trash"></i> Excluir
+          </button>
+        </td>
+      `;
+      tableBody.appendChild(row);
+    });
+  } catch (error) {
+    console.error("Erro ao carregar tipos de sala:", error);
+    Swal.fire({
+      title: "Erro!",
+      text: "Não foi possível carregar os tipos de sala.",
+      icon: "error",
+      background: "#121212",
+      color: "#ffffff"
+    });
+  }
+}
+
+function setupTiposSalaModal() {
+  // Evento para adicionar novo tipo
+  document.getElementById("btnAdicionarTipo").addEventListener("click", function () {
+    document.getElementById("tipoSalaId").value = "";
+    document.getElementById("tipoSalaNome").value = "";
+    document.getElementById("editarTipoSalaModalLabel").textContent = "Adicionar Tipo";
+
+    const modal = new bootstrap.Modal(document.getElementById('editarTipoSalaModal'));
+    modal.show();
+  });
+
+  // Evento para editar tipo (delegação de eventos)
+  document.getElementById("tiposSalaTableBody").addEventListener("click", function (e) {
+    if (e.target.closest(".btn-editar")) {
+      const id = e.target.closest(".btn-editar").getAttribute("data-id");
+      const row = e.target.closest("tr");
+      const nome = row.querySelector("td:nth-child(2)").textContent;
+
+      document.getElementById("tipoSalaId").value = id;
+      document.getElementById("tipoSalaNome").value = nome;
+      document.getElementById("editarTipoSalaModalLabel").textContent = "Editar Tipo";
+
+      const modal = new bootstrap.Modal(document.getElementById('editarTipoSalaModal'));
+      modal.show();
+    }
+
+    if (e.target.closest(".btn-excluir")) {
+      const id = e.target.closest(".btn-excluir").getAttribute("data-id");
+      confirmarExclusaoTipo(id);
+    }
+  });
+
+  // Evento para salvar tipo
+  document.getElementById("btnSalvarTipo").addEventListener("click", async function () {
+    const id = document.getElementById("tipoSalaId").value;
+    const nome = document.getElementById("tipoSalaNome").value;
+
+    if (!nome) {
+      Swal.fire({
+        title: "Atenção!",
+        text: "Preencha o nome do tipo.",
+        icon: "warning",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+    try {
+      let response;
+      if (id) {
+        // Edição
+        response = await fetch(`http://127.0.0.1:8000/tipos-sala/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ tipo: nome })
+        });
+      } else {
+        // Criação
+        response = await fetch("http://127.0.0.1:8000/tipos-sala", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ tipo: nome })
+        });
+      }
+
+      const result = await response.json();
+
+      if (response.ok) {
+        Swal.fire({
+          title: "Sucesso!",
+          text: result.message,
+          icon: "success",
+          background: "#121212",
+          color: "#ffffff"
+        }).then(() => {
+          bootstrap.Modal.getInstance(document.getElementById('editarTipoSalaModal')).hide();
+          carregarTiposSala();
+        });
+      } else {
+        throw new Error(result.detail || "Erro ao salvar tipo");
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Erro!",
+        text: error.message,
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+    }
+  });
+
+  // Pesquisa
+  document.getElementById("searchTipoSala").addEventListener("input", function (e) {
+    const termo = e.target.value.toLowerCase();
+    const linhas = document.querySelectorAll("#tiposSalaTableBody tr");
+
+    linhas.forEach(linha => {
+      const texto = linha.textContent.toLowerCase();
+      linha.style.display = texto.includes(termo) ? "" : "none";
+    });
+  });
+}
+
+async function confirmarExclusaoTipo(id) {
+  Swal.fire({
+    title: "Tem certeza?",
+    text: "Esta ação não pode ser desfeita!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sim, excluir!",
+    cancelButtonText: "Cancelar",
+    background: "#121212",
+    color: "#ffffff",
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#6c757d"
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/tipos-sala/${id}`, {
+          method: "DELETE",
+          credentials: "include"
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          Swal.fire({
+            title: "Excluído!",
+            text: result.message,
+            icon: "success",
+            background: "#121212",
+            color: "#ffffff"
+          });
+          carregarTiposSala();
+        } else {
+          throw new Error(result.detail || "Erro ao excluir tipo");
+        }
+      } catch (error) {
+        Swal.fire({
+          title: "Erro!",
+          text: error.message,
+          icon: "error",
+          background: "#121212",
+          color: "#ffffff"
+        });
+      }
+    }
+  });
+}
+
+// Funções de máscara
+function formatarCPF(cpf) {
+  cpf = cpf.replace(/\D/g, '');
+  return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+}
+
+function formatarTelefone(telefone) {
+  telefone = telefone.replace(/\D/g, '');
+  if (telefone.length === 11) {
+    return telefone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  }
+  return telefone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+}
+
+function formatarCEP(cep) {
+  cep = cep.replace(/\D/g, '');
+  return cep.replace(/(\d{5})(\d{3})/, '$1-$2');
+}
+
+async function obterIdUsuarioLogado() {
+  const usuario = JSON.parse(sessionStorage.getItem('usuario')); // ou sessionStorage
+  if (usuario && usuario.id) {
+    return usuario.id;
+  }
+  throw new Error("Usuário não está logado ou ID não encontrado.");
 }

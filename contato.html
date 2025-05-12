@@ -30,9 +30,6 @@
                     <li class="nav-item"><a class="nav-link" href="index.html#features">Vantagens</a></li>
                     <li class="nav-item"><a class="nav-link" href="index.html#rooms">Salas</a></li>
                     <li class="nav-item"><a class="nav-link" href="contato.html">Contato</a></li>
-                    <li class="nav-item" id="register-room-item" style="display: none;">
-                        <a class="nav-link" onclick="showCadastroSalaModal();">Registrar sala</a>
-                    </li>
                 </ul>
                 <div class="ms-lg-3 mt-3 mt-lg-0" id="auth-buttons">
                     <div class="dropdown" id="user-dropdown" style="display: none;">
@@ -41,13 +38,25 @@
                             <span id="user-greeting">Olá, Usuário!</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
-                            <li><a class="dropdown-item" onclick="showEditUserModal()">Editar usuário</a></li>
-                            <li><a class="dropdown-item" href="#" id="editRooms" style="display: none;">Editar salas</a>
-                            </li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item" href="#" id="logout">Logout</a></li>
+                            <li><a class="dropdown-item" onclick="showEditUserModal()"><i
+                                        class="bi bi-person me-2"></i>Editar
+                                    usuário</a></li>
+                            <!-- Itens administrativos (só aparecem para papel = 2) -->
+                            <div id="admin-items" style="display: none;">
+                                <li><a class="dropdown-item" href="#" id="editRooms"><i
+                                            class="bi bi-pencil-square me-2"></i>Minhas
+                                        Salas</a></li>
+                                <li><a class="dropdown-item" onclick="showCadastroSalaModal();"><i
+                                            class="bi bi-plus-circle me-2"></i>Registrar Sala</a></li>
+                                <li><a class="dropdown-item" href="#" id="manage-room-types"><i
+                                            class="bi bi-tags me-2"></i>Tipos de
+                                        Sala</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                            </div>
+                            <li><a class="dropdown-item" href="#" id="logout"><i
+                                        class="bi bi-box-arrow-right me-2"></i>Sair</a></li>
                         </ul>
                     </div>
                     <a href="login.html" class="btn btn-outline-primary" id="login-btn">Login</a>
@@ -275,111 +284,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="modalSistema.js"></script>
-
-    <script>
-        window.addEventListener('scroll', function () {
-            const navbar = document.querySelector('.navbar');
-            if (window.scrollY > 50) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        });
-
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-
-        async function verificarLogin() {
-            try {
-                const response = await fetch("http://127.0.0.1:8000/usuario-logado", {
-                    credentials: "include"
-                });
-                const data = await response.json();
-
-                const authDiv = document.getElementById("auth-buttons");
-                const loginBtn = document.getElementById("login-btn");
-                const dropdown = document.getElementById("user-dropdown");
-                const greeting = document.getElementById("user-greeting");
-                const editRooms = document.getElementById("editRooms");
-                const registerRoomItem = document.getElementById("register-room-item");
-
-                if (data.logado) {
-                    // Esconde o botão de login
-                    loginBtn.style.display = "none";
-
-                    // Mostra o dropdown
-                    dropdown.style.display = "block";
-                    greeting.textContent = `Olá, ${data.nome}!`;
-
-                    // Mostra o botão "Editar Salas" e "Registrar Sala" apenas para usuários com papel = 2
-                    if (data.papel === 2) {
-                        editRooms.style.display = "block";
-                        registerRoomItem.style.display = "block";
-                        editRooms.onclick = () => {
-                            window.location.href = "editarSalas.html";
-                        };
-                    } else {
-                        editRooms.style.display = "none";
-                        registerRoomItem.style.display = "none";
-                    }
-
-                    // Configura o evento de logout
-                    document.getElementById("logout").addEventListener("click", function (e) {
-                        e.preventDefault();
-                        logout();
-                    });
-                } else {
-                    // Se não estiver logado, mostra o botão de login e esconde o dropdown e o item de registrar sala
-                    loginBtn.style.display = "block";
-                    dropdown.style.display = "none";
-                    registerRoomItem.style.display = "none";
-                }
-            } catch (error) {
-                console.error("Erro ao verificar login:", error);
-            }
-        }
-        async function logout() {
-            try {
-                await fetch("http://127.0.0.1:8000/logout", {
-                    method: "POST",
-                    credentials: "include"
-                });
-                window.location.reload(); // Recarrega a página para atualizar o botão
-            } catch (error) {
-                console.error("Erro ao fazer logout:", error);
-            }
-        }
-
-        // Chama quando a página carrega
-        window.addEventListener("DOMContentLoaded", verificarLogin);
-
-        // Já existia
-        window.addEventListener('scroll', function () {
-            const navbar = document.querySelector('.navbar');
-            if (window.scrollY > 50) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        });
-
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-
-
-    </script>
+    <script src="auth.js"></script>
 </body>
 
 </html>
