@@ -285,6 +285,62 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="modalSistema.js"></script>
     <script src="auth.js"></script>
+    <script>
+const SESSION_TIMEOUT = 2 * 60 * 1000;
+let sessionTimer = null;
+let userIsLogged = false;
+
+async function checkUserLoggedIn() {
+  try {
+    const response = await fetch('http://127.0.0.1:8000/usuario-logado', {
+      credentials: 'include'
+    });
+    const data = await response.json();
+    return data.logado === true;
+  } catch {
+    return false;
+  }
+}
+
+async function logoutUser() {
+  await fetch('http://127.0.0.1:8000/logout', {
+    method: 'POST',
+    credentials: 'include'
+  });
+  clearTimeout(sessionTimer);
+  userIsLogged = false;
+  Swal.fire({
+    icon: 'info',
+    title: 'Sessão expirada',
+    text: 'Sua sessão expirou por inatividade. Faça login novamente.',
+    confirmButtonText: 'OK',
+    background: '#121212', // fundo preto
+    color: '#fff'          // texto branco
+  }).then(() => {
+    window.location.href = 'login.html';
+  });
+}
+
+function startSessionTimer() {
+  clearTimeout(sessionTimer);
+  sessionTimer = setTimeout(() => {
+    if (userIsLogged) logoutUser();
+  }, SESSION_TIMEOUT);
+}
+
+// Só reinicia o timer se estiver logado
+['mousemove', 'keydown', 'click'].forEach(evt => {
+  document.addEventListener(evt, () => {
+    if (userIsLogged) startSessionTimer();
+  });
+});
+
+// Checa login ao carregar a página
+checkUserLoggedIn().then(isLogged => {
+  userIsLogged = isLogged;
+  if (userIsLogged) startSessionTimer();
+});
+</script>
 </body>
 
 </html>
