@@ -4,12 +4,15 @@ from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
 import mysql.connector
 from passlib.context import CryptContext
+from datetime import timedelta
 
 
 app = FastAPI()
 
 # Middleware de sessão
 app.add_middleware(SessionMiddleware, secret_key="roomly")
+
+
 
 # Middleware de CORS
 app.add_middleware(
