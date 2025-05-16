@@ -364,7 +364,6 @@ function showCadastroSalaModal() {
                   <div class="col-12">
                     <label for="modalImagemSala" class="form-label">Imagem da Sala</label>
                     <div class="input-group">
-                      <label class="input-group-text" for="modalImagemSala">Imagem</label>
                       <input type="file" class="form-control" id="modalImagemSala" accept="image/*">
                     </div>
                 </div>
@@ -472,6 +471,7 @@ function setupCadastroSalaModal() {
       });
       return;
     }
+      
 
     // Captura os dados do formulário
     const tipoSalaId = document.getElementById("modalTipoSala").value;
@@ -487,6 +487,7 @@ function setupCadastroSalaModal() {
     const numero = document.getElementById("modalNumero").value;
     const complemento = document.getElementById("modalComplemento").value;
     const descricao = document.getElementById("modalDescricao").value;
+    
 
     // Captura a disponibilidade
     const domingo = document.getElementById("modalDomingo").checked ? 1 : 0;
@@ -501,41 +502,43 @@ function setupCadastroSalaModal() {
     const usuario = await fetchUsuarioLogado();
     const fkUsuarioId = usuario.id;
 
-    // Monta o objeto para enviar ao backend
-    const sala = {
-      capacidade: parseInt(capacidade),
-      tamanho: parseFloat(tamanhoM2),
-      valor_hora: parseFloat(valorHora),
-      recursos,
-      tipo_mobilia: tipoMobilia,
-      cep,
-      rua,
-      cidade,
-      estado,
-      numero: parseInt(numero),
-      complemento,
-      descricao,
-      fk_tipo_sala_id: parseInt(tipoSalaId),
-      fk_usuario_id: parseInt(fkUsuarioId),
-      domingo,
-      segunda,
-      terca,
-      quarta,
-      quinta,
-      sexta,
-      sabado,
-      status: 1
-    };
+  const formData = new FormData();
+  formData.append("tipoSalaId", tipoSalaId);
+  formData.append("capacidade", capacidade);
+  formData.append("tamanho", tamanhoM2);
+  formData.append("valor_hora", valorHora);
+  formData.append("recursos", recursos);
+  formData.append("tipo_mobilia", tipoMobilia);
+  formData.append("cep", cep);
+  formData.append("rua", rua);
+  formData.append("cidade", cidade);
+  formData.append("estado", estado);
+  formData.append("numero", numero);
+  formData.append("complemento", complemento);
+  formData.append("descricao", descricao);
+  formData.append("fk_tipo_sala_id", tipoSalaId);
+  formData.append("fk_usuario_id", fkUsuarioId);
+  formData.append("domingo", domingo);
+  formData.append("segunda", segunda);
+  formData.append("terca", terca);
+  formData.append("quarta", quarta);
+  formData.append("quinta", quinta);
+  formData.append("sexta", sexta);
+  formData.append("sabado", sabado);
+  formData.append("status", 1);
 
-    try {
-      // Envia os dados ao backend
-      const response = await fetch("http://127.0.0.1:8000/salas", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(sala)
-      });
+  // Adiciona a imagem, se houver
+  const imagemInput = document.getElementById("modalImagemSala");
+  if (imagemInput.files.length > 0) {
+    formData.append("imagem", imagemInput.files[0]);
+  }
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/salas", {
+      method: "POST",
+      body: formData
+      
+    });
 
       const result = await response.json();
 
@@ -723,7 +726,6 @@ function showEditSalaModal(salaId) {
                   <div class="col-md-12">
                     <label for="modalEditImagemSala" class="form-label">Imagem da Sala</label>
                     <div class="input-group">
-                      <label class="input-group-text" for="modalEditImagemSala">Imagem</label>
                       <input type="file" class="form-control" id="modalEditImagemSala" accept="image/*">
                     </div>
                   </div>
@@ -892,42 +894,42 @@ function setupEditSalaModal(salaId) {
   document.getElementById("modalSalvarSala").addEventListener("click", async function () {
     console.log("Salvando alterações...");
 
-    const sala = {
-      capacidade: parseInt(document.getElementById("modalEditCapacidade").value, 10),
-      tamanho: parseFloat(document.getElementById("modalEditTamanhoM2").value),
-      valor_hora: parseFloat(document.getElementById("modalEditValorHora").value),
-      recursos: document.getElementById("modalEditRecursos").value,
-      tipo_mobilia: document.getElementById("modalEditMobilario").value,
-      cep: document.getElementById("modalEditCep").value,
-      rua: document.getElementById("modalEditRua").value,
-      numero: parseInt(document.getElementById("modalEditNumero").value, 10),
-      cidade: document.getElementById("modalEditCidade").value,
-      estado: document.getElementById("modalEditEstado").value,
-      complemento: document.getElementById("modalEditComplemento").value,
-      descricao: document.getElementById("modalEditDescricao").value,
-      fk_tipo_sala_id: parseInt(document.getElementById("modalEditTipoSala").value, 10),
-      domingo: document.getElementById("modalEditDomingo").checked ? 1 : 0,
-      segunda: document.getElementById("modalEditSegunda").checked ? 1 : 0,
-      terca: document.getElementById("modalEditTerca").checked ? 1 : 0,
-      quarta: document.getElementById("modalEditQuarta").checked ? 1 : 0,
-      quinta: document.getElementById("modalEditQuinta").checked ? 1 : 0,
-      sexta: document.getElementById("modalEditSexta").checked ? 1 : 0,
-      sabado: document.getElementById("modalEditSabado").checked ? 1 : 0,
-      status: 1,
-      fk_usuario_id: 0 // O ID do usuário logado é recuperado no backend   
-    };
+  const formData = new FormData();
+  formData.append("capacidade", document.getElementById("modalEditCapacidade").value);
+  formData.append("tamanho", document.getElementById("modalEditTamanhoM2").value);
+  formData.append("valor_hora", document.getElementById("modalEditValorHora").value);
+  formData.append("recursos", document.getElementById("modalEditRecursos").value);
+  formData.append("tipo_mobilia", document.getElementById("modalEditMobilario").value);
+  formData.append("cep", document.getElementById("modalEditCep").value.replace(/\D/g, ''));
+  formData.append("rua", document.getElementById("modalEditRua").value);
+  formData.append("numero", document.getElementById("modalEditNumero").value);
+  formData.append("cidade", document.getElementById("modalEditCidade").value);
+  formData.append("estado", document.getElementById("modalEditEstado").value);
+  formData.append("complemento", document.getElementById("modalEditComplemento").value);
+  formData.append("descricao", document.getElementById("modalEditDescricao").value);
+  formData.append("fk_tipo_sala_id", document.getElementById("modalEditTipoSala").value);
+  formData.append("domingo", document.getElementById("modalEditDomingo").checked ? 1 : 0);
+  formData.append("segunda", document.getElementById("modalEditSegunda").checked ? 1 : 0);
+  formData.append("terca", document.getElementById("modalEditTerca").checked ? 1 : 0);
+  formData.append("quarta", document.getElementById("modalEditQuarta").checked ? 1 : 0);
+  formData.append("quinta", document.getElementById("modalEditQuinta").checked ? 1 : 0);
+  formData.append("sexta", document.getElementById("modalEditSexta").checked ? 1 : 0);
+  formData.append("sabado", document.getElementById("modalEditSabado").checked ? 1 : 0);
+  formData.append("status", 1);
 
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/salas/${salaId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include", // Importante para enviar os cookies de sessão
-        body: JSON.stringify(sala)
-      });
+  // Adiciona a imagem, se houver
+  const imagemInput = document.getElementById("modalEditImagemSala");
+  if (imagemInput.files.length > 0) {
+    formData.append("imagem", imagemInput.files[0]);
+  }
 
-      const result = await response.json();
+  try {
+    const response = await fetch(`http://127.0.0.1:8000/salas/${salaId}`, {
+      method: "PUT",
+      body: formData,
+      credentials: "include"
+    });
+    const result = await response.json();
 
       if (response.ok) {
         Swal.fire({
@@ -941,11 +943,7 @@ function setupEditSalaModal(salaId) {
           window.location.reload();
         });
       } else {
-        let errorMsg = "Erro ao atualizar sala";
-        if (result.detail) {
-          errorMsg = typeof result.detail === 'string' ? result.detail : JSON.stringify(result.detail);
-        }
-        throw new Error(errorMsg);
+        throw new Error(result.detail || "Erro ao atualizar sala");
       }
     } catch (error) {
       Swal.fire({

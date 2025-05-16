@@ -6,6 +6,12 @@ import mysql.connector
 from passlib.context import CryptContext
 from datetime import timedelta
 
+# pip install python-multipart
+# Código SQL para imagem na tabela salas:
+# ALTER TABLE salas
+# ADD COLUMN Imagem LONGBLOB;
+
+
 
 app = FastAPI()
 
@@ -250,32 +256,47 @@ async def get_tipos_sala():
         cursor.close()
         connection.close()
 
-# Endpoint para cadastrar sala
 @app.post("/salas")
-async def cadastrar_sala(sala: Sala):
+async def cadastrar_sala(
+    capacidade: int = Form(...),
+    tamanho: float = Form(...),
+    valor_hora: float = Form(...),
+    recursos: str = Form(...),
+    tipo_mobilia: str = Form(...),
+    cep: str = Form(...),
+    rua: str = Form(...),
+    cidade: str = Form(...),
+    estado: str = Form(...),
+    numero: int = Form(...),
+    complemento: str = Form(...),
+    descricao: str = Form(...),
+    fk_tipo_sala_id: int = Form(...),
+    fk_usuario_id: int = Form(...),
+    domingo: int = Form(...),
+    segunda: int = Form(...),
+    terca: int = Form(...),
+    quarta: int = Form(...),
+    quinta: int = Form(...),
+    sexta: int = Form(...),
+    sabado: int = Form(...),
+    status: int = Form(1),
+    imagem: UploadFile = File(None)
+):
     connection = get_db_connection()
     cursor = connection.cursor()
-
     try:
-        # Inserir os dados na tabela salas
+        imagem_bytes = await imagem.read() if imagem else None
         cursor.execute("""
             INSERT INTO salas (
                 Capacidade, Tamanho, Valor_Hora, Recursos, Tipo_Mobilia, CEP, Rua, Cidade, Estado, Numero, Complemento, Descricao, 
-                fk_usuario_ID_Usuario, fk_tipo_sala_ID_Tipo_Sala, Status, Domingo_Disp, Segunda_Disp, Terca_Disp, Quarta_Disp, Quinta_Disp, Sexta_Disp, Sabado_Disp
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                fk_usuario_ID_Usuario, fk_tipo_sala_ID_Tipo_Sala, Status, Domingo_Disp, Segunda_Disp, Terca_Disp, Quarta_Disp, Quinta_Disp, Sexta_Disp, Sabado_Disp, Imagem
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
-            sala.capacidade, sala.tamanho, sala.valor_hora, sala.recursos, sala.tipo_mobilia, sala.cep, sala.rua, sala.cidade,
-            sala.estado, sala.numero, sala.complemento, sala.descricao, sala.fk_usuario_id, sala.fk_tipo_sala_id, sala.status,
-            sala.domingo, sala.segunda, sala.terca, sala.quarta, sala.quinta, sala.sexta, sala.sabado
+            capacidade, tamanho, valor_hora, recursos, tipo_mobilia, cep, rua, cidade,
+            estado, numero, complemento, descricao, fk_usuario_id, fk_tipo_sala_id, status,
+            domingo, segunda, terca, quarta, quinta, sexta, sabado, imagem_bytes
         ))
-
-        # Atualizar o papel do usuário para "locador" (ID_Papel = 2)
-        cursor.execute("""
-            UPDATE usuario
-            SET fk_papel_ID_Papel = 2
-            WHERE ID_Usuario = %s
-        """, (sala.fk_usuario_id,))
-
+        # ...restante igual...
         connection.commit()
         return {"success": True, "message": "Sala cadastrada com sucesso!"}
     except Exception as e:
@@ -367,36 +388,63 @@ async def get_sala(id: int, request: Request):
         connection.close()
 
 @app.put("/salas/{id}")
-async def editar_sala(id: int, sala: Sala, request: Request):
+async def editar_sala(
+    id: int,
+    capacidade: int = Form(...),
+    tamanho: float = Form(...),
+    valor_hora: float = Form(...),
+    recursos: str = Form(...),
+    tipo_mobilia: str = Form(...),
+    cep: str = Form(...),
+    rua: str = Form(...),
+    numero: int = Form(...),
+    cidade: str = Form(...),
+    estado: str = Form(...),
+    complemento: str = Form(...),
+    descricao: str = Form(...),
+    fk_tipo_sala_id: int = Form(...),
+    domingo: int = Form(...),
+    segunda: int = Form(...),
+    terca: int = Form(...),
+    quarta: int = Form(...),
+    quinta: int = Form(...),
+    sexta: int = Form(...),
+    sabado: int = Form(...),
+    status: int = Form(1),
+    imagem: UploadFile = File(None),
+    request: Request = None
+):
     usuario = request.session.get("usuario")
     if not usuario:
         raise HTTPException(status_code=401, detail="Usuário não autenticado")
 
-    print("Usuário logado:", usuario)  # Verifica o ID do usuário logado
-    print("ID da sala recebida:", id)  # Verifica o ID da sala recebida
-
-    # Adiciona o ID do usuário logado ao objeto sala
-    sala_dict = sala.dict()
-    sala_dict["fk_usuario_id"] = usuario["id"]  # Garante que o ID do usuário seja usado
-
-    print("Dados recebidos para atualização:", sala_dict)  # Verifica os dados recebidos
-
     connection = get_db_connection()
     cursor = connection.cursor()
-
     try:
-        cursor.execute("""
-            UPDATE salas
-            SET Capacidade = %s, Tamanho = %s, Valor_Hora = %s, Recursos = %s, Tipo_Mobilia = %s, CEP = %s, Rua = %s,
-                Numero = %s, Cidade = %s, Estado = %s, Complemento = %s, Descricao = %s, fk_tipo_sala_ID_Tipo_Sala = %s,
-                Domingo_Disp = %s, Segunda_Disp = %s, Terca_Disp = %s, Quarta_Disp = %s, Quinta_Disp = %s, Sexta_Disp = %s, Sabado_Disp = %s
-            WHERE ID_Sala = %s AND fk_usuario_ID_Usuario = %s
-        """, (
-            sala.capacidade, sala.tamanho, sala.valor_hora, sala.recursos, sala.tipo_mobilia, sala.cep, sala.rua,
-            sala.numero, sala.cidade, sala.estado, sala.complemento, sala.descricao, sala.fk_tipo_sala_id,
-            sala.domingo, sala.segunda, sala.terca, sala.quarta, sala.quinta, sala.sexta, sala.sabado,
-            id, sala_dict["fk_usuario_id"]
-        ))
+        # Se veio imagem, atualiza o campo Imagem, senão mantém o valor atual
+        if imagem:
+            imagem_bytes = await imagem.read()
+            cursor.execute("""
+                UPDATE salas
+                SET Capacidade=%s, Tamanho=%s, Valor_Hora=%s, Recursos=%s, Tipo_Mobilia=%s, CEP=%s, Rua=%s,
+                    Numero=%s, Cidade=%s, Estado=%s, Complemento=%s, Descricao=%s, fk_tipo_sala_ID_Tipo_Sala=%s,
+                    Domingo_Disp=%s, Segunda_Disp=%s, Terca_Disp=%s, Quarta_Disp=%s, Quinta_Disp=%s, Sexta_Disp=%s, Sabado_Disp=%s, Imagem=%s
+                WHERE ID_Sala=%s AND fk_usuario_ID_Usuario=%s
+            """, (
+                capacidade, tamanho, valor_hora, recursos, tipo_mobilia, cep, rua, numero, cidade, estado, complemento, descricao,
+                fk_tipo_sala_id, domingo, segunda, terca, quarta, quinta, sexta, sabado, imagem_bytes, id, usuario["id"]
+            ))
+        else:
+            cursor.execute("""
+                UPDATE salas
+                SET Capacidade=%s, Tamanho=%s, Valor_Hora=%s, Recursos=%s, Tipo_Mobilia=%s, CEP=%s, Rua=%s,
+                    Numero=%s, Cidade=%s, Estado=%s, Complemento=%s, Descricao=%s, fk_tipo_sala_ID_Tipo_Sala=%s,
+                    Domingo_Disp=%s, Segunda_Disp=%s, Terca_Disp=%s, Quarta_Disp=%s, Quinta_Disp=%s, Sexta_Disp=%s, Sabado_Disp=%s
+                WHERE ID_Sala=%s AND fk_usuario_ID_Usuario=%s
+            """, (
+                capacidade, tamanho, valor_hora, recursos, tipo_mobilia, cep, rua, numero, cidade, estado, complemento, descricao,
+                fk_tipo_sala_id, domingo, segunda, terca, quarta, quinta, sexta, sabado, id, usuario["id"]
+            ))
 
         connection.commit()
         return {"success": True, "message": "Sala atualizada com sucesso!"}
@@ -457,47 +505,6 @@ async def get_sala(id: int, request: Request):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro ao buscar sala")
-    finally:
-        cursor.close()
-        connection.close()
-
-@app.put("/salas/{id}")
-async def editar_sala(id: int, sala: Sala, request: Request):
-    usuario = request.session.get("usuario")
-    if not usuario:
-        raise HTTPException(status_code=401, detail="Usuário não autenticado")
-
-    print("Usuário logado:", usuario)  # Verifica o ID do usuário logado
-    print("ID da sala recebida:", id)  # Verifica o ID da sala recebida
-
-    # Adiciona o ID do usuário logado ao objeto sala
-    sala_dict = sala.dict()
-    sala_dict["fk_usuario_id"] = usuario["id"]  # Garante que o ID do usuário seja usado
-
-    print("Dados recebidos para atualização:", sala_dict)  # Verifica os dados recebidos
-
-    connection = get_db_connection()
-    cursor = connection.cursor()
-
-    try:
-        cursor.execute("""
-            UPDATE salas
-            SET Capacidade = %s, Tamanho = %s, Valor_Hora = %s, Recursos = %s, Tipo_Mobilia = %s, CEP = %s, Rua = %s,
-                Numero = %s, Cidade = %s, Estado = %s, Complemento = %s, Descricao = %s, fk_tipo_sala_ID_Tipo_Sala = %s,
-                Domingo_Disp = %s, Segunda_Disp = %s, Terca_Disp = %s, Quarta_Disp = %s, Quinta_Disp = %s, Sexta_Disp = %s, Sabado_Disp = %s
-            WHERE ID_Sala = %s AND fk_usuario_ID_Usuario = %s
-        """, (
-            sala.capacidade, sala.tamanho, sala.valor_hora, sala.recursos, sala.tipo_mobilia, sala.cep, sala.rua,
-            sala.numero, sala.cidade, sala.estado, sala.complemento, sala.descricao, sala.fk_tipo_sala_id,
-            sala.domingo, sala.segunda, sala.terca, sala.quarta, sala.quinta, sala.sexta, sala.sabado,
-            id, sala_dict["fk_usuario_id"]
-        ))
-
-        connection.commit()
-        return {"success": True, "message": "Sala atualizada com sucesso!"}
-    except Exception as e:
-        connection.rollback()
-        raise HTTPException(status_code=500, detail=f"Erro ao atualizar sala: {str(e)}")
     finally:
         cursor.close()
         connection.close()
