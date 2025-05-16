@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
@@ -128,7 +128,9 @@ async def login_usuario(request: Request, login: LoginData):
     request.session["usuario"] = {
         "nome": user["Nome"],
         "email": user["Email"],
-        "id": user["ID_Usuario"]  # Aqui estamos salvando o ID do usuário na sessão
+        "id": user["ID_Usuario"],
+        "papel": user["fk_papel_ID_Papel"] 
+           
     }
 
     return {"success": True, "message": "Login realizado com sucesso", "nome": user["Nome"]}
@@ -288,6 +290,8 @@ async def minhas_salas(request: Request):
     usuario = request.session.get("usuario")
     if not usuario:
         raise HTTPException(status_code=401, detail="Usuário não autenticado")
+    if usuario.get("papel") != 2:
+        raise HTTPException(status_code=403, detail="Acesso restrito a locadores")
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)

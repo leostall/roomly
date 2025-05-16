@@ -251,6 +251,17 @@ function resetarTimerInatividade() {
 // Inicia o timer ao carregar a página
 resetarTimerInatividade();
 
+fetch("http://127.0.0.1:8000/usuario-logado", { credentials: "include" })
+  .then(res => res.json())
+  .then(data => {
+    if (!data.logado || data.papel !== 2) {
+      window.location.href = "login.html";
+    }
+  })
+  .catch(() => {
+    window.location.href = "login.html";
+  });
+
   </script>
   
 </body>

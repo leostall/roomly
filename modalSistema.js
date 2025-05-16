@@ -361,6 +361,13 @@ function showCadastroSalaModal() {
                     </div>
                   </div>
                   <div class="invalid-feedback">Selecione pelo menos um dia da semana</div>
+                  <div class="col-12">
+                    <label for="modalImagemSala" class="form-label">Imagem da Sala</label>
+                    <div class="input-group">
+                      <label class="input-group-text" for="modalImagemSala">Imagem</label>
+                      <input type="file" class="form-control" id="modalImagemSala" accept="image/*">
+                    </div>
+                </div>
                 </div>
               </div>
             </form>
@@ -712,6 +719,13 @@ function showEditSalaModal(salaId) {
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="modalEditSabado">
                     <label class="form-check-label" for="modalEditSabado">Sábado</label>
+                  </div>
+                  <div class="col-md-12">
+                    <label for="modalEditImagemSala" class="form-label">Imagem da Sala</label>
+                    <div class="input-group">
+                      <label class="input-group-text" for="modalEditImagemSala">Imagem</label>
+                      <input type="file" class="form-control" id="modalEditImagemSala" accept="image/*">
+                    </div>
                   </div>
                 </div>
               </div>
