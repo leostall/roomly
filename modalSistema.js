@@ -460,6 +460,21 @@ function setupCadastroSalaModal() {
       }
     });
 
+    // Verifica se a imagem foi selecionada
+    const imagemInput = document.getElementById("modalImagemSala");
+    if (imagemInput.files.length === 0) {
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Selecione uma imagem para a sala.',
+        icon: 'error',
+        confirmButtonText: 'Ok',
+        background: '#121212',
+        color: '#fff'
+      });
+      return;
+    }
+
+
     if (!isValid) {
       Swal.fire({
         title: 'Erro!',
@@ -528,7 +543,6 @@ function setupCadastroSalaModal() {
   formData.append("status", 1);
 
   // Adiciona a imagem, se houver
-  const imagemInput = document.getElementById("modalImagemSala");
   if (imagemInput.files.length > 0) {
     formData.append("imagem", imagemInput.files[0]);
   }
@@ -723,12 +737,12 @@ function showEditSalaModal(salaId) {
                     <input class="form-check-input" type="checkbox" id="modalEditSabado">
                     <label class="form-check-label" for="modalEditSabado">Sábado</label>
                   </div>
-                  <div class="col-md-12">
-                    <label for="modalEditImagemSala" class="form-label">Imagem da Sala</label>
+                </div>
+                <div class="col-12">
+                    <label for="modalEditImagemSala" class="form-label">Editar a imagem da Sala</label>
                     <div class="input-group">
                       <input type="file" class="form-control" id="modalEditImagemSala" accept="image/*">
                     </div>
-                  </div>
                 </div>
               </div>
             </form>

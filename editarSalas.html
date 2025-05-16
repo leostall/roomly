@@ -254,9 +254,11 @@ resetarTimerInatividade();
 fetch("http://127.0.0.1:8000/usuario-logado", { credentials: "include" })
   .then(res => res.json())
   .then(data => {
-    if (!data.logado || data.papel !== 2) {
-      window.location.href = "login.html";
-    }
+    if (!data.logado) {
+    window.location.href = "login.html";
+  } else if (data.papel !== 2) {
+    window.location.href = "index.html";
+  }
   })
   .catch(() => {
     window.location.href = "login.html";

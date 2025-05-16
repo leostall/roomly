@@ -23,7 +23,7 @@ app.add_middleware(SessionMiddleware, secret_key="roomly")
 # Middleware de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5500"],  # ou o IP/porta onde seu frontend roda
+    allow_origins=["http://127.0.0.1:3000"],  # ou o IP/porta onde seu frontend roda
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -356,6 +356,7 @@ async def get_sala(id: int, request: Request):
         if not sala:
             raise HTTPException(status_code=404, detail="Sala não encontrada")
         
+        
         return {
             "id": sala["ID_Sala"],
             "capacidade": sala["Capacidade"],
@@ -379,7 +380,7 @@ async def get_sala(id: int, request: Request):
                 "sexta": bool(sala["sexta"]),
                 "sabado": bool(sala["sabado"])
             },
-            "tipo_sala_id": sala["fk_tipo_sala_ID_Tipo_Sala"]
+            "tipo_sala_id": sala["fk_tipo_sala_ID_Tipo_Sala"],
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro ao buscar sala")
@@ -451,60 +452,6 @@ async def editar_sala(
     except Exception as e:
         connection.rollback()
         raise HTTPException(status_code=500, detail=f"Erro ao atualizar sala: {str(e)}")
-    finally:
-        cursor.close()
-        connection.close()
-
-@app.get("/salas/{id}")
-async def get_sala(id: int, request: Request):
-    usuario = request.session.get("usuario")
-    if not usuario:
-        raise HTTPException(status_code=401, detail="Usuário não autenticado")
-
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-
-    try:
-        cursor.execute("""
-            SELECT s.ID_Sala, s.Capacidade, s.Tamanho, s.Valor_Hora, s.Recursos, s.Tipo_Mobilia, s.CEP, s.Rua, 
-                   s.Numero, s.Cidade, s.Estado, s.Complemento, s.Descricao, s.Domingo_Disp AS domingo, 
-                   s.Segunda_Disp AS segunda, s.Terca_Disp AS terca, s.Quarta_Disp AS quarta, 
-                   s.Quinta_Disp AS quinta, s.Sexta_Disp AS sexta, s.Sabado_Disp AS sabado, 
-                   s.fk_tipo_sala_ID_Tipo_Sala
-            FROM salas s
-            WHERE s.ID_Sala = %s AND s.fk_usuario_ID_Usuario = %s
-        """, (id, usuario["id"]))
-        sala = cursor.fetchone()
-        if not sala:
-            raise HTTPException(status_code=404, detail="Sala não encontrada")
-        
-        return {
-            "id": sala["ID_Sala"],
-            "capacidade": sala["Capacidade"],
-            "tamanho": sala["Tamanho"],
-            "valor_hora": sala["Valor_Hora"],
-            "recursos": sala["Recursos"],
-            "tipo_mobilia": sala["Tipo_Mobilia"],
-            "cep": sala["CEP"],
-            "rua": sala["Rua"],
-            "numero": sala["Numero"],
-            "cidade": sala["Cidade"],
-            "estado": sala["Estado"],
-            "complemento": sala["Complemento"],
-            "descricao": sala["Descricao"],
-            "disponibilidade": {
-                "domingo": bool(sala["domingo"]),
-                "segunda": bool(sala["segunda"]),
-                "terca": bool(sala["terca"]),
-                "quarta": bool(sala["quarta"]),
-                "quinta": bool(sala["quinta"]),
-                "sexta": bool(sala["sexta"]),
-                "sabado": bool(sala["sabado"])
-            },
-            "tipo_sala_id": sala["fk_tipo_sala_ID_Tipo_Sala"]
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Erro ao buscar sala")
     finally:
         cursor.close()
         connection.close()
