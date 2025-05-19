@@ -1,3 +1,5 @@
+CREATE DATABASE  IF NOT EXISTS `roomly` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */;
+USE `roomly`;
 -- MySQL dump 10.13  Distrib 8.0.38, for Win64 (x86_64)
 --
 -- Host: 127.0.0.1    Database: roomly
@@ -101,12 +103,13 @@ CREATE TABLE `salas` (
   `Sexta_Disp` int(11) DEFAULT NULL,
   `Sabado_Disp` int(11) DEFAULT NULL,
   `Domingo_Disp` int(11) DEFAULT NULL,
+  `Imagem` longblob DEFAULT NULL,
   PRIMARY KEY (`ID_Sala`),
   KEY `FK_salas_2` (`fk_usuario_ID_Usuario`),
   KEY `FK_salas_3` (`fk_tipo_sala_ID_Tipo_Sala`),
   CONSTRAINT `FK_salas_2` FOREIGN KEY (`fk_usuario_ID_Usuario`) REFERENCES `usuario` (`ID_Usuario`) ON DELETE CASCADE,
   CONSTRAINT `FK_salas_3` FOREIGN KEY (`fk_tipo_sala_ID_Tipo_Sala`) REFERENCES `tipo_sala` (`ID_Tipo_Sala`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -115,7 +118,6 @@ CREATE TABLE `salas` (
 
 LOCK TABLES `salas` WRITE;
 /*!40000 ALTER TABLE `salas` DISABLE KEYS */;
-INSERT INTO `salas` VALUES (11,1,1.00,1.00,'tetse','teste','81900000','Rua Izaac Ferreira da Cruz','Curitiba','PR',123,'teste','teste',5,8,1,0,1,0,0,0,0,0);
 /*!40000 ALTER TABLE `salas` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -129,8 +131,11 @@ DROP TABLE IF EXISTS `tipo_sala`;
 CREATE TABLE `tipo_sala` (
   `ID_Tipo_Sala` int(11) NOT NULL AUTO_INCREMENT,
   `Tipo` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`ID_Tipo_Sala`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `fk_usuario_ID_Usuario` int(11) NOT NULL,
+  PRIMARY KEY (`ID_Tipo_Sala`),
+  KEY `FK_tipo_sala_usuario` (`fk_usuario_ID_Usuario`),
+  CONSTRAINT `FK_tipo_sala_usuario` FOREIGN KEY (`fk_usuario_ID_Usuario`) REFERENCES `usuario` (`ID_Usuario`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -139,7 +144,7 @@ CREATE TABLE `tipo_sala` (
 
 LOCK TABLES `tipo_sala` WRITE;
 /*!40000 ALTER TABLE `tipo_sala` DISABLE KEYS */;
-INSERT INTO `tipo_sala` VALUES (1,'Sala de reunião'),(2,'Auditório'),(3,'Sala de treinamento'),(4,'Estúdio de gravação'),(8,'Sala teste');
+INSERT INTO `tipo_sala` VALUES (2,'Auditório 11',9),(3,'Sala de treinamento',9),(4,'Estúdio de gravação',9),(8,'Sala teste',9),(32,'Auditório',10),(33,'Sala de Reunião',10),(34,'Mesa Individual',10);
 /*!40000 ALTER TABLE `tipo_sala` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -161,7 +166,7 @@ CREATE TABLE `usuario` (
   PRIMARY KEY (`ID_Usuario`),
   KEY `FK_usuario_2` (`fk_papel_ID_Papel`),
   CONSTRAINT `FK_usuario_2` FOREIGN KEY (`fk_papel_ID_Papel`) REFERENCES `papel` (`ID_Papel`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -170,7 +175,7 @@ CREATE TABLE `usuario` (
 
 LOCK TABLES `usuario` WRITE;
 /*!40000 ALTER TABLE `usuario` DISABLE KEYS */;
-INSERT INTO `usuario` VALUES (5,'Leonardo Stall (locador)','28114896060','stall.leonardo+locador@pucpr.edu.br','41996384242','$2b$12$/dId8Y9poMTEwKr/B8MyaOH7OLJjLxs/tFuwRjupeKF2azDSWImfO',2),(6,'Leonardo Stall (locatario) teste','09201426054','stall.leonardo+locatario@pucpr.edu.br','41996384242','$2b$12$sx5AhDNADiusjR4Dd5galeMOGqcULHaG.eiJnzdAzo2tUK9S/laFW',1);
+INSERT INTO `usuario` VALUES (6,'Leonardo Stall (locatario) teste','09201426054','stall.leonardo+locatario@pucpr.edu.br','41996384242','$2b$12$sx5AhDNADiusjR4Dd5galeMOGqcULHaG.eiJnzdAzo2tUK9S/laFW',1),(9,'Leonardo Stall (locador)','70111467098','stall.leonardo+locador@pucpr.edu.br','41996384242','$2b$12$9UkO89aZoJgQZewvOU4cQuEDRKvEcsUCfDxPA8ybNvQrNgJOX8E/2',2),(10,'Teste','12253669091','teste@gmail.com','41996384242','$2b$12$XBx5ZYMaST3wXbUbBg/pbeGG4C9EKHLz3Af8ZEfJLcw8aCXfXSZsS',2);
 /*!40000 ALTER TABLE `usuario` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -183,4 +188,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-11 22:41:29
+-- Dump completed on 2025-05-18 21:21:45

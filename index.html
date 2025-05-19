@@ -261,14 +261,13 @@
     </div>
   </section>
 
-  <section class="py-5">
+  <section class="py-5" id="torne-se-locador">
     <div class="container">
       <div class="row justify-content-center">
         <div class="col-lg-8 text-center">
-          <h2 class="fw-bold mb-4">Pronto para transformar sua experiência de trabalho?</h2>
-          <p class="lead mb-5">Cadastre-se agora e tenha acesso aos melhores espaços de coworking
-            da cidade.</p>
-          <a href="login.html" class="btn btn-primary btn-lg px-5">Comece Agora</a>
+          <h2 class="fw-bold mb-4">Torne-se um locador</h2>
+          <p class="lead mb-5">Ofereça seus espaços para coworking e alcance profissionais que precisam deles.</p>
+          <button id="btnTorneSeLocador" class="btn btn-primary btn-lg px-5">Quero ser Locador</button>
         </div>
       </div>
     </div>
@@ -333,60 +332,200 @@
 </body>
 
 <script>
-const SESSION_TIMEOUT = 2 * 60 * 1000;
-let sessionTimer = null;
-let userIsLogged = false;
+  document.getElementById('btnTorneSeLocador').addEventListener('click', async function (e) {
+    e.preventDefault();
 
-async function checkUserLoggedIn() {
-  try {
-    const response = await fetch('http://127.0.0.1:8000/usuario-logado', {
+    try {
+      // Verifica se o usuário está logado
+      const response = await fetch('http://127.0.0.1:8000/usuario-logado', {
+        credentials: 'include'
+      });
+      const data = await response.json();
+
+      if (!data.logado) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Verifica se o usuário já é locador (papel = 2)
+      if (data.papel === 2) {
+        await Swal.fire({
+          icon: 'info',
+          title: 'Você já é um locador',
+          text: 'Seu perfil já possui acesso às funcionalidades completas de locador.',
+          confirmButtonText: 'Entendi',
+          background: '#121212',
+          color: '#fff',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          allowEnterKey: false,
+          backdrop: true,
+          heightAuto: false,
+          scrollbarPadding: false,
+          customClass: {
+            popup: 'dark-swal',
+            container: 'swal2-container'
+          },
+          didOpen: () => {
+            document.body.style.overflow = 'hidden';
+          },
+          willClose: () => {
+            document.body.style.overflow = 'auto';
+          }
+        });
+        return;
+      }
+
+      // Confirmação antes de tornar-se locador
+      const { isConfirmed } = await Swal.fire({
+        title: 'Tornar-se Locador',
+        html: `
+                <div style="text-align: center;">
+                    <p style="color: #aaa; margin-bottom: 15px;">Você está prestes a se tornar um locador. Isso irá:</p>
+                    <ul style="text-align: left; color: #ccc; padding-left: 20px; margin: 0 auto; width: fit-content; margin-bottom: 20px;">
+                        <li>Atualizar seu perfil para locador;</li>
+                        <li>Criar tipos de sala padrão;</li>
+                        <li>Dar acesso às funções de administração.</li>
+                    </ul>
+                    <p style="color: #eee; font-weight: 500; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">Deseja continuar?</p>
+                </div>
+            `,
+        icon: 'question',
+        background: '#121212',
+        color: '#fff',
+        showCancelButton: true,
+        confirmButtonColor: '#4361ee',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sim, tornar-me locador',
+        cancelButtonText: 'Cancelar',
+        focusConfirm: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        allowEnterKey: false,
+        backdrop: true,
+        heightAuto: false,
+        scrollbarPadding: false,
+        customClass: {
+          popup: 'dark-swal'
+        }
+      });
+
+      if (!isConfirmed) return;
+
+      // Se confirmado, prossegue com a solicitação
+      const tornarLocadorResponse = await fetch('http://127.0.0.1:8000/tornar-locador', {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      const result = await tornarLocadorResponse.json();
+
+      if (result.success) {
+        // Primeiro mostra a mensagem de sucesso
+        await Swal.fire({
+          icon: 'success',
+          title: 'Sucesso!',
+          text: result.message,
+          confirmButtonText: 'OK',
+          background: '#121212',
+          color: '#fff',
+          allowOutsideClick: false,
+          backdrop: true
+        });
+
+        // Depois mostra a mensagem informando que precisa logar novamente
+        const { isConfirmed } = await Swal.fire({
+          icon: 'info',
+          title: 'Reconexão necessária',
+          html: 'Para que as alterações tenham efeito, é necessário fazer login novamente no sistema.',
+          confirmButtonText: 'Fazer logout agora',
+          showCancelButton: false,
+          background: '#121212',
+          color: '#fff',
+          allowOutsideClick: false,
+          backdrop: true
+        });
+
+        if (isConfirmed) {
+          await fetch('http://127.0.0.1:8000/logout', {
+            method: 'POST',
+            credentials: 'include'
+          });
+          window.location.href = 'login.html';
+        } else {
+          window.location.reload();
+        }
+      } else {
+        throw new Error(result.message || 'Erro desconhecido');
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro',
+        text: error.message || 'Ocorreu um erro ao tentar se tornar um locador',
+        confirmButtonText: 'OK',
+        background: '#121212',
+        color: '#fff',
+        allowOutsideClick: false,
+        backdrop: true
+      });
+    }
+  });
+
+  const SESSION_TIMEOUT = 2 * 60 * 1000;
+  let sessionTimer = null;
+  let userIsLogged = false;
+
+  async function checkUserLoggedIn() {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/usuario-logado', {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      return data.logado === true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function logoutUser() {
+    await fetch('http://127.0.0.1:8000/logout', {
+      method: 'POST',
       credentials: 'include'
     });
-    const data = await response.json();
-    return data.logado === true;
-  } catch {
-    return false;
+    clearTimeout(sessionTimer);
+    userIsLogged = false;
+    Swal.fire({
+      icon: 'info',
+      title: 'Sessão expirada',
+      text: 'Sua sessão expirou por inatividade. Faça login novamente.',
+      confirmButtonText: 'OK',
+      background: '#121212', // fundo preto
+      color: '#fff'          // texto branco
+    }).then(() => {
+      window.location.href = 'login.html';
+    });
   }
-}
 
-async function logoutUser() {
-  await fetch('http://127.0.0.1:8000/logout', {
-    method: 'POST',
-    credentials: 'include'
+  function startSessionTimer() {
+    clearTimeout(sessionTimer);
+    sessionTimer = setTimeout(() => {
+      if (userIsLogged) logoutUser();
+    }, SESSION_TIMEOUT);
+  }
+
+  // Só reinicia o timer se estiver logado
+  ['mousemove', 'keydown', 'click'].forEach(evt => {
+    document.addEventListener(evt, () => {
+      if (userIsLogged) startSessionTimer();
+    });
   });
-  clearTimeout(sessionTimer);
-  userIsLogged = false;
-  Swal.fire({
-    icon: 'info',
-    title: 'Sessão expirada',
-    text: 'Sua sessão expirou por inatividade. Faça login novamente.',
-    confirmButtonText: 'OK',
-    background: '#121212', // fundo preto
-    color: '#fff'          // texto branco
-  }).then(() => {
-    window.location.href = 'login.html';
-  });
-}
 
-function startSessionTimer() {
-  clearTimeout(sessionTimer);
-  sessionTimer = setTimeout(() => {
-    if (userIsLogged) logoutUser();
-  }, SESSION_TIMEOUT);
-}
-
-// Só reinicia o timer se estiver logado
-['mousemove', 'keydown', 'click'].forEach(evt => {
-  document.addEventListener(evt, () => {
+  // Checa login ao carregar a página
+  checkUserLoggedIn().then(isLogged => {
+    userIsLogged = isLogged;
     if (userIsLogged) startSessionTimer();
   });
-});
-
-// Checa login ao carregar a página
-checkUserLoggedIn().then(isLogged => {
-  userIsLogged = isLogged;
-  if (userIsLogged) startSessionTimer();
-});
 </script>
 
 </html>

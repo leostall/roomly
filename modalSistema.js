@@ -466,7 +466,7 @@ function setupCadastroSalaModal() {
       Swal.fire({
         title: 'Erro!',
         text: 'Selecione uma imagem para a sala.',
-        icon: 'error',
+        icon: 'info',
         confirmButtonText: 'Ok',
         background: '#121212',
         color: '#fff'
@@ -479,14 +479,14 @@ function setupCadastroSalaModal() {
       Swal.fire({
         title: 'Erro!',
         text: 'Preencha todos os campos obrigatórios.',
-        icon: 'error',
+        icon: 'info',
         confirmButtonText: 'Ok',
         background: '#121212',
         color: '#fff'
       });
       return;
     }
-      
+
 
     // Captura os dados do formulário
     const tipoSalaId = document.getElementById("modalTipoSala").value;
@@ -502,7 +502,7 @@ function setupCadastroSalaModal() {
     const numero = document.getElementById("modalNumero").value;
     const complemento = document.getElementById("modalComplemento").value;
     const descricao = document.getElementById("modalDescricao").value;
-    
+
 
     // Captura a disponibilidade
     const domingo = document.getElementById("modalDomingo").checked ? 1 : 0;
@@ -517,42 +517,42 @@ function setupCadastroSalaModal() {
     const usuario = await fetchUsuarioLogado();
     const fkUsuarioId = usuario.id;
 
-  const formData = new FormData();
-  formData.append("tipoSalaId", tipoSalaId);
-  formData.append("capacidade", capacidade);
-  formData.append("tamanho", tamanhoM2);
-  formData.append("valor_hora", valorHora);
-  formData.append("recursos", recursos);
-  formData.append("tipo_mobilia", tipoMobilia);
-  formData.append("cep", cep);
-  formData.append("rua", rua);
-  formData.append("cidade", cidade);
-  formData.append("estado", estado);
-  formData.append("numero", numero);
-  formData.append("complemento", complemento);
-  formData.append("descricao", descricao);
-  formData.append("fk_tipo_sala_id", tipoSalaId);
-  formData.append("fk_usuario_id", fkUsuarioId);
-  formData.append("domingo", domingo);
-  formData.append("segunda", segunda);
-  formData.append("terca", terca);
-  formData.append("quarta", quarta);
-  formData.append("quinta", quinta);
-  formData.append("sexta", sexta);
-  formData.append("sabado", sabado);
-  formData.append("status", 1);
+    const formData = new FormData();
+    formData.append("tipoSalaId", tipoSalaId);
+    formData.append("capacidade", capacidade);
+    formData.append("tamanho", tamanhoM2);
+    formData.append("valor_hora", valorHora);
+    formData.append("recursos", recursos);
+    formData.append("tipo_mobilia", tipoMobilia);
+    formData.append("cep", cep);
+    formData.append("rua", rua);
+    formData.append("cidade", cidade);
+    formData.append("estado", estado);
+    formData.append("numero", numero);
+    formData.append("complemento", complemento);
+    formData.append("descricao", descricao);
+    formData.append("fk_tipo_sala_id", tipoSalaId);
+    formData.append("fk_usuario_id", fkUsuarioId);
+    formData.append("domingo", domingo);
+    formData.append("segunda", segunda);
+    formData.append("terca", terca);
+    formData.append("quarta", quarta);
+    formData.append("quinta", quinta);
+    formData.append("sexta", sexta);
+    formData.append("sabado", sabado);
+    formData.append("status", 1);
 
-  // Adiciona a imagem, se houver
-  if (imagemInput.files.length > 0) {
-    formData.append("imagem", imagemInput.files[0]);
-  }
+    // Adiciona a imagem, se houver
+    if (imagemInput.files.length > 0) {
+      formData.append("imagem", imagemInput.files[0]);
+    }
 
-  try {
-    const response = await fetch("http://127.0.0.1:8000/salas", {
-      method: "POST",
-      body: formData
-      
-    });
+    try {
+      const response = await fetch("http://127.0.0.1:8000/salas-cadastro", {
+        method: "POST",
+        body: formData
+
+      });
 
       const result = await response.json();
 
@@ -597,10 +597,17 @@ function setupCadastroSalaModal() {
 // Função para carregar os tipos de sala na modal
 async function carregarTiposSalaModal() {
   try {
-    const response = await fetch('http://127.0.0.1:8000/tipos-sala');
+    const usuario = await fetchUsuarioLogado();
+    const response = await fetch('http://127.0.0.1:8000/tipos-sala-recuperar', {
+      method: "GET",
+      credentials: "include"
+    });
+
     const tiposSala = await response.json();
 
     const selectTipoSala = document.getElementById('modalTipoSala');
+    selectTipoSala.innerHTML = '<option value="" disabled selected>Selecione um tipo</option>';
+
     tiposSala.forEach(tipo => {
       const option = document.createElement('option');
       option.value = tipo.ID_Tipo_Sala;
@@ -609,6 +616,13 @@ async function carregarTiposSalaModal() {
     });
   } catch (error) {
     console.error('Erro ao carregar tipos de sala:', error);
+    Swal.fire({
+      title: 'Erro!',
+      text: 'Não foi possível carregar os tipos de sala.',
+      icon: 'error',
+      background: '#121212',
+      color: '#ffffff'
+    });
   }
 }
 
@@ -774,7 +788,7 @@ function showEditSalaModal(salaId) {
 // Função para carregar os dados da sala
 async function loadSalaData(salaId) {
   try {
-    const response = await fetch(`http://127.0.0.1:8000/salas/${salaId}`, {
+    const response = await fetch(`http://127.0.0.1:8000/salas-recuperar/${salaId}`, {
       method: "GET",
       credentials: "include"
     });
@@ -869,7 +883,7 @@ function setupEditSalaModal(salaId) {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await fetch(`http://127.0.0.1:8000/salas/${salaId}`, {
+          const response = await fetch(`http://127.0.0.1:8000/salas-excluir/${salaId}`, {
             method: "DELETE",
             credentials: "include"
           });
@@ -908,42 +922,42 @@ function setupEditSalaModal(salaId) {
   document.getElementById("modalSalvarSala").addEventListener("click", async function () {
     console.log("Salvando alterações...");
 
-  const formData = new FormData();
-  formData.append("capacidade", document.getElementById("modalEditCapacidade").value);
-  formData.append("tamanho", document.getElementById("modalEditTamanhoM2").value);
-  formData.append("valor_hora", document.getElementById("modalEditValorHora").value);
-  formData.append("recursos", document.getElementById("modalEditRecursos").value);
-  formData.append("tipo_mobilia", document.getElementById("modalEditMobilario").value);
-  formData.append("cep", document.getElementById("modalEditCep").value.replace(/\D/g, ''));
-  formData.append("rua", document.getElementById("modalEditRua").value);
-  formData.append("numero", document.getElementById("modalEditNumero").value);
-  formData.append("cidade", document.getElementById("modalEditCidade").value);
-  formData.append("estado", document.getElementById("modalEditEstado").value);
-  formData.append("complemento", document.getElementById("modalEditComplemento").value);
-  formData.append("descricao", document.getElementById("modalEditDescricao").value);
-  formData.append("fk_tipo_sala_id", document.getElementById("modalEditTipoSala").value);
-  formData.append("domingo", document.getElementById("modalEditDomingo").checked ? 1 : 0);
-  formData.append("segunda", document.getElementById("modalEditSegunda").checked ? 1 : 0);
-  formData.append("terca", document.getElementById("modalEditTerca").checked ? 1 : 0);
-  formData.append("quarta", document.getElementById("modalEditQuarta").checked ? 1 : 0);
-  formData.append("quinta", document.getElementById("modalEditQuinta").checked ? 1 : 0);
-  formData.append("sexta", document.getElementById("modalEditSexta").checked ? 1 : 0);
-  formData.append("sabado", document.getElementById("modalEditSabado").checked ? 1 : 0);
-  formData.append("status", 1);
+    const formData = new FormData();
+    formData.append("capacidade", document.getElementById("modalEditCapacidade").value);
+    formData.append("tamanho", document.getElementById("modalEditTamanhoM2").value);
+    formData.append("valor_hora", document.getElementById("modalEditValorHora").value);
+    formData.append("recursos", document.getElementById("modalEditRecursos").value);
+    formData.append("tipo_mobilia", document.getElementById("modalEditMobilario").value);
+    formData.append("cep", document.getElementById("modalEditCep").value.replace(/\D/g, ''));
+    formData.append("rua", document.getElementById("modalEditRua").value);
+    formData.append("numero", document.getElementById("modalEditNumero").value);
+    formData.append("cidade", document.getElementById("modalEditCidade").value);
+    formData.append("estado", document.getElementById("modalEditEstado").value);
+    formData.append("complemento", document.getElementById("modalEditComplemento").value);
+    formData.append("descricao", document.getElementById("modalEditDescricao").value);
+    formData.append("fk_tipo_sala_id", document.getElementById("modalEditTipoSala").value);
+    formData.append("domingo", document.getElementById("modalEditDomingo").checked ? 1 : 0);
+    formData.append("segunda", document.getElementById("modalEditSegunda").checked ? 1 : 0);
+    formData.append("terca", document.getElementById("modalEditTerca").checked ? 1 : 0);
+    formData.append("quarta", document.getElementById("modalEditQuarta").checked ? 1 : 0);
+    formData.append("quinta", document.getElementById("modalEditQuinta").checked ? 1 : 0);
+    formData.append("sexta", document.getElementById("modalEditSexta").checked ? 1 : 0);
+    formData.append("sabado", document.getElementById("modalEditSabado").checked ? 1 : 0);
+    formData.append("status", 1);
 
-  // Adiciona a imagem, se houver
-  const imagemInput = document.getElementById("modalEditImagemSala");
-  if (imagemInput.files.length > 0) {
-    formData.append("imagem", imagemInput.files[0]);
-  }
+    // Adiciona a imagem, se houver
+    const imagemInput = document.getElementById("modalEditImagemSala");
+    if (imagemInput.files.length > 0) {
+      formData.append("imagem", imagemInput.files[0]);
+    }
 
-  try {
-    const response = await fetch(`http://127.0.0.1:8000/salas/${salaId}`, {
-      method: "PUT",
-      body: formData,
-      credentials: "include"
-    });
-    const result = await response.json();
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/salas-atualizar/${salaId}`, {
+        method: "PUT",
+        body: formData,
+        credentials: "include"
+      });
+      const result = await response.json();
 
       if (response.ok) {
         Swal.fire({
@@ -974,7 +988,7 @@ function setupEditSalaModal(salaId) {
 // Função para preencher os tipos de sala na modal
 async function preencherTiposSalaModal(tipoSalaSelecionado) {
   try {
-    const response = await fetch("http://127.0.0.1:8000/tipos-sala", {
+    const response = await fetch("http://127.0.0.1:8000/tipos-sala-recuperar", {
       method: "GET",
       credentials: "include"
     });
@@ -1000,6 +1014,13 @@ async function preencherTiposSalaModal(tipoSalaSelecionado) {
     }
   } catch (error) {
     console.error("Erro ao buscar tipos de sala:", error);
+    Swal.fire({
+      title: "Erro!",
+      text: "Não foi possível carregar os tipos de sala.",
+      icon: "error",
+      background: "#121212",
+      color: "#ffffff"
+    });
   }
 }
 
@@ -1011,8 +1032,8 @@ function showTiposSalaModal() {
 
   // Cria a estrutura da modal
   const modalHTML = `
-    <div class="modal fade" id="tiposSalaModal" tabindex="-1" aria-labelledby="tiposSalaModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
+    <div class="modal fade" id="tiposSalaModal" tabindex="-1" aria-labelledby="tiposSalaModalLabel" aria-hidden="true" data-bs-backdrop="static">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="tiposSalaModalLabel">Gerenciar Tipos de Sala</h5>
@@ -1020,10 +1041,7 @@ function showTiposSalaModal() {
           </div>
           <div class="modal-body">
             <div class="d-flex justify-content-between mb-3">
-              <button type="button" class="btn btn-primary" id="btnAdicionarTipo">
-                <i class="bi bi-plus-circle"></i> Adicionar Tipo
-              </button>
-              <div class="input-group" style="width: 300px;">
+              <div class="input-group" style="width: 100%;">
                 <input type="text" class="form-control" id="searchTipoSala" placeholder="Pesquisar tipo...">
                 <button class="btn btn-outline-secondary" type="button">
                   <i class="bi bi-search"></i>
@@ -1036,7 +1054,7 @@ function showTiposSalaModal() {
                 <thead>
                   <tr>
                     <th>Tipo</th>
-                    <th>Ações</th>
+                    <th class="text-end">Ações</th>
                   </tr>
                 </thead>
                 <tbody id="tiposSalaTableBody">
@@ -1046,15 +1064,18 @@ function showTiposSalaModal() {
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="button" class="btn btn-primary" id="btnAdicionarTipo">
+                <i class="bi bi-plus-circle"></i> Adicionar Tipo
+            </button>
+            <button type="button" class="btn btn-secondary ms-auto" data-bs-dismiss="modal">Fechar</button>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Modal para adicionar/editar tipo -->
-    <div class="modal fade" id="editarTipoSalaModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
+    <div class="modal fade" id="editarTipoSalaModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+      <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="editarTipoSalaModalLabel">Adicionar Tipo</h5>
@@ -1094,25 +1115,37 @@ function showTiposSalaModal() {
 
 async function carregarTiposSala() {
   try {
-    const response = await fetch("http://127.0.0.1:8000/tipos-sala");
+    const response = await fetch("http://127.0.0.1:8000/tipos-sala-recuperar", {
+      method: "GET",
+      credentials: "include"
+    });
     const tipos = await response.json();
 
     const tableBody = document.getElementById("tiposSalaTableBody");
     tableBody.innerHTML = "";
 
+    if (tipos.length === 0) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="2" class="text-center">Nenhum tipo de sala cadastrado</td>
+        </tr>
+      `;
+      return;
+    }
+
     tipos.forEach(tipo => {
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td>${tipo.Tipo}</td>
-        <td>
-          <button class="btn btn-sm btn-editar me-2" data-id="${tipo.ID_Tipo_Sala}">
-            <i class="bi bi-pencil"></i> Editar
-          </button>
-          <button class="btn btn-sm btn-excluir" data-id="${tipo.ID_Tipo_Sala}">
-            <i class="bi bi-trash"></i> Excluir
-          </button>
-        </td>
-      `;
+          <td>${tipo.Tipo}</td>
+          <td class="text-end">
+              <button class="btn btn-sm btn-editar me-2" data-id="${tipo.ID_Tipo_Sala}">
+                  <i class="bi bi-pencil"></i> Editar
+              </button>
+              <button class="btn btn-sm btn-excluir" data-id="${tipo.ID_Tipo_Sala}">
+                  <i class="bi bi-trash"></i> Excluir
+              </button>
+          </td>
+        `;
       tableBody.appendChild(row);
     });
   } catch (error) {
@@ -1141,9 +1174,12 @@ function setupTiposSalaModal() {
   // Evento para editar tipo (delegação de eventos)
   document.getElementById("tiposSalaTableBody").addEventListener("click", function (e) {
     if (e.target.closest(".btn-editar")) {
-      const id = e.target.closest(".btn-editar").getAttribute("data-id");
-      const row = e.target.closest("tr");
-      const nome = row.querySelector("td:nth-child(2)").textContent;
+      const btnEditar = e.target.closest(".btn-editar");
+      const id = btnEditar.getAttribute("data-id");
+      const row = btnEditar.closest("tr");
+
+      // Corrigido: Pegar o texto do PRIMEIRO <td> (índice 1)
+      const nome = row.querySelector("td:first-child").textContent.trim();
 
       document.getElementById("tipoSalaId").value = id;
       document.getElementById("tipoSalaNome").value = nome;
@@ -1168,7 +1204,7 @@ function setupTiposSalaModal() {
       Swal.fire({
         title: "Atenção!",
         text: "Preencha o nome do tipo.",
-        icon: "warning",
+        icon: "info",
         background: "#121212",
         color: "#ffffff"
       });
@@ -1179,7 +1215,7 @@ function setupTiposSalaModal() {
       let response;
       if (id) {
         // Edição
-        response = await fetch(`http://127.0.0.1:8000/tipos-sala/${id}`, {
+        response = await fetch(`http://127.0.0.1:8000/tipos-sala-atualizar/${id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json"
@@ -1188,11 +1224,12 @@ function setupTiposSalaModal() {
         });
       } else {
         // Criação
-        response = await fetch("http://127.0.0.1:8000/tipos-sala", {
+        response = await fetch("http://127.0.0.1:8000/tipos-sala-criar", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
+          credentials: "include",
           body: JSON.stringify({ tipo: nome })
         });
       }
@@ -1200,16 +1237,28 @@ function setupTiposSalaModal() {
       const result = await response.json();
 
       if (response.ok) {
-        Swal.fire({
-          title: "Sucesso!",
-          text: result.message,
-          icon: "success",
-          background: "#121212",
-          color: "#ffffff"
-        }).then(() => {
-          bootstrap.Modal.getInstance(document.getElementById('editarTipoSalaModal')).hide();
-          carregarTiposSala();
-        });
+        if (result.success === false) {
+          // Caso o nome não tenha sido alterado
+          Swal.fire({
+            title: "Aviso",
+            text: result.message,
+            icon: "info",
+            background: "#121212",
+            color: "#ffffff"
+          });
+        } else {
+          // Caso tenha sido atualizado com sucesso
+          Swal.fire({
+            title: "Sucesso!",
+            text: result.message,
+            icon: "success",
+            background: "#121212",
+            color: "#ffffff"
+          }).then(() => {
+            bootstrap.Modal.getInstance(document.getElementById('editarTipoSalaModal')).hide();
+            carregarTiposSala();
+          });
+        }
       } else {
         throw new Error(result.detail || "Erro ao salvar tipo");
       }
@@ -1240,7 +1289,7 @@ async function confirmarExclusaoTipo(id) {
   Swal.fire({
     title: "Tem certeza?",
     text: "Esta ação não pode ser desfeita!",
-    icon: "warning",
+    icon: "info",
     showCancelButton: true,
     confirmButtonText: "Sim, excluir!",
     cancelButtonText: "Cancelar",
@@ -1251,7 +1300,7 @@ async function confirmarExclusaoTipo(id) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/tipos-sala/${id}`, {
+        const response = await fetch(`http://127.0.0.1:8000/tipos-sala-excluir/${id}`, {
           method: "DELETE",
           credentials: "include"
         });

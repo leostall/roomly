@@ -6,30 +6,18 @@ import mysql.connector
 from passlib.context import CryptContext
 from datetime import timedelta
 
-# pip install python-multipart
-# Código SQL para imagem na tabela salas:
-# ALTER TABLE salas
-# ADD COLUMN Imagem LONGBLOB;
-
-
-
 app = FastAPI()
 
-# Middleware de sessão
 app.add_middleware(SessionMiddleware, secret_key="roomly")
 
-
-
-# Middleware de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:3000"],  # ou o IP/porta onde seu frontend roda
+    allow_origins=["http://127.0.0.1:5500"],  # ou o IP/porta onde seu frontend roda
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Modelo para cadastro
 class Usuario(BaseModel):
     email: str
     nome: str
@@ -37,12 +25,10 @@ class Usuario(BaseModel):
     cpf: str
     senha: str
 
-# Modelo para login
 class LoginData(BaseModel):
     email: str
     senha: str
 
-# Modelo para os dados da sala
 class Sala(BaseModel):
     capacidade: int
     tamanho: float
@@ -67,16 +53,20 @@ class Sala(BaseModel):
     sabado: int
     status: int = 1  # Status padrão como 1
 
-# Conexão com banco
 def get_db_connection():
-    return mysql.connector.connect(
-        host="127.0.0.1",
-        user="root",
-        password="",# Senha do banco de dados
-        database="roomly"
-    )
+    try:
+        return mysql.connector.connect(
+            host="127.0.0.1",
+            user="root",
+            password="",
+            database="roomly"
+        )
+    except mysql.connector.Error as err:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao conectar ao banco de dados: {err}"
+        )
 
-# Criptografia
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str):
@@ -85,7 +75,6 @@ def hash_password(password: str):
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
-# Cadastro
 @app.post("/register")
 async def register_usuario(usuario: Usuario):
     connection = get_db_connection()
@@ -112,7 +101,6 @@ async def register_usuario(usuario: Usuario):
 
     return {"success": True, "message": "Cadastro realizado com sucesso!"}
 
-# Login
 @app.post("/login")
 async def login_usuario(request: Request, login: LoginData):
     connection = get_db_connection()
@@ -128,7 +116,7 @@ async def login_usuario(request: Request, login: LoginData):
         raise HTTPException(status_code=401, detail="Email não encontrado!")
 
     if not verify_password(login.senha, user["Senha"]):
-        raise HTTPException(status_code=401, detail="Senha incorreta!")
+        raise HTTPException(status_code=401, detail="Senha incorreta! Senha: {}".format(user["Senha"]))
 
     # Salva na sessão
     request.session["usuario"] = {
@@ -141,7 +129,6 @@ async def login_usuario(request: Request, login: LoginData):
 
     return {"success": True, "message": "Login realizado com sucesso", "nome": user["Nome"]}
 
-# Logout
 @app.post("/logout")
 async def logout(request: Request):
     request.session.clear()
@@ -170,7 +157,7 @@ async def usuario_logado(request: Request):
             "email": dados["Email"],
             "telefone": dados["Telefone"],
             "cpf": dados["CPF"],
-            "papel": dados["fk_papel_ID_Papel"]  # Retorna o papel do usuário
+            "papel": dados["fk_papel_ID_Papel"]
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro ao buscar usuário logado")
@@ -184,21 +171,20 @@ async def excluir_conta(request: Request):
     if not usuario:
         raise HTTPException(status_code=401, detail="Não autenticado")
 
-    # Use ID_Usuario para excluir os dados
     connection = get_db_connection()
     cursor = connection.cursor()
 
     try:
-        # Exclui todas as salas associadas ao usuário
         cursor.execute("DELETE FROM salas WHERE fk_usuario_ID_Usuario = %s", (usuario["id"],))
 
-        # Exclui o usuário
+        cursor.execute("DELETE FROM tipo_sala WHERE fk_usuario_ID_Usuario = %s", (usuario["id"],))
+
         cursor.execute("DELETE FROM usuario WHERE ID_Usuario = %s", (usuario["id"],))
 
         connection.commit()
-        request.session.clear()  # Limpa a sessão do usuário
+        request.session.clear() 
 
-        return {"success": True, "message": "Conta e salas associadas excluídas com sucesso!"}
+        return {"success": True, "message": "Conta, salas e tipo de salas associadas excluídas com sucesso!"}
     except Exception as e:
         connection.rollback()
         raise HTTPException(status_code=500, detail=f"Erro ao excluir conta: {str(e)}")
@@ -240,23 +226,7 @@ async def editar_usuario(request: Request, usuario: Usuario):
         cursor.close()
         connection.close()
 
-# Endpoint para buscar tipos de sala
-@app.get("/tipos-sala")
-async def get_tipos_sala():
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-
-    try:
-        cursor.execute("SELECT ID_Tipo_Sala, Tipo FROM tipo_sala")
-        tipos_sala = cursor.fetchall()
-        return tipos_sala
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Erro ao buscar tipos de sala")
-    finally:
-        cursor.close()
-        connection.close()
-
-@app.post("/salas")
+@app.post("/salas-cadastro")
 async def cadastrar_sala(
     capacidade: int = Form(...),
     tamanho: float = Form(...),
@@ -296,7 +266,7 @@ async def cadastrar_sala(
             estado, numero, complemento, descricao, fk_usuario_id, fk_tipo_sala_id, status,
             domingo, segunda, terca, quarta, quinta, sexta, sabado, imagem_bytes
         ))
-        # ...restante igual...
+
         connection.commit()
         return {"success": True, "message": "Sala cadastrada com sucesso!"}
     except Exception as e:
@@ -312,7 +282,7 @@ async def minhas_salas(request: Request):
     if not usuario:
         raise HTTPException(status_code=401, detail="Usuário não autenticado")
     if usuario.get("papel") != 2:
-        raise HTTPException(status_code=403, detail="Acesso restrito a locadores")
+        raise HTTPException(status_code=403, detail="Acesso negado")
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
@@ -333,7 +303,7 @@ async def minhas_salas(request: Request):
         cursor.close()
         connection.close()
 
-@app.get("/salas/{id}")
+@app.get("/salas-recuperar/{id}")
 async def get_sala(id: int, request: Request):
     usuario = request.session.get("usuario")
     if not usuario:
@@ -388,7 +358,7 @@ async def get_sala(id: int, request: Request):
         cursor.close()
         connection.close()
 
-@app.put("/salas/{id}")
+@app.put("/salas-atualizar/{id}")
 async def editar_sala(
     id: int,
     capacidade: int = Form(...),
@@ -422,7 +392,6 @@ async def editar_sala(
     connection = get_db_connection()
     cursor = connection.cursor()
     try:
-        # Se veio imagem, atualiza o campo Imagem, senão mantém o valor atual
         if imagem:
             imagem_bytes = await imagem.read()
             cursor.execute("""
@@ -456,7 +425,7 @@ async def editar_sala(
         cursor.close()
         connection.close()
 
-@app.delete("/salas/{id}")
+@app.delete("/salas-excluir/{id}")
 async def excluir_sala(id: int, request: Request):
     usuario = request.session.get("usuario")
     if not usuario:
@@ -484,8 +453,7 @@ async def excluir_sala(id: int, request: Request):
         cursor.close()
         connection.close()
 
-# CRUD para Tipos de Sala (apenas para papel 2 - locador)
-@app.get("/tipos-sala")
+@app.get("/tipos-sala-recuperar")
 async def get_tipos_sala(request: Request):
     # Verifica se o usuário está logado e tem papel 2
     usuario = request.session.get("usuario")
@@ -496,7 +464,12 @@ async def get_tipos_sala(request: Request):
     cursor = connection.cursor(dictionary=True)
     
     try:
-        cursor.execute("SELECT ID_Tipo_Sala, Tipo FROM tipo_sala")
+        cursor.execute("""
+            SELECT ID_Tipo_Sala, Tipo 
+            FROM tipo_sala 
+            WHERE fk_usuario_ID_Usuario = %s
+        """, (usuario["id"],))
+
         tipos_sala = cursor.fetchall()
         return tipos_sala
     except Exception as e:
@@ -505,7 +478,7 @@ async def get_tipos_sala(request: Request):
         cursor.close()
         connection.close()
 
-@app.post("/tipos-sala")
+@app.post("/tipos-sala-criar")
 async def criar_tipo_sala(request: Request, data: dict):
     usuario = request.session.get("usuario")
         
@@ -517,7 +490,11 @@ async def criar_tipo_sala(request: Request, data: dict):
     cursor = connection.cursor()
     
     try:
-        cursor.execute("INSERT INTO tipo_sala (Tipo) VALUES (%s)", (tipo,))
+        cursor.execute("""
+            INSERT INTO tipo_sala (Tipo, fk_usuario_ID_Usuario) 
+            VALUES (%s, %s)
+        """, (tipo, usuario["id"]))
+
         connection.commit()
         return {"success": True, "message": "Tipo de sala criado com sucesso!"}
     except Exception as e:
@@ -527,23 +504,35 @@ async def criar_tipo_sala(request: Request, data: dict):
         cursor.close()
         connection.close()
 
-@app.put("/tipos-sala/{id}")
+@app.put("/tipos-sala-atualizar/{id}")
 async def atualizar_tipo_sala(id: int, request: Request, data: dict):
     usuario = request.session.get("usuario")
     
-    tipo = data.get("tipo")
-    if not tipo:
+    tipo_novo = data.get("tipo")
+    if not tipo_novo:
         raise HTTPException(status_code=400, detail="Nome do tipo é obrigatório")
     
     connection = get_db_connection()
     cursor = connection.cursor()
     
     try:
-        cursor.execute("UPDATE tipo_sala SET Tipo = %s WHERE ID_Tipo_Sala = %s", (tipo, id))
-        if cursor.rowcount == 0:
-            raise HTTPException(status_code=404, detail="Tipo de sala não encontrado")
+        # Primeiro consulta o nome atual
+        cursor.execute("SELECT Tipo FROM tipo_sala WHERE ID_Tipo_Sala = %s", (id,))
+        resultado = cursor.fetchone()
         
+        if not resultado:
+            raise HTTPException(status_code=404, detail="Tipo de sala não encontrado")
+            
+        tipo_atual = resultado[0]
+        
+        # Verifica se o nome foi alterado
+        if tipo_novo == tipo_atual:
+            return {"success": False, "message": "O nome do tipo continua o mesmo"}
+        
+        # Se foi alterado, faz o UPDATE
+        cursor.execute("UPDATE tipo_sala SET Tipo = %s WHERE ID_Tipo_Sala = %s", (tipo_novo, id))
         connection.commit()
+        
         return {"success": True, "message": "Tipo de sala atualizado com sucesso!"}
     except Exception as e:
         connection.rollback()
@@ -552,7 +541,7 @@ async def atualizar_tipo_sala(id: int, request: Request, data: dict):
         cursor.close()
         connection.close()
 
-@app.delete("/tipos-sala/{id}")
+@app.delete("/tipos-sala-excluir/{id}")
 async def excluir_tipo_sala(id: int, request: Request):
     usuario = request.session.get("usuario")
     
@@ -581,6 +570,39 @@ async def excluir_tipo_sala(id: int, request: Request):
     except Exception as e:
         connection.rollback()
         raise HTTPException(status_code=500, detail=f"Erro ao excluir tipo de sala: {str(e)}")
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.post("/tornar-locador")
+async def tornar_locador(request: Request):
+    usuario = request.session.get("usuario")
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Usuário não autenticado")
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("""
+            UPDATE usuario
+            SET fk_papel_ID_Papel = 2
+            WHERE ID_Usuario = %s
+        """, (usuario["id"],))
+
+        tipos_padrao = ["Auditório", "Sala de Reunião", "Mesa Individual"]
+
+        for tipo in tipos_padrao:
+            cursor.execute("""
+                INSERT INTO tipo_sala (Tipo, fk_usuario_ID_Usuario)
+                VALUES (%s, %s)
+            """, (tipo, usuario["id"]))
+
+        connection.commit()
+        return {"success": True, "message": "Agora você é um locador!"}
+    except Exception as e:
+        connection.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao tornar-se locador.")
     finally:
         cursor.close()
         connection.close()

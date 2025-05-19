@@ -878,6 +878,64 @@ input[data-mask] {
     margin-right: 5px;
 }
 
+/* Seção Torne-se Locador - Tema Escuro */
+#torne-se-locador {
+    background: linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
+    padding: 5rem 0;
+    position: relative;
+}
+
+#torne-se-locador::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+
+#torne-se-locador h2 {
+    background: linear-gradient(to right, var(--accent-color), var(--primary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline;
+}
+
+#torne-se-locador .lead {
+    color: #ccc;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#btnTorneSeLocador {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    border: none;
+    padding: 0.8rem 2.5rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+#btnTorneSeLocador:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+}
+
+/* Estilo personalizado para o SweetAlert no tema escuro */
+.dark-swal {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+.swal2-popup.dark-swal .swal2-title {
+    color: var(--accent-color) !important;
+}
+
+.swal2-popup.dark-swal .swal2-content {
+    color: #ddd !important;
+}
 
 @keyframes float {
     0% {
