@@ -5,6 +5,9 @@ from pydantic import BaseModel
 import mysql.connector
 from passlib.context import CryptContext
 from datetime import timedelta
+import base64
+from datetime import datetime
+
 
 app = FastAPI()
 
@@ -12,7 +15,7 @@ app.add_middleware(SessionMiddleware, secret_key="roomly")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5500"],  # ou o IP/porta onde seu frontend roda
+    allow_origins=["http://127.0.0.1:3000"],  # ou o IP/porta onde seu frontend roda
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -58,7 +61,7 @@ def get_db_connection():
         return mysql.connector.connect(
             host="127.0.0.1",
             user="root",
-            password="",
+            password="Mimiteteu123@",
             database="roomly"
         )
     except mysql.connector.Error as err:
@@ -252,6 +255,7 @@ async def cadastrar_sala(
     status: int = Form(1),
     imagem: UploadFile = File(None)
 ):
+    data_cadastro = datetime.now() 
     connection = get_db_connection()
     cursor = connection.cursor()
     try:
@@ -259,12 +263,12 @@ async def cadastrar_sala(
         cursor.execute("""
             INSERT INTO salas (
                 Capacidade, Tamanho, Valor_Hora, Recursos, Tipo_Mobilia, CEP, Rua, Cidade, Estado, Numero, Complemento, Descricao, 
-                fk_usuario_ID_Usuario, fk_tipo_sala_ID_Tipo_Sala, Status, Domingo_Disp, Segunda_Disp, Terca_Disp, Quarta_Disp, Quinta_Disp, Sexta_Disp, Sabado_Disp, Imagem
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                fk_usuario_ID_Usuario, fk_tipo_sala_ID_Tipo_Sala, Status, Domingo_Disp, Segunda_Disp, Terca_Disp, Quarta_Disp, Quinta_Disp, Sexta_Disp, Sabado_Disp, Imagem, Data_Cadastro
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             capacidade, tamanho, valor_hora, recursos, tipo_mobilia, cep, rua, cidade,
             estado, numero, complemento, descricao, fk_usuario_id, fk_tipo_sala_id, status,
-            domingo, segunda, terca, quarta, quinta, sexta, sabado, imagem_bytes
+            domingo, segunda, terca, quarta, quinta, sexta, sabado, imagem_bytes, data_cadastro
         ))
 
         connection.commit()
@@ -318,15 +322,21 @@ async def get_sala(id: int, request: Request):
                    s.Numero, s.Cidade, s.Estado, s.Complemento, s.Descricao, s.Domingo_Disp AS domingo, 
                    s.Segunda_Disp AS segunda, s.Terca_Disp AS terca, s.Quarta_Disp AS quarta, 
                    s.Quinta_Disp AS quinta, s.Sexta_Disp AS sexta, s.Sabado_Disp AS sabado, 
-                   s.fk_tipo_sala_ID_Tipo_Sala
+                   s.fk_tipo_sala_ID_Tipo_Sala, s.Imagem, ts.Tipo
             FROM salas s
-            WHERE s.ID_Sala = %s AND s.fk_usuario_ID_Usuario = %s
-        """, (id, usuario["id"]))
+            JOIN tipo_sala ts ON s.fk_tipo_sala_ID_Tipo_Sala = ts.ID_Tipo_Sala
+            WHERE s.ID_Sala = %s
+        """, (id,))
         sala = cursor.fetchone()
         if not sala:
             raise HTTPException(status_code=404, detail="Sala não encontrada")
         
-        
+        # Converte imagem blob para base64
+        if sala["Imagem"]:
+            imagem_url = "data:image/jpeg;base64," + base64.b64encode(sala["Imagem"]).decode()
+        else:
+            imagem_url = "images/placeholder.jpg"
+
         return {
             "id": sala["ID_Sala"],
             "capacidade": sala["Capacidade"],
@@ -351,6 +361,8 @@ async def get_sala(id: int, request: Request):
                 "sabado": bool(sala["sabado"])
             },
             "tipo_sala_id": sala["fk_tipo_sala_ID_Tipo_Sala"],
+            "tipo": sala["Tipo"],
+            "imagem_url": imagem_url
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro ao buscar sala")
@@ -603,6 +615,31 @@ async def tornar_locador(request: Request):
     except Exception as e:
         connection.rollback()
         raise HTTPException(status_code=500, detail=f"Erro ao tornar-se locador.")
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.get("/salas-todas")
+async def get_salas_todas():
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    try:
+        cursor.execute("""
+            SELECT s.ID_Sala, s.Descricao, s.Valor_Hora, s.Capacidade, s.Imagem, ts.Tipo
+            FROM salas s
+            JOIN tipo_sala ts ON s.fk_tipo_sala_ID_Tipo_Sala = ts.ID_Tipo_Sala
+            WHERE s.Status = 1
+        """)
+        salas = cursor.fetchall()
+        for sala in salas:
+            if sala["Imagem"]:
+                sala["imagem_url"] = "data:image/jpeg;base64," + base64.b64encode(sala["Imagem"]).decode()
+            else:
+                sala["imagem_url"] = "images/placeholder.jpg"
+            del sala["Imagem"]
+        return salas
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Erro ao buscar salas")
     finally:
         cursor.close()
         connection.close()

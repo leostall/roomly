@@ -594,6 +594,8 @@ function setupCadastroSalaModal() {
   });
 }
 
+
+
 // Função para carregar os tipos de sala na modal
 async function carregarTiposSalaModal() {
   try {
@@ -968,11 +970,14 @@ function setupEditSalaModal(salaId) {
           color: "#ffffff"
         }).then(() => {
           bootstrap.Modal.getInstance(document.getElementById('editSalaModal')).hide();
-          window.location.reload();
+          if (typeof carregarTodasSalas === "function") {
+            carregarTodasSalas(); // Atualiza os cards sem recarregar a página
+          } else {
+            window.location.reload(); // Fallback se a função não existir
+          }
         });
-      } else {
-        throw new Error(result.detail || "Erro ao atualizar sala");
       }
+
     } catch (error) {
       Swal.fire({
         title: "Erro!",

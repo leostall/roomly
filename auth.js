@@ -112,3 +112,70 @@ document.addEventListener("DOMContentLoaded", function () {
     setupSmoothScroll();
     verificarLogin();
 });
+
+async function carregarTodasSalas(limite = 6) {
+  const container = document.getElementById('user-rooms-container');
+  if (!container) return;
+  container.innerHTML = "";
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/salas-todas");
+    const salas = await response.json();
+
+    // Gera os cards
+    salas.slice(0, limite).forEach(sala => {
+      const card = document.createElement('div');
+      card.className = 'col-md-6 col-lg-4';
+      card.innerHTML = `
+        <div class="room-card h-100 d-flex flex-column">
+          <div class="position-relative">
+            <img src="${sala.imagem_url}" class="img-fluid room-img w-100" alt="Sala">
+            <span class="room-badge">Disponível</span>
+          </div>
+          <div class="p-4 flex-grow-1 d-flex flex-column">
+            <h4>${sala.Tipo || "Sala"}</h4>
+            <p class="text-muted">${sala.Descricao || ""}</p>
+            <div class="mt-auto">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="fw-bold">R$ ${sala.Valor_Hora}/h</span>
+                  <span class="text-muted ms-2">• até ${sala.Capacidade} pessoas</span>
+                </div>
+                <button class="btn btn-sm btn-primary reservar-btn" data-id="${sala.ID_Sala}">Reservar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+    container.querySelectorAll('.reservar-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const salaId = this.getAttribute('data-id');
+        window.location.href = `reserva.html?sala=${salaId}`;
+      });
+    });
+
+    
+    const verTodasDiv = document.getElementById('ver-todas-salas-btn');
+    if (salas.length > limite) {
+      if (!verTodasDiv) {
+        const btnDiv = document.createElement('div');
+        btnDiv.className = "text-center mt-4";
+        btnDiv.id = "ver-todas-salas-btn";
+        btnDiv.innerHTML = `
+          <button class="btn btn-outline-primary" onclick="window.location.href='todasSalas.html'">
+            Ver todas as salas
+          </button>
+        `;
+        container.parentElement.appendChild(btnDiv);
+      }
+    } else if (verTodasDiv) {
+      verTodasDiv.remove();
+    }
+
+  } catch (error) {
+    console.error("Erro ao carregar salas:", error);
+  }
+}
