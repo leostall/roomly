@@ -75,6 +75,35 @@
       // Aqui você pode enviar os dados da reserva para o backend
       alert('Reserva enviada!');
     });
+
+    
+document.getElementById('formReserva').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const checkin = document.getElementById('checkin').value;
+  const checkout = document.getElementById('checkout').value;
+
+  try {
+    const resp = await fetch('http://127.0.0.1:8000/reservar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        sala_id: salaId,
+        checkin,
+        checkout
+      })
+    });
+    const data = await resp.json();
+    if (resp.ok) {
+      alert(data.message);
+      window.location.href = "index.html";
+    } else {
+      alert(data.detail || "Erro ao reservar");
+    }
+  } catch (err) {
+    alert("Erro ao reservar");
+  }
+});
   </script>
 </body>
 </html>

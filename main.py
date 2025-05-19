@@ -7,6 +7,7 @@ from passlib.context import CryptContext
 from datetime import timedelta
 import base64
 from datetime import datetime
+from fastapi import Body
 
 
 app = FastAPI()
@@ -640,6 +641,88 @@ async def get_salas_todas():
         return salas
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro ao buscar salas")
+    finally:
+        cursor.close()
+        connection.close()
+
+
+@app.post("/reservar")
+async def reservar_sala(request: Request, data: dict = Body(...)):
+    usuario = request.session.get("usuario")
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Usuário não autenticado")
+
+    sala_id = data.get("sala_id")
+    checkin = data.get("checkin")
+    checkout = data.get("checkout")
+
+    if not sala_id or not checkin or not checkout:
+        raise HTTPException(status_code=400, detail="Dados incompletos")
+
+    # Converte datas para datetime
+    try:
+        checkin_dt = datetime.strptime(checkin, "%Y-%m-%d")
+        checkout_dt = datetime.strptime(checkout, "%Y-%m-%d")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Formato de data inválido")
+
+    # Busca disponibilidade da sala
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    try:
+        cursor.execute("""
+            SELECT Domingo_Disp, Segunda_Disp, Terca_Disp, Quarta_Disp, Quinta_Disp, Sexta_Disp, Sabado_Disp
+            FROM salas WHERE ID_Sala = %s
+        """, (sala_id,))
+        sala = cursor.fetchone()
+        if not sala:
+            raise HTTPException(status_code=404, detail="Sala não encontrada")
+
+        # Verifica se todos os dias do período estão disponíveis
+        dias_semana = [
+            "segunda", "terca", "quarta", "quinta", "sexta", "sabado", "domingo"
+        ]
+        dias_db = [
+            sala["Segunda_Disp"], sala["Terca_Disp"], sala["Quarta_Disp"],
+            sala["Quinta_Disp"], sala["Sexta_Disp"], sala["Sabado_Disp"], sala["Domingo_Disp"]
+        ]
+        current = checkin_dt
+        while current <= checkout_dt:
+            idx = current.weekday()  # segunda=0 ... domingo=6
+            # Ajusta para o seu array (domingo=6)
+            if idx == 6:
+                disp = sala["Domingo_Disp"]
+            else:
+                disp = dias_db[idx]
+            if not disp:
+                raise HTTPException(status_code=400, detail=f"Sala indisponível em {current.strftime('%d/%m/%Y')}")
+            current += timedelta(days=1)
+
+        # Verifica se já existe reserva no período
+        cursor.execute("""
+            SELECT * FROM locacao_loca
+            WHERE fk_salas_ID_Sala = %s
+              AND (
+                (Checkin <= %s AND Checkout >= %s) OR
+                (Checkin <= %s AND Checkout >= %s) OR
+                (Checkin >= %s AND Checkout <= %s)
+              )
+        """, (sala_id, checkin, checkin, checkout, checkout, checkin, checkout))
+        if cursor.fetchone():
+            raise HTTPException(status_code=400, detail="Já existe reserva nesse período")
+
+        # Insere reserva
+        cursor.execute("""
+            INSERT INTO locacao_loca (Checkin, Checkout, fk_usuario_ID_Usuario, fk_salas_ID_Sala)
+            VALUES (%s, %s, %s, %s)
+        """, (checkin, checkout, usuario["id"], sala_id))
+        connection.commit()
+        return {"success": True, "message": "Reserva realizada com sucesso!"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        connection.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao reservar: {str(e)}")
     finally:
         cursor.close()
         connection.close()
