@@ -8,6 +8,8 @@ from datetime import timedelta
 import base64
 from datetime import datetime
 from fastapi import Body
+from typing import Optional
+
 
 
 app = FastAPI()
@@ -254,8 +256,20 @@ async def cadastrar_sala(
     sexta: int = Form(...),
     sabado: int = Form(...),
     status: int = Form(1),
-    imagem: UploadFile = File(None)
+    imagem: UploadFile = File(None), 
+    HorarioInicio_DiasUteis: Optional[str] = Form(None),
+    HorarioFim_DiasUteis: Optional[str] = Form(None),
+    HorarioInicio_DiaNaoUtil: Optional[str] = Form(None),
+    HorarioFim_DiaNaoUtil: Optional[str] = Form(None)
 ):
+    # Validação obrigatória dos horários
+    if (segunda or terca or quarta or quinta or sexta):
+        if not HorarioInicio_DiasUteis or not HorarioFim_DiasUteis:
+            raise HTTPException(status_code=400, detail="Horários de dias úteis são obrigatórios.")
+    if (sabado or domingo):
+        if not HorarioInicio_DiaNaoUtil or not HorarioFim_DiaNaoUtil:
+            raise HTTPException(status_code=400, detail="Horários de finais de semana/feriados são obrigatórios.")
+        
     data_cadastro = datetime.now() 
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -264,12 +278,14 @@ async def cadastrar_sala(
         cursor.execute("""
             INSERT INTO salas (
                 Capacidade, Tamanho, Valor_Hora, Recursos, Tipo_Mobilia, CEP, Rua, Cidade, Estado, Numero, Complemento, Descricao, 
-                fk_usuario_ID_Usuario, fk_tipo_sala_ID_Tipo_Sala, Status, Domingo_Disp, Segunda_Disp, Terca_Disp, Quarta_Disp, Quinta_Disp, Sexta_Disp, Sabado_Disp, Imagem, Data_Cadastro
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                fk_usuario_ID_Usuario, fk_tipo_sala_ID_Tipo_Sala, Status, Domingo_Disp, Segunda_Disp, Terca_Disp, Quarta_Disp, Quinta_Disp, Sexta_Disp, Sabado_Disp, Imagem, Data_Cadastro,
+                HorarioInicio_DiasUteis, HorarioFim_DiasUteis, HorarioInicio_DiaNaoUtil, HorarioFim_DiaNaoUtil
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             capacidade, tamanho, valor_hora, recursos, tipo_mobilia, cep, rua, cidade,
             estado, numero, complemento, descricao, fk_usuario_id, fk_tipo_sala_id, status,
-            domingo, segunda, terca, quarta, quinta, sexta, sabado, imagem_bytes, data_cadastro
+            domingo, segunda, terca, quarta, quinta, sexta, sabado, imagem_bytes, data_cadastro,
+            HorarioInicio_DiasUteis, HorarioFim_DiasUteis, HorarioInicio_DiaNaoUtil, HorarioFim_DiaNaoUtil
         ))
 
         connection.commit()
@@ -323,7 +339,8 @@ async def get_sala(id: int, request: Request):
                    s.Numero, s.Cidade, s.Estado, s.Complemento, s.Descricao, s.Domingo_Disp AS domingo, 
                    s.Segunda_Disp AS segunda, s.Terca_Disp AS terca, s.Quarta_Disp AS quarta, 
                    s.Quinta_Disp AS quinta, s.Sexta_Disp AS sexta, s.Sabado_Disp AS sabado, 
-                   s.fk_tipo_sala_ID_Tipo_Sala, s.Imagem, ts.Tipo
+                   s.fk_tipo_sala_ID_Tipo_Sala, s.Imagem, ts.Tipo,
+                   s.HorarioInicio_DiasUteis, s.HorarioFim_DiasUteis, s.HorarioInicio_DiaNaoUtil, s.HorarioFim_DiaNaoUtil
             FROM salas s
             JOIN tipo_sala ts ON s.fk_tipo_sala_ID_Tipo_Sala = ts.ID_Tipo_Sala
             WHERE s.ID_Sala = %s
@@ -363,7 +380,11 @@ async def get_sala(id: int, request: Request):
             },
             "tipo_sala_id": sala["fk_tipo_sala_ID_Tipo_Sala"],
             "tipo": sala["Tipo"],
-            "imagem_url": imagem_url
+            "imagem_url": imagem_url,
+            "HorarioInicio_DiasUteis": sala["HorarioInicio_DiasUteis"],
+            "HorarioFim_DiasUteis": sala["HorarioFim_DiasUteis"],
+            "HorarioInicio_DiaNaoUtil": sala["HorarioInicio_DiaNaoUtil"],
+            "HorarioFim_DiaNaoUtil": sala["HorarioFim_DiaNaoUtil"]
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro ao buscar sala")
@@ -396,11 +417,23 @@ async def editar_sala(
     sabado: int = Form(...),
     status: int = Form(1),
     imagem: UploadFile = File(None),
+    HorarioInicio_DiasUteis: Optional[str] = Form(None),
+    HorarioFim_DiasUteis: Optional[str] = Form(None),
+    HorarioInicio_DiaNaoUtil: Optional[str] = Form(None),
+    HorarioFim_DiaNaoUtil: Optional[str] = Form(None),
     request: Request = None
 ):
     usuario = request.session.get("usuario")
     if not usuario:
         raise HTTPException(status_code=401, detail="Usuário não autenticado")
+    
+    # Validação obrigatória dos horários
+    if (segunda or terca or quarta or quinta or sexta):
+        if not HorarioInicio_DiasUteis or not HorarioFim_DiasUteis:
+            raise HTTPException(status_code=400, detail="Horários de dias úteis são obrigatórios.")
+    if (sabado or domingo):
+        if not HorarioInicio_DiaNaoUtil or not HorarioFim_DiaNaoUtil:
+            raise HTTPException(status_code=400, detail="Horários de finais de semana/feriados são obrigatórios.")
 
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -411,22 +444,28 @@ async def editar_sala(
                 UPDATE salas
                 SET Capacidade=%s, Tamanho=%s, Valor_Hora=%s, Recursos=%s, Tipo_Mobilia=%s, CEP=%s, Rua=%s,
                     Numero=%s, Cidade=%s, Estado=%s, Complemento=%s, Descricao=%s, fk_tipo_sala_ID_Tipo_Sala=%s,
-                    Domingo_Disp=%s, Segunda_Disp=%s, Terca_Disp=%s, Quarta_Disp=%s, Quinta_Disp=%s, Sexta_Disp=%s, Sabado_Disp=%s, Imagem=%s
+                    Domingo_Disp=%s, Segunda_Disp=%s, Terca_Disp=%s, Quarta_Disp=%s, Quinta_Disp=%s, Sexta_Disp=%s, Sabado_Disp=%s, Imagem=%s,
+                    HorarioInicio_DiasUteis=%s, HorarioFim_DiasUteis=%s, HorarioInicio_DiaNaoUtil=%s, HorarioFim_DiaNaoUtil=%s
                 WHERE ID_Sala=%s AND fk_usuario_ID_Usuario=%s
             """, (
                 capacidade, tamanho, valor_hora, recursos, tipo_mobilia, cep, rua, numero, cidade, estado, complemento, descricao,
-                fk_tipo_sala_id, domingo, segunda, terca, quarta, quinta, sexta, sabado, imagem_bytes, id, usuario["id"]
+                fk_tipo_sala_id, domingo, segunda, terca, quarta, quinta, sexta, sabado, imagem_bytes,
+                HorarioInicio_DiasUteis, HorarioFim_DiasUteis, HorarioInicio_DiaNaoUtil, HorarioFim_DiaNaoUtil,
+                id, usuario["id"]
             ))
         else:
             cursor.execute("""
                 UPDATE salas
                 SET Capacidade=%s, Tamanho=%s, Valor_Hora=%s, Recursos=%s, Tipo_Mobilia=%s, CEP=%s, Rua=%s,
                     Numero=%s, Cidade=%s, Estado=%s, Complemento=%s, Descricao=%s, fk_tipo_sala_ID_Tipo_Sala=%s,
-                    Domingo_Disp=%s, Segunda_Disp=%s, Terca_Disp=%s, Quarta_Disp=%s, Quinta_Disp=%s, Sexta_Disp=%s, Sabado_Disp=%s
+                    Domingo_Disp=%s, Segunda_Disp=%s, Terca_Disp=%s, Quarta_Disp=%s, Quinta_Disp=%s, Sexta_Disp=%s, Sabado_Disp=%s,
+                    HorarioInicio_DiasUteis=%s, HorarioFim_DiasUteis=%s, HorarioInicio_DiaNaoUtil=%s, HorarioFim_DiaNaoUtil=%s
                 WHERE ID_Sala=%s AND fk_usuario_ID_Usuario=%s
             """, (
                 capacidade, tamanho, valor_hora, recursos, tipo_mobilia, cep, rua, numero, cidade, estado, complemento, descricao,
-                fk_tipo_sala_id, domingo, segunda, terca, quarta, quinta, sexta, sabado, id, usuario["id"]
+                fk_tipo_sala_id, domingo, segunda, terca, quarta, quinta, sexta, sabado,
+                HorarioInicio_DiasUteis, HorarioFim_DiasUteis, HorarioInicio_DiaNaoUtil, HorarioFim_DiaNaoUtil,
+                id, usuario["id"]
             ))
 
         connection.commit()
