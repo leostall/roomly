@@ -6,49 +6,79 @@ function showEditUserModal() {
 
   // Cria a estrutura da modal
   const modalHTML = `
-    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="editUserModalLabel">Editar cadastro</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form id="registrationForm">
-              <div class="mb-3">
-                <label for="modalEmail" class="form-label">E-mail<span class="required">*</span></label>
-                <input type="text" class="form-control" id="modalEmail" placeholder="nome@exemplo.com">
+  <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editUserModalLabel">Editar cadastro</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="registrationForm">
+            <div class="mb-3">
+              <label for="modalEmail" class="form-label">E-mail<span class="required">*</span></label>
+              <input type="text" class="form-control" id="modalEmail" placeholder="nome@exemplo.com">
+            </div>
+            <div class="mb-3">
+              <label for="modalNome" class="form-label">Nome completo<span class="required">*</span></label>
+              <input type="text" class="form-control" id="modalNome" placeholder="Insira o nome">
+            </div>
+            <div class="mb-3">
+              <label for="modalTelefone" class="form-label">Telefone<span class="required">*</span></label>
+              <input type="tel" class="form-control" id="modalTelefone" placeholder="(00) 00000-0000">
+            </div>
+            <div class="mb-3">
+              <label for="modalCpf" class="form-label">CPF<span class="required"></span></label>
+              <input type="text" class="form-control bg-light" id="modalCpf" placeholder="000.000.000-00" maxlength="14" readonly>
+            </div>
+            <div class="mb-3 password-wrapper">
+              <label for="modalNewPassword" class="form-label">Nova senha</label>
+              <div class="password-wrapper-inner">
+                <input type="password" class="form-control" id="modalNewPassword" placeholder="Nova senha">
+                <i class="bi bi-eye toggle-password" onclick="togglePassword('modalNewPassword', this)"></i>
               </div>
-              <div class="mb-3">
-                <label for="modalNome" class="form-label">Nome completo<span class="required">*</span></label>
-                <input type="text" class="form-control" id="modalNome" placeholder="Insira o nome">
+            </div>
+            <div class="mb-3 password-wrapper">
+              <label for="modalConfirmNewPassword" class="form-label">Confirmar nova senha</label>
+              <div class="password-wrapper-inner">
+                <input type="password" class="form-control" id="modalConfirmNewPassword" placeholder="Confirme a nova senha">
+                <i class="bi bi-eye toggle-password" onclick="togglePassword('modalConfirmNewPassword', this)"></i>
               </div>
-              <div class="mb-3">
-                <label for="modalTelefone" class="form-label">Telefone<span class="required">*</span></label>
-                <input type="tel" class="form-control" id="modalTelefone" placeholder="(00) 00000-0000">
-              </div>
-              <div class="mb-3">
-                <label for="modalCpf" class="form-label">CPF<span class="required"></span></label>
-                <input type="text" class="form-control bg-light" id="modalCpf" placeholder="000.000.000-00" maxlength="14" readonly>
-              </div>
-              <div class="mb-3 password-wrapper position-relative">
-                <label for="modalPassword" class="form-label">Senha<span class="required">*</span></label>
-                <input type="password" class="form-control" id="modalPassword" placeholder="Inserir Senha">
-                <i class="bi bi-eye toggle-password" onclick="togglePassword('modalPassword', this)"
-                  style="position: absolute; top: 70%; right: 10px; transform: translateY(-50%); cursor: pointer;"></i>
-                <div class="password-hint">A senha deve ter pelo menos 8 caracteres, incluindo uma letra maiúscula, uma
-                  minúscula, um número e um caractere especial.</div>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-danger me-auto" id="modalExcluirConta">Excluir Conta</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="button" class="btn btn-primary" id="modalEditarConta">Salvar alterações</button>
-          </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger me-auto" id="modalExcluirConta">Excluir Conta</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="modalEditarConta">Salvar alterações</button>
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Modal de confirmação de senha FORA do modal principal -->
+  <div class="modal fade" id="confirmSenhaModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirme sua senha</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formConfirmSenha">
+            <div class="mb-3">
+              <label for="modalPassword" class="form-label">Senha atual <span class="required">*</span></label>
+              <input type="password" class="form-control" id="modalPassword" placeholder="Digite sua senha atual" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="btnConfirmSenha">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
   `;
 
   // Adiciona a modal ao body
@@ -174,29 +204,86 @@ function setupModalEvents() {
   });
 
   // Evento para editar conta
-  document.getElementById("modalEditarConta").addEventListener("click", function () {
-    const nome = document.getElementById("modalNome").value;
-    const email = document.getElementById("modalEmail").value;
-    const telefone = document.getElementById("modalTelefone").value.replace(/\D/g, '');
-    const cpf = document.getElementById("modalCpf").value.replace(/\D/g, '');
-    const senha = document.getElementById("modalPassword").value;
 
-    fetch("http://127.0.0.1:8000/editar-usuario", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        nome: nome,
-        email: email,
-        telefone: telefone,
-        cpf: cpf,
-        senha: senha
-      })
-    })
-      .then(response => response.json())
-      .then(data => {
+document.getElementById("modalEditarConta").addEventListener("click", function () {
+  const nome = document.getElementById("modalNome").value.trim();
+  const email = document.getElementById("modalEmail").value.trim();
+  const telefone = document.getElementById("modalTelefone").value.trim();
+  const cpf = document.getElementById("modalCpf").value.trim();
+  const novaSenha = document.getElementById("modalNewPassword").value;
+  const confirmarSenha = document.getElementById("modalConfirmNewPassword").value;
+
+  if (!email || !nome || !telefone || !cpf) {
+    Swal.fire({
+      title: "Atenção!",
+      text: "Preencha todos os campos obrigatórios.",
+      icon: "warning",
+      background: "#121212",
+      color: "#fff"
+    });
+    return;
+  }
+
+  if (novaSenha || confirmarSenha) {
+    if (novaSenha !== confirmarSenha) {
+      Swal.fire({
+        title: "Atenção!",
+        text: "As senhas não coincidem.",
+        icon: "warning",
+        background: "#121212",
+        color: "#fff"
+      });
+      return;
+    }
+    if (novaSenha && !isValidPassword(novaSenha)) {
+      Swal.fire({
+        title: "Atenção!",
+        text: "A nova senha não atende aos requisitos.",
+        icon: "warning",
+        background: "#121212",
+        color: "#fff"
+      });
+      return;
+    }
+  }
+
+  // Abre o modal de confirmação de senha
+  const senhaModal = new bootstrap.Modal(document.getElementById('confirmSenhaModal'));
+  senhaModal.show();
+
+  document.getElementById("btnConfirmSenha").onclick = async function () {
+    const senhaAtual = document.getElementById("modalPassword").value;
+    if (!senhaAtual) {
+      Swal.fire({
+        title: "Atenção!",
+        text: "Digite sua senha atual para confirmar.",
+        icon: "warning",
+        background: "#121212",
+        color: "#fff"
+      });
+      return;
+    }
+
+    const body = {
+      nome: nome,
+      email: email,
+      telefone: telefone.replace(/\D/g, ''),
+      cpf: cpf.replace(/\D/g, ''),
+      senha: senhaAtual,
+      novaSenha: novaSenha
+    };
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/editar-usuario", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(body)
+      });
+      const data = await response.json();
+      if (response.ok) {
         Swal.fire({
           title: "Alterações salvas!",
           text: data.message,
@@ -204,20 +291,24 @@ function setupModalEvents() {
           background: "#121212",
           color: "#ffffff"
         }).then(() => {
-          // Fecha a modal após salvar
           bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+          senhaModal.hide();
         });
-      })
-      .catch(error => {
-        Swal.fire({
-          title: "Erro!",
-          text: error.message,
-          icon: "error",
-          background: "#121212",
-          color: "#ffffff"
-        });
+      } else {
+        throw new Error(data.message || "Erro ao salvar alterações.");
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Erro!",
+        text: error.message,
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
       });
-  });
+    }
+  };
+});
+
 }
 
 function togglePassword(id, icon) {
