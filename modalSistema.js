@@ -845,30 +845,6 @@ function showEditSalaModal(salaId) {
                     <label class="form-check-label" for="modalEditSabado">Sábado</label>
                   </div>
                 </div>
-                <!-- Horários de Dias Úteis -->
-                <div id="containerEditHorarioUteis" style="display:none;">
-                  <div class="col-12 col-md-6">
-                    <label for="modalEditHorarioInicioUteis" class="form-label">Horário Início (Dias Úteis) *</label>
-                    <input type="time" class="form-control" id="modalEditHorarioInicioUteis">
-                  </div>
-                  <div class="col-12 col-md-6">
-                    <label for="modalEditHorarioFimUteis" class="form-label">Horário Fim (Dias Úteis) *</label>
-                    <input type="time" class="form-control" id="modalEditHorarioFimUteis">
-                  </div>
-                </div>
-
-                <!-- Horários de Finais de Semana/Feriados -->
-                <div id="containerEditHorarioNaoUteis" style="display:none;">
-                  <div class="col-12 col-md-6">
-                    <label for="modalEditHorarioInicioNaoUtil" class="form-label">Horário Início (Finais de Semana/Feriados) *</label>
-                    <input type="time" class="form-control" id="modalEditHorarioInicioNaoUtil">
-                  </div>
-                  <div class="col-12 col-md-6">
-                    <label for="modalEditHorarioFimNaoUtil" class="form-label">Horário Fim (Finais de Semana/Feriados) *</label>
-                    <input type="time" class="form-control" id="modalEditHorarioFimNaoUtil">
-                  </div>
-                </div>
-              </div>
                 <div class="col-12">
                       <label for="modalEditImagemSala" class="form-label">Editar a imagem da Sala</label>
                       <div class="input-group">
@@ -1061,10 +1037,6 @@ function setupEditSalaModal(salaId) {
     formData.append("sexta", document.getElementById("modalEditSexta").checked ? 1 : 0);
     formData.append("sabado", document.getElementById("modalEditSabado").checked ? 1 : 0);
     formData.append("status", 1);
-    formData.append("HorarioInicio_DiasUteis", document.getElementById("modalEditHorarioInicioUteis").value);
-    formData.append("HorarioFim_DiasUteis", document.getElementById("modalEditHorarioFimUteis").value);
-    formData.append("HorarioInicio_DiaNaoUtil", document.getElementById("modalEditHorarioInicioNaoUtil").value);
-    formData.append("HorarioFim_DiaNaoUtil", document.getElementById("modalEditHorarioFimNaoUtil").value);
 
     // Adiciona a imagem, se houver
     const imagemInput = document.getElementById("modalEditImagemSala");
@@ -1108,47 +1080,9 @@ function setupEditSalaModal(salaId) {
     }
   });
 
-function toggleHorariosEdicao() {
-  // Dias úteis: segunda a sexta
-  const diasUteis = [
-    document.getElementById("modalEditSegunda"),
-    document.getElementById("modalEditTerca"),
-    document.getElementById("modalEditQuarta"),
-    document.getElementById("modalEditQuinta"),
-    document.getElementById("modalEditSexta")
-  ];
-  // Dias não úteis: sábado e domingo
-  const diasNaoUteis = [
-    document.getElementById("modalEditSabado"),
-    document.getElementById("modalEditDomingo")
-  ];
-
-  const algumUtil = diasUteis.some(cb => cb.checked);
-  const algumNaoUtil = diasNaoUteis.some(cb => cb.checked);
-
-  // Se quiser esconder só os campos, pode usar display: "none"/"flex"
-  document.getElementById("containerEditHorarioUteis").style.display = algumUtil ? "flex" : "none";
-  document.getElementById("containerEditHorarioNaoUteis").style.display = algumNaoUtil ? "flex" : "none";
 
 }
 
-// Adiciona o evento nos checkboxes de edição
-[
-  "modalEditSegunda","modalEditTerca","modalEditQuarta","modalEditQuinta","modalEditSexta",
-  "modalEditSabado","modalEditDomingo"
-].forEach(id => {
-  document.getElementById(id).addEventListener("change", toggleHorariosEdicao);
-});
-
-document.getElementById("modalEditHorarioInicioUteis").value = sala.HorarioInicio_DiasUteis || "";
-document.getElementById("modalEditHorarioFimUteis").value = sala.HorarioFim_DiasUteis || "";
-document.getElementById("modalEditHorarioInicioNaoUtil").value = sala.HorarioInicio_DiaNaoUtil || "";
-document.getElementById("modalEditHorarioFimNaoUtil").value = sala.HorarioFim_DiaNaoUtil || "";
-    
-
-// Chama uma vez para garantir o estado inicial ao abrir a modal
-toggleHorariosEdicao();
-}
 
 // Função para preencher os tipos de sala na modal
 async function preencherTiposSalaModal(tipoSalaSelecionado) {
