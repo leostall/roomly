@@ -2,128 +2,131 @@
 
 // Função para controlar o efeito de scroll na navbar
 function setupNavbarScroll() {
-    window.addEventListener('scroll', function () {
-        const navbar = document.querySelector('.navbar');
-        if (window.scrollY > 50) {
-            navbar.classList.add('scrolled');
-        } else {
-            navbar.classList.remove('scrolled');
-        }
-    });
+  window.addEventListener('scroll', function () {
+    const navbar = document.querySelector('.navbar');
+    if (window.scrollY > 50) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+  });
 }
 
 // Função para configurar scroll suave
 function setupSmoothScroll() {
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('#href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth'
-                });
-            }
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('#href'));
+      if (target) {
+        target.scrollIntoView({
+          behavior: 'smooth'
         });
+      }
     });
+  });
 }
 
 // Função para verificar o status de login
 async function verificarLogin() {
-    try {
-        const response = await fetch("http://127.0.0.1:8000/usuario-logado", {
-            credentials: "include"
-        });
-        const data = await response.json();
+  try {
+    const response = await fetch("http://127.0.0.1:8000/usuario-logado", {
+      credentials: "include"
+    });
+    const data = await response.json();
 
-        const authDiv = document.getElementById("auth-buttons");
-        const loginBtn = document.getElementById("login-btn");
-        const dropdown = document.getElementById("user-dropdown");
-        const greeting = document.getElementById("user-greeting");
-        const editRooms = document.getElementById("editRooms");
-        const adminItems = document.getElementById("admin-items");
+    const authDiv = document.getElementById("auth-buttons");
+    const loginBtn = document.getElementById("login-btn");
+    const dropdown = document.getElementById("user-dropdown");
+    const greeting = document.getElementById("user-greeting");
+    const editRooms = document.getElementById("editRooms");
+    const adminItems = document.getElementById("admin-items");
 
-        if (data.logado) {
-            // Esconde o botão de login
-            if (loginBtn) loginBtn.style.display = "none";
+    if (data.logado) {
+      // Esconde o botão de login
+      if (loginBtn) loginBtn.style.display = "none";
 
-            // Mostra o dropdown
-            if (dropdown) dropdown.style.display = "block";
-            if (greeting) greeting.textContent = `Olá, ${data.nome}!`;
+      // Mostra o dropdown
+      if (dropdown) dropdown.style.display = "block";
+      if (greeting) greeting.textContent = `Olá, ${data.nome}!`;
 
-            // Mostra itens administrativos para papel = 2
-            if (data.papel === 2) {
-                if (editRooms) {
-                    editRooms.style.display = "block";
-                    editRooms.onclick = () => {
-                        window.location.href = "editarSalas.html";
-                    };
-                }
-                if (adminItems) adminItems.style.display = "block";
-
-                const manageTypesBtn = document.getElementById("manage-room-types");
-                if (manageTypesBtn) {
-                    manageTypesBtn.addEventListener("click", function (e) {
-                        e.preventDefault();
-                        if (typeof showTiposSalaModal === 'function') {
-                            showTiposSalaModal();
-                        }
-                    });
-                }
-            } else {
-                if (editRooms) editRooms.style.display = "none";
-                if (adminItems) adminItems.style.display = "none";
-            }
-
-            // Configura logout
-            const logoutBtn = document.getElementById("logout");
-            if (logoutBtn) {
-                logoutBtn.addEventListener("click", function (e) {
-                    e.preventDefault();
-                    logout();
-                });
-            }
-        } else {
-            // Usuário não logado
-            if (loginBtn) loginBtn.style.display = "block";
-            if (dropdown) dropdown.style.display = "none";
-            if (adminItems) adminItems.style.display = "none";
+      // Mostra itens administrativos para papel = 2
+      if (data.papel === 2) {
+        if (editRooms) {
+          editRooms.style.display = "block";
+          editRooms.onclick = () => {
+            window.location.href = "editarSalas.html";
+          };
         }
-    } catch (error) {
-        console.error("Erro ao verificar login:", error);
+        if (adminItems) adminItems.style.display = "block";
+
+        const manageTypesBtn = document.getElementById("manage-room-types");
+        if (manageTypesBtn) {
+          manageTypesBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            if (typeof showTiposSalaModal === 'function') {
+              showTiposSalaModal();
+            }
+          });
+        }
+      } else {
+        if (editRooms) editRooms.style.display = "none";
+        if (adminItems) adminItems.style.display = "none";
+      }
+
+      // Configura logout
+      const logoutBtn = document.getElementById("logout");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          logout();
+        });
+      }
+    } else {
+      // Usuário não logado
+      if (loginBtn) loginBtn.style.display = "block";
+      if (dropdown) dropdown.style.display = "none";
+      if (adminItems) adminItems.style.display = "none";
     }
+  } catch (error) {
+    console.error("Erro ao verificar login:", error);
+  }
 }
 
 // Função de logout
 async function logout() {
-    try {
-        await fetch("http://127.0.0.1:8000/logout", {
-            method: "POST",
-            credentials: "include"
-        });
-        window.location.reload();
-    } catch (error) {
-        console.error("Erro ao fazer logout:", error);
-    }
+  try {
+    await fetch("http://127.0.0.1:8000/logout", {
+      method: "POST",
+      credentials: "include"
+    });
+    window.location.reload();
+  } catch (error) {
+    console.error("Erro ao fazer logout:", error);
+  }
 }
 
-// Inicializa tudo quando o DOM estiver pronto
 document.addEventListener("DOMContentLoaded", function () {
-    setupNavbarScroll();
-    setupSmoothScroll();
-    verificarLogin();
+  setupNavbarScroll();
+  setupSmoothScroll();
+  verificarLogin();
 });
 
-async function carregarTodasSalas(limite = 6) {
+async function carregarTodasSalas(limite = null) {
   const container = document.getElementById('user-rooms-container');
   if (!container) return;
   container.innerHTML = "";
 
   try {
-    const response = await fetch("http://127.0.0.1:8000/salas-todas");
+    let url = "http://127.0.0.1:8000/recuperar-salas";
+    if (limite !== null && limite > 0) {
+      url += `?limit=${limite}`;
+    }
+
+    const response = await fetch(url);
     const salas = await response.json();
 
-    // Gera os cards
-    salas.slice(0, limite).forEach(sala => {
+    salas.forEach(sala => {
       const card = document.createElement('div');
       card.className = 'col-md-6 col-lg-4';
       card.innerHTML = `
@@ -156,26 +159,62 @@ async function carregarTodasSalas(limite = 6) {
         window.location.href = `reserva.html?sala=${salaId}`;
       });
     });
-
-    
-    const verTodasDiv = document.getElementById('ver-todas-salas-btn');
-    if (salas.length > limite) {
-      if (!verTodasDiv) {
-        const btnDiv = document.createElement('div');
-        btnDiv.className = "text-center mt-4";
-        btnDiv.id = "ver-todas-salas-btn";
-        btnDiv.innerHTML = `
-          <button class="btn btn-outline-primary" onclick="window.location.href='todasSalas.html'">
-            Ver todas as salas
-          </button>
-        `;
-        container.parentElement.appendChild(btnDiv);
-      }
-    } else if (verTodasDiv) {
-      verTodasDiv.remove();
-    }
-
   } catch (error) {
     console.error("Erro ao carregar salas:", error);
   }
 }
+
+const SESSION_TIMEOUT = 5 * 60 * 1000; //   TEMPO DA SESSÃO EM MILISSEGUNDOS (5 MINUTOS)
+let sessionTimer = null;
+let userIsLogged = false;
+
+async function checkUserLoggedIn() {
+  try {
+    const response = await fetch('http://127.0.0.1:8000/usuario-logado', {
+      credentials: 'include'
+    });
+    const data = await response.json();
+    return data.logado === true;
+  } catch {
+    return false;
+  }
+}
+
+async function logoutUser() {
+  await fetch('http://127.0.0.1:8000/logout', {
+    method: 'POST',
+    credentials: 'include'
+  });
+  clearTimeout(sessionTimer);
+  userIsLogged = false;
+  Swal.fire({
+    icon: 'info',
+    title: 'Sessão expirada',
+    text: 'Sua sessão expirou por inatividade. Faça login novamente.',
+    confirmButtonText: 'OK',
+    background: '#121212', // fundo preto
+    color: '#fff'          // texto branco
+  }).then(() => {
+    window.location.href = 'login.html';
+  });
+}
+
+function startSessionTimer() {
+  clearTimeout(sessionTimer);
+  sessionTimer = setTimeout(() => {
+    if (userIsLogged) logoutUser();
+  }, SESSION_TIMEOUT);
+}
+
+// Só reinicia o timer se estiver logado
+['mousemove', 'keydown', 'click'].forEach(evt => {
+  document.addEventListener(evt, () => {
+    if (userIsLogged) startSessionTimer();
+  });
+});
+
+// Checa login ao carregar a página
+checkUserLoggedIn().then(isLogged => {
+  userIsLogged = isLogged;
+  if (userIsLogged) startSessionTimer();
+});

@@ -25,7 +25,7 @@
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="index.html#features">Vantagens</a></li>
-          <li class="nav-item"><a class="nav-link" href="index.html#rooms">Salas</a></li>
+          <li class="nav-item"><a class="nav-link" href="todasSalas.html">Salas</a></li>
           <li class="nav-item"><a class="nav-link" href="contato.html">Contato</a></li>
         </ul>
         <div class="ms-lg-3 mt-3 mt-lg-0" id="auth-buttons">
@@ -84,7 +84,7 @@
             <ul class="list-unstyled">
               <li class="mb-2"><a href="index.html" class="d-block py-1">Home</a></li>
               <li class="mb-2"><a href="index.html#features" class="d-block py-1">Vantagens</a></li>
-              <li class="mb-2"><a href="index.html#rooms" class="d-block py-1">Salas</a></li>
+              <li class="mb-2"><a href="todasSalas.html" class="d-block py-1">Salas</a></li>
               <li class="mb-2"><a href="contato.html" class="d-block py-1">Contato</a></li>
             </ul>
           </div>
@@ -215,57 +215,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       fetchSalas();
     });
-
-    const TEMPO_INATIVIDADE = 2 * 60 * 1000;
-    let timeoutInatividade;
-
-    function resetarTimerInatividade() {
-      clearTimeout(timeoutInatividade);
-      timeoutInatividade = setTimeout(async () => {
-        try {
-          await fetch("http://127.0.0.1:8000/logout", {
-            method: "POST",
-            credentials: "include"
-          });
-        } catch (e) {
-          // Ignora erros de logout
-        }
-        Swal.fire({
-          icon: 'info',
-          title: 'Sessão expirada',
-          text: 'Sua sessão expirou por inatividade. Faça login novamente.',
-          confirmButtonText: 'OK',
-          background: '#121212', // fundo preto
-          color: '#fff'          // texto branco
-        }).then(() => {
-          window.location.href = "login.html";
-        });
-      }, TEMPO_INATIVIDADE);
-    }
-
-    // Eventos que "acordam" o usuário
-    ["click", "mousemove", "keydown", "scroll", "touchstart"].forEach(evt => {
-      document.addEventListener(evt, resetarTimerInatividade, true);
-    });
-
-    // Inicia o timer ao carregar a página
-    resetarTimerInatividade();
-
-    fetch("http://127.0.0.1:8000/usuario-logado", { credentials: "include" })
-      .then(res => res.json())
-      .then(data => {
-        if (!data.logado) {
-          window.location.href = "login.html";
-        } else if (data.papel !== 2) {
-          window.location.href = "index.html";
-        }
-      })
-      .catch(() => {
-        window.location.href = "login.html";
-      });
-
   </script>
-
 </body>
 
 </html>

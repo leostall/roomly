@@ -452,11 +452,36 @@ function showCadastroSalaModal() {
                     </div>
                   </div>
                   <div class="invalid-feedback">Selecione pelo menos um dia da semana</div>
+                  
                   <div class="col-12">
                     <label for="modalImagemSala" class="form-label">Imagem da Sala</label>
                     <div class="input-group">
                       <input type="file" class="form-control" id="modalImagemSala" accept="image/*">
                     </div>
+                  
+                  <!-- Horários de Dias Úteis -->
+                  <div id="containerHorarioUteis" style="display:none;">
+                    <div class="col-12 col-md-6">
+                      <label for="modalHorarioInicioUteis" class="form-label">Horário Início (Dias Úteis) *</label>
+                      <input type="time" class="form-control" id="modalHorarioInicioUteis">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label for="modalHorarioFimUteis" class="form-label">Horário Fim (Dias Úteis) *</label>
+                      <input type="time" class="form-control" id="modalHorarioFimUteis">
+                    </div>
+                  </div>
+
+                  <!-- Horários de Finais de Semana/Feriados -->
+                  <div id="containerHorarioNaoUteis" style="display:none;">
+                    <div class="col-12 col-md-6">
+                      <label for="modalHorarioInicioNaoUtil" class="form-label">Horário Início (Finais de Semana/Feriados) *</label>
+                      <input type="time" class="form-control" id="modalHorarioInicioNaoUtil">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label for="modalHorarioFimNaoUtil" class="form-label">Horário Fim (Finais de Semana/Feriados) *</label>
+                      <input type="time" class="form-control" id="modalHorarioFimNaoUtil">
+                    </div>
+                  </div>
                 </div>
                 </div>
               </div>
@@ -594,7 +619,6 @@ function setupCadastroSalaModal() {
     const complemento = document.getElementById("modalComplemento").value;
     const descricao = document.getElementById("modalDescricao").value;
 
-
     // Captura a disponibilidade
     const domingo = document.getElementById("modalDomingo").checked ? 1 : 0;
     const segunda = document.getElementById("modalSegunda").checked ? 1 : 0;
@@ -603,6 +627,39 @@ function setupCadastroSalaModal() {
     const quinta = document.getElementById("modalQuinta").checked ? 1 : 0;
     const sexta = document.getElementById("modalSexta").checked ? 1 : 0;
     const sabado = document.getElementById("modalSabado").checked ? 1 : 0;
+
+
+    const diasUteisSelecionados = segunda || terca || quarta || quinta || sexta;
+    const diasNaoUteisSelecionados = sabado || domingo;
+
+    if (diasUteisSelecionados) {
+  if (!document.getElementById("modalHorarioInicioUteis").value || !document.getElementById("modalHorarioFimUteis").value) {
+    Swal.fire({
+      title: 'Erro!',
+      text: 'Preencha os horários de dias úteis.',
+      icon: 'info',
+      confirmButtonText: 'Ok',
+      background: '#121212',
+      color: '#fff'
+    });
+    return;
+  }
+}
+if (diasNaoUteisSelecionados) {
+  if (!document.getElementById("modalHorarioInicioNaoUtil").value || !document.getElementById("modalHorarioFimNaoUtil").value) {
+    Swal.fire({
+      title: 'Erro!',
+      text: 'Preencha os horários de finais de semana/feriados.',
+      icon: 'info',
+      confirmButtonText: 'Ok',
+      background: '#121212',
+      color: '#fff'
+    });
+    return;
+  }
+}
+    
+    
 
     // Obtém o ID do usuário logado
     const usuario = await fetchUsuarioLogado();
@@ -632,6 +689,10 @@ function setupCadastroSalaModal() {
     formData.append("sexta", sexta);
     formData.append("sabado", sabado);
     formData.append("status", 1);
+    formData.append("HorarioInicio_DiasUteis", document.getElementById("modalHorarioInicioUteis").value);
+    formData.append("HorarioFim_DiasUteis", document.getElementById("modalHorarioFimUteis").value);
+    formData.append("HorarioInicio_DiaNaoUtil", document.getElementById("modalHorarioInicioNaoUtil").value);
+    formData.append("HorarioFim_DiaNaoUtil", document.getElementById("modalHorarioFimNaoUtil").value);
 
     // Adiciona a imagem, se houver
     if (imagemInput.files.length > 0) {
@@ -683,6 +744,36 @@ function setupCadastroSalaModal() {
       });
     }
   });
+
+function toggleHorariosCadastro() {
+  // Dias úteis: segunda a sexta
+  const diasUteis = [
+    document.getElementById("modalSegunda"),
+    document.getElementById("modalTerca"),
+    document.getElementById("modalQuarta"),
+    document.getElementById("modalQuinta"),
+    document.getElementById("modalSexta")
+  ];
+  // Dias não úteis: sábado e domingo
+  const diasNaoUteis = [
+    document.getElementById("modalSabado"),
+    document.getElementById("modalDomingo")
+  ];
+
+  const algumUtil = diasUteis.some(cb => cb.checked);
+  const algumNaoUtil = diasNaoUteis.some(cb => cb.checked);
+
+  document.getElementById("containerHorarioUteis").style.display = algumUtil ? "flex" : "none";
+  document.getElementById("containerHorarioNaoUteis").style.display = algumNaoUtil ? "flex" : "none";
+}
+
+// Adiciona o evento nos checkboxes
+["modalSegunda","modalTerca","modalQuarta","modalQuinta","modalSexta","modalSabado","modalDomingo"].forEach(id => {
+  document.getElementById(id).addEventListener("change", toggleHorariosCadastro);
+});
+
+// Chama uma vez para garantir o estado inicial
+toggleHorariosCadastro();
 }
 
 
@@ -846,10 +937,10 @@ function showEditSalaModal(salaId) {
                   </div>
                 </div>
                 <div class="col-12">
-                    <label for="modalEditImagemSala" class="form-label">Editar a imagem da Sala</label>
-                    <div class="input-group">
-                      <input type="file" class="form-control" id="modalEditImagemSala" accept="image/*">
-                    </div>
+                      <label for="modalEditImagemSala" class="form-label">Editar a imagem da Sala</label>
+                      <div class="input-group">
+                        <input type="file" class="form-control" id="modalEditImagemSala" accept="image/*">
+                      </div>
                 </div>
               </div>
             </form>
@@ -1079,7 +1170,10 @@ function setupEditSalaModal(salaId) {
       });
     }
   });
+
+
 }
+
 
 // Função para preencher os tipos de sala na modal
 async function preencherTiposSalaModal(tipoSalaSelecionado) {

@@ -351,7 +351,7 @@ h1 {
 /* Página de Contato */
 .contact-hero {
     background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
-        url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+        url('images/contaco_hero.avif');
     background-size: cover;
     background-position: center;
     min-height: 300px;
@@ -484,30 +484,30 @@ h1 {
 }
 
 .password-wrapper {
-  position: relative;
-  display: flex;
-  flex-direction: column;
+    position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .password-wrapper-inner {
-  display: flex;
-  align-items: center;
-  position: relative;
+    display: flex;
+    align-items: center;
+    position: relative;
 }
 
 .password-wrapper .form-control {
-  flex: 1 1 auto;
-  padding-right: 40px !important;
+    flex: 1 1 auto;
+    padding-right: 40px !important;
 }
 
 .password-wrapper .toggle-password {
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: #ccc;
-  z-index: 2;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #ccc;
+    z-index: 2;
 }
 
 .password-hint {
@@ -763,7 +763,7 @@ input[data-mask] {
 
 .edit-room-hero {
     background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
-        url('https://www.rsdesign.com.br/wp-content/uploads/2023/06/mobiliario-corporativo-para-coworking-como-planejar-um-espaco-funcional-e-acolhedor.jpg');
+        url('images/edit_room_hero.jpg');
     background-size: cover;
     background-position: center;
     min-height: 300px;
@@ -949,6 +949,16 @@ input[data-mask] {
 
 .swal2-popup.dark-swal .swal2-content {
     color: #ddd !important;
+}
+
+.rooms-hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+        url('images/coworking_hero.png');
+    background-size: cover;
+    background-position: center;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
 }
 
 @keyframes float {

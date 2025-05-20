@@ -28,7 +28,7 @@
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="#features">Vantagens</a></li>
-          <li class="nav-item"><a class="nav-link" href="#rooms">Salas</a></li>
+          <li class="nav-item"><a class="nav-link" href="todasSalas.html">Salas</a></li>
           <li class="nav-item"><a class="nav-link" href="contato.html">Contato</a></li>
         </ul>
         <div class="ms-lg-3 mt-3 mt-lg-0" id="auth-buttons">
@@ -130,8 +130,8 @@
         </div>
       </div>
       <div class="row g-4">
-          <!-- Container para os cards das salas cadastradas pelo usuário -->
-          <div id="user-rooms-container" class="row g-4"></div>
+        <!-- Container para os cards das salas cadastradas pelo usuário -->
+        <div id="user-rooms-container" class="row g-4"></div>
       </div>
       <div class="text-center mt-5">
         <a href="todasSalas.html" class="btn btn-outline-primary">Ver todas as salas</a>
@@ -226,7 +226,7 @@
             <ul class="list-unstyled">
               <li class="mb-2"><a href="index.html" class="d-block py-1">Home</a></li>
               <li class="mb-2"><a href="index.html#features" class="d-block py-1">Vantagens</a></li>
-              <li class="mb-2"><a href="index.html#rooms" class="d-block py-1">Salas</a></li>
+              <li class="mb-2"><a href="todasSalas.html" class="d-block py-1">Salas</a></li>
               <li class="mb-2"><a href="contato.html" class="d-block py-1">Contato</a></li>
             </ul>
           </div>
@@ -266,8 +266,6 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="modalSistema.js"></script>
   <script src="auth.js"></script>
-
-
 </body>
 
 <script>
@@ -411,63 +409,8 @@
     }
   });
 
-  const SESSION_TIMEOUT = 2 * 60 * 1000;
-  let sessionTimer = null;
-  let userIsLogged = false;
-
-  async function checkUserLoggedIn() {
-    try {
-      const response = await fetch('http://127.0.0.1:8000/usuario-logado', {
-        credentials: 'include'
-      });
-      const data = await response.json();
-      return data.logado === true;
-    } catch {
-      return false;
-    }
-  }
-
-  async function logoutUser() {
-    await fetch('http://127.0.0.1:8000/logout', {
-      method: 'POST',
-      credentials: 'include'
-    });
-    clearTimeout(sessionTimer);
-    userIsLogged = false;
-    Swal.fire({
-      icon: 'info',
-      title: 'Sessão expirada',
-      text: 'Sua sessão expirou por inatividade. Faça login novamente.',
-      confirmButtonText: 'OK',
-      background: '#121212', // fundo preto
-      color: '#fff'          // texto branco
-    }).then(() => {
-      window.location.href = 'login.html';
-    });
-  }
-
-  function startSessionTimer() {
-    clearTimeout(sessionTimer);
-    sessionTimer = setTimeout(() => {
-      if (userIsLogged) logoutUser();
-    }, SESSION_TIMEOUT);
-  }
-
-  // Só reinicia o timer se estiver logado
-  ['mousemove', 'keydown', 'click'].forEach(evt => {
-    document.addEventListener(evt, () => {
-      if (userIsLogged) startSessionTimer();
-    });
-  });
-
-  // Checa login ao carregar a página
-  checkUserLoggedIn().then(isLogged => {
-    userIsLogged = isLogged;
-    if (userIsLogged) startSessionTimer();
-  });
-
-  document.addEventListener("DOMContentLoaded", function() {
-    carregarTodasSalas();
+  document.addEventListener("DOMContentLoaded", function () {
+    carregarTodasSalas(3);
   });
 </script>
 
