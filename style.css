@@ -484,16 +484,30 @@ h1 {
 }
 
 .password-wrapper {
-    position: relative;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-.toggle-password {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    cursor: pointer;
-    color: #ccc;
+.password-wrapper-inner {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.password-wrapper .form-control {
+  flex: 1 1 auto;
+  padding-right: 40px !important;
+}
+
+.password-wrapper .toggle-password {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #ccc;
+  z-index: 2;
 }
 
 .password-hint {
