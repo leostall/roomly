@@ -620,27 +620,35 @@ async def tornar_locador(request: Request):
         cursor.close()
         connection.close()
 
-@app.get("/salas-todas")
-async def get_salas_todas():
+@app.get("/recuperar-salas")
+async def get_salas(limit: int = None):
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     try:
-        cursor.execute("""
+        query = """
             SELECT s.ID_Sala, s.Descricao, s.Valor_Hora, s.Capacidade, s.Imagem, ts.Tipo
             FROM salas s
             JOIN tipo_sala ts ON s.fk_tipo_sala_ID_Tipo_Sala = ts.ID_Tipo_Sala
             WHERE s.Status = 1
-        """)
+            ORDER BY RAND()
+        """
+        
+        if limit is not None and limit > 0:
+            query += f" LIMIT {limit}"
+
+        cursor.execute(query)
         salas = cursor.fetchall()
+        
         for sala in salas:
             if sala["Imagem"]:
                 sala["imagem_url"] = "data:image/jpeg;base64," + base64.b64encode(sala["Imagem"]).decode()
             else:
                 sala["imagem_url"] = "images/placeholder.jpg"
             del sala["Imagem"]
+        
         return salas
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Erro ao buscar salas")
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar salas: {str(e)}")
     finally:
         cursor.close()
         connection.close()
