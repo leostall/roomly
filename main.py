@@ -354,6 +354,18 @@ async def get_sala(id: int, request: Request):
             imagem_url = "data:image/jpeg;base64," + base64.b64encode(sala["Imagem"]).decode()
         else:
             imagem_url = "images/placeholder.jpg"
+        
+        def formatar_hora(hora):
+            if not hora:
+                return ""
+            # Se vier como datetime.time ou datetime.datetime
+            if hasattr(hora, "strftime"):
+                return hora.strftime("%H:%M")
+            # Se vier como string "HH:MM:SS"
+            if isinstance(hora, str) and len(hora) >= 5:
+                return hora[:5]
+            return str(hora)
+
 
         return {
             "id": sala["ID_Sala"],
@@ -381,10 +393,10 @@ async def get_sala(id: int, request: Request):
             "tipo_sala_id": sala["fk_tipo_sala_ID_Tipo_Sala"],
             "tipo": sala["Tipo"],
             "imagem_url": imagem_url,
-            "HorarioInicio_DiasUteis": sala["HorarioInicio_DiasUteis"],
-            "HorarioFim_DiasUteis": sala["HorarioFim_DiasUteis"],
-            "HorarioInicio_DiaNaoUtil": sala["HorarioInicio_DiaNaoUtil"],
-            "HorarioFim_DiaNaoUtil": sala["HorarioFim_DiaNaoUtil"]
+            "HorarioInicio_DiasUteis": formatar_hora(sala["HorarioInicio_DiasUteis"]),
+            "HorarioFim_DiasUteis": formatar_hora(sala["HorarioFim_DiasUteis"]),
+            "HorarioInicio_DiaNaoUtil": formatar_hora(sala["HorarioInicio_DiaNaoUtil"]),
+            "HorarioFim_DiaNaoUtil": formatar_hora(sala["HorarioFim_DiaNaoUtil"]),
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail="Erro ao buscar sala")

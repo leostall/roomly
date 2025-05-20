@@ -942,6 +942,27 @@ function showEditSalaModal(salaId) {
                         <input type="file" class="form-control" id="modalEditImagemSala" accept="image/*">
                       </div>
                 </div>
+                <!-- Adicione dentro do <form id="editarSalaForm">, após os checkboxes de dias -->
+                <div id="containerHorarioUteisEdit" style="display:none;">
+                  <div class="col-12 col-md-6">
+                    <label for="modalHorarioInicioUteisEdit" class="form-label">Horário Início (Dias Úteis) *</label>
+                    <input type="time" class="form-control" id="modalHorarioInicioUteisEdit">
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label for="modalHorarioFimUteisEdit" class="form-label">Horário Fim (Dias Úteis) *</label>
+                    <input type="time" class="form-control" id="modalHorarioFimUteisEdit">
+                  </div>
+                </div>
+                <div id="containerHorarioNaoUteisEdit" style="display:none;">
+                  <div class="col-12 col-md-6">
+                    <label for="modalHorarioInicioNaoUtilEdit" class="form-label">Horário Início (Finais de Semana/Feriados) *</label>
+                    <input type="time" class="form-control" id="modalHorarioInicioNaoUtilEdit">
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label for="modalHorarioFimNaoUtilEdit" class="form-label">Horário Fim (Finais de Semana/Feriados) *</label>
+                    <input type="time" class="form-control" id="modalHorarioFimNaoUtilEdit">
+                  </div>
+                </div>
               </div>
             </form>
           </div>
@@ -1006,6 +1027,48 @@ async function loadSalaData(salaId) {
     document.getElementById("modalEditQuinta").checked = sala.disponibilidade.quinta;
     document.getElementById("modalEditSexta").checked = sala.disponibilidade.sexta;
     document.getElementById("modalEditSabado").checked = sala.disponibilidade.sabado;
+
+
+// Função auxiliar para converter "HH:MM:SS" para "HH:MM"
+function formatarHoraParaInput(hora) {
+  if (!hora) return "";
+  return String(hora).slice(0,5); // Garante que é string
+}
+
+// Preenche os campos de horário
+document.getElementById("modalHorarioInicioUteisEdit").value = formatarHoraParaInput(sala.HorarioInicio_DiasUteis);
+document.getElementById("modalHorarioFimUteisEdit").value = formatarHoraParaInput(sala.HorarioFim_DiasUteis);
+document.getElementById("modalHorarioInicioNaoUtilEdit").value = formatarHoraParaInput(sala.HorarioInicio_DiaNaoUtil);
+document.getElementById("modalHorarioFimNaoUtilEdit").value = formatarHoraParaInput(sala.HorarioFim_DiaNaoUtil);
+
+// Mostra/oculta campos de horário conforme os checkboxes
+function toggleHorariosEdicao() {
+  const diasUteis = [
+    document.getElementById("modalEditSegunda"),
+    document.getElementById("modalEditTerca"),
+    document.getElementById("modalEditQuarta"),
+    document.getElementById("modalEditQuinta"),
+    document.getElementById("modalEditSexta")
+  ];
+  const diasNaoUteis = [
+    document.getElementById("modalEditSabado"),
+    document.getElementById("modalEditDomingo")
+  ];
+  const algumUtil = diasUteis.some(cb => cb.checked);
+  const algumNaoUtil = diasNaoUteis.some(cb => cb.checked);
+
+  document.getElementById("containerHorarioUteisEdit").style.display = algumUtil ? "flex" : "none";
+  document.getElementById("containerHorarioNaoUteisEdit").style.display = algumNaoUtil ? "flex" : "none";
+}
+
+// Adiciona o evento nos checkboxes
+["modalEditSegunda","modalEditTerca","modalEditQuarta","modalEditQuinta","modalEditSexta","modalEditSabado","modalEditDomingo"].forEach(id => {
+  document.getElementById(id).addEventListener("change", toggleHorariosEdicao);
+});
+
+// Chama uma vez para garantir o estado inicial
+toggleHorariosEdicao();
+
 
   } catch (error) {
     console.error("Erro ao buscar dados da sala:", error);
@@ -1128,6 +1191,10 @@ function setupEditSalaModal(salaId) {
     formData.append("sexta", document.getElementById("modalEditSexta").checked ? 1 : 0);
     formData.append("sabado", document.getElementById("modalEditSabado").checked ? 1 : 0);
     formData.append("status", 1);
+    formData.append("HorarioInicio_DiasUteis", document.getElementById("modalHorarioInicioUteisEdit").value);
+    formData.append("HorarioFim_DiasUteis", document.getElementById("modalHorarioFimUteisEdit").value);
+    formData.append("HorarioInicio_DiaNaoUtil", document.getElementById("modalHorarioInicioNaoUtilEdit").value);
+    formData.append("HorarioFim_DiaNaoUtil", document.getElementById("modalHorarioFimNaoUtilEdit").value);
 
     // Adiciona a imagem, se houver
     const imagemInput = document.getElementById("modalEditImagemSala");
