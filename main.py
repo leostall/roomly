@@ -18,7 +18,7 @@ app.add_middleware(SessionMiddleware, secret_key="roomly")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:3000"],  # ou o IP/porta onde seu frontend roda
+    allow_origins=["http://127.0.0.1:5500"],  # ou o IP/porta onde seu frontend roda
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -64,7 +64,7 @@ def get_db_connection():
         return mysql.connector.connect(
             host="127.0.0.1",
             user="root",
-            password="Mimiteteu123@",
+            password="",
             database="roomly"
         )
     except mysql.connector.Error as err:
