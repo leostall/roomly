@@ -360,12 +360,15 @@ async def get_sala(id: int, request: Request):
                 return ""
             # Se vier como datetime.time ou datetime.datetime
             if hasattr(hora, "strftime"):
-                return hora.strftime("%H:%M")
-            # Se vier como string "HH:MM:SS"
-            if isinstance(hora, str) and len(hora) >= 5:
-                return hora[:5]
+                return hora.strftime("%H:%M")  # Retorna no formato HH:MM
+            # Se vier como string "H:MM" ou "HH:MM:SS"
+            if isinstance(hora, str):
+                partes = hora.split(":")
+                if len(partes) >= 2:
+                    horas = partes[0].zfill(2)  # Garante dois dígitos para as horas
+                    minutos = partes[1].zfill(2)  # Garante dois dígitos para os minutos
+                    return f"{horas}:{minutos}"
             return str(hora)
-
 
         return {
             "id": sala["ID_Sala"],
@@ -704,7 +707,6 @@ async def get_salas(limit: int = None):
         cursor.close()
         connection.close()
 
-
 @app.post("/reservar")
 async def reservar_sala(request: Request, data: dict = Body(...)):
     usuario = request.session.get("usuario")
@@ -720,42 +722,53 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
 
     # Converte datas para datetime
     try:
-        checkin_dt = datetime.strptime(checkin, "%Y-%m-%d")
-        checkout_dt = datetime.strptime(checkout, "%Y-%m-%d")
+        checkin_dt = datetime.strptime(checkin, "%Y-%m-%dT%H:%M")
+        checkout_dt = datetime.strptime(checkout, "%Y-%m-%dT%H:%M")
     except Exception:
-        raise HTTPException(status_code=400, detail="Formato de data inválido")
+        raise HTTPException(status_code=400, detail="Formato de data ou horário inválido")
+
+    if checkin_dt >= checkout_dt:
+        raise HTTPException(status_code=400, detail="Horário de início deve ser antes do horário de término")
 
     # Busca disponibilidade da sala
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     try:
         cursor.execute("""
-            SELECT Domingo_Disp, Segunda_Disp, Terca_Disp, Quarta_Disp, Quinta_Disp, Sexta_Disp, Sabado_Disp
+            SELECT Domingo_Disp, Segunda_Disp, Terca_Disp, Quarta_Disp, Quinta_Disp, Sexta_Disp, Sabado_Disp,
+                   HorarioInicio_DiasUteis, HorarioFim_DiasUteis, HorarioInicio_DiaNaoUtil, HorarioFim_DiaNaoUtil
             FROM salas WHERE ID_Sala = %s
         """, (sala_id,))
         sala = cursor.fetchone()
         if not sala:
             raise HTTPException(status_code=404, detail="Sala não encontrada")
 
-        # Verifica se todos os dias do período estão disponíveis
-        dias_semana = [
-            "segunda", "terca", "quarta", "quinta", "sexta", "sabado", "domingo"
-        ]
-        dias_db = [
-            sala["Segunda_Disp"], sala["Terca_Disp"], sala["Quarta_Disp"],
-            sala["Quinta_Disp"], sala["Sexta_Disp"], sala["Sabado_Disp"], sala["Domingo_Disp"]
-        ]
-        current = checkin_dt
-        while current <= checkout_dt:
-            idx = current.weekday()  # segunda=0 ... domingo=6
-            # Ajusta para o seu array (domingo=6)
-            if idx == 6:
-                disp = sala["Domingo_Disp"]
-            else:
-                disp = dias_db[idx]
-            if not disp:
-                raise HTTPException(status_code=400, detail=f"Sala indisponível em {current.strftime('%d/%m/%Y')}")
-            current += timedelta(days=1)
+        # Verifica se o dia da semana está disponível
+        dia_semana = checkin_dt.weekday()  # 0 = Segunda, ..., 6 = Domingo
+        dias_disponiveis = {
+            0: sala["Segunda_Disp"],
+            1: sala["Terca_Disp"],
+            2: sala["Quarta_Disp"],
+            3: sala["Quinta_Disp"],
+            4: sala["Sexta_Disp"],
+            5: sala["Sabado_Disp"],
+            6: sala["Domingo_Disp"],
+        }
+
+        if not dias_disponiveis[dia_semana]:
+            raise HTTPException(status_code=400, detail="A sala não está disponível no dia selecionado")
+
+        # Verifica se o horário está dentro da faixa permitida
+        is_dia_util = dia_semana >= 0 and dia_semana <= 4  # Segunda a Sexta
+        if is_dia_util:
+            horario_inicio_permitido = datetime.strptime(sala["HorarioInicio_DiasUteis"], "%H:%M").time()
+            horario_fim_permitido = datetime.strptime(sala["HorarioFim_DiasUteis"], "%H:%M").time()
+        else:
+            horario_inicio_permitido = datetime.strptime(sala["HorarioInicio_DiaNaoUtil"], "%H:%M").time()
+            horario_fim_permitido = datetime.strptime(sala["HorarioFim_DiaNaoUtil"], "%H:%M").time()
+
+        if checkin_dt.time() < horario_inicio_permitido or checkout_dt.time() > horario_fim_permitido:
+            raise HTTPException(status_code=400, detail="Horário fora do intervalo permitido")
 
         # Verifica se já existe reserva no período
         cursor.execute("""
@@ -785,3 +798,4 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
     finally:
         cursor.close()
         connection.close()
+

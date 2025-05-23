@@ -553,17 +553,53 @@ function setupCadastroSalaModal() {
 
   // Evento para salvar a sala
   document.getElementById("modalSalvarSala").addEventListener("click", async function () {
-    // Verifica se pelo menos um dia foi selecionado
-    const checkboxes = document.querySelectorAll('#cadastroSalaForm .form-check-input');
-    let atLeastOneChecked = false;
-    checkboxes.forEach(checkbox => {
-      if (checkbox.checked) atLeastOneChecked = true;
-    });
+  // Verifica se pelo menos um dia foi selecionado
+  const checkboxes = document.querySelectorAll('#cadastroSalaForm .form-check-input');
+  let atLeastOneChecked = false;
+  checkboxes.forEach(checkbox => {
+    if (checkbox.checked) atLeastOneChecked = true;
+  });
 
-    if (!atLeastOneChecked) {
-      document.querySelector('#cadastroSalaForm .invalid-feedback').style.display = 'block';
+  if (!atLeastOneChecked) {
+    document.querySelector('#cadastroSalaForm .invalid-feedback').style.display = 'block';
+    return;
+  }
+
+  // Validação de intervalo de horários
+  const horarioInicioUteis = document.getElementById("modalHorarioInicioUteis").value;
+  const horarioFimUteis = document.getElementById("modalHorarioFimUteis").value;
+  const horarioInicioNaoUteis = document.getElementById("modalHorarioInicioNaoUtil").value;
+  const horarioFimNaoUteis = document.getElementById("modalHorarioFimNaoUtil").value;
+
+  if (horarioInicioUteis && horarioFimUteis) {
+    const diffUteis = calcularDiferencaHoras(horarioInicioUteis, horarioFimUteis);
+    if (diffUteis < 1) {
+      Swal.fire({
+        title: "Erro!",
+        text: "O intervalo entre os horários de dias úteis deve ser maior que 1 hora.",
+        icon: "error",
+        background: "#121212",
+        color: "#fff"
+      });
       return;
     }
+  }
+
+  if (horarioInicioNaoUteis && horarioFimNaoUteis) {
+    const diffNaoUteis = calcularDiferencaHoras(horarioInicioNaoUteis, horarioFimNaoUteis);
+    if (diffNaoUteis < 1) {
+      Swal.fire({
+        title: "Erro!",
+        text: "O intervalo entre os horários de finais de semana/feriados deve ser maior que 1 hora.",
+        icon: "error",
+        background: "#121212",
+        color: "#fff"
+      });
+      return;
+    }
+  }
+
+
 
     // Verifica campos obrigatórios
     const requiredFields = document.querySelectorAll('#cadastroSalaForm [required]');
@@ -774,6 +810,10 @@ function toggleHorariosCadastro() {
 
 // Chama uma vez para garantir o estado inicial
 toggleHorariosCadastro();
+
+validarIntervaloAoVivo("modalHorarioInicioUteis", "modalHorarioFimUteis");
+validarIntervaloAoVivo("modalHorarioInicioNaoUtil", "modalHorarioFimNaoUtil");
+
 }
 
 
@@ -1032,7 +1072,11 @@ async function loadSalaData(salaId) {
 // Função auxiliar para converter "HH:MM:SS" para "HH:MM"
 function formatarHoraParaInput(hora) {
   if (!hora) return "";
-  return String(hora).slice(0,5); // Garante que é string
+  if (typeof hora === "string" && hora.includes(":")) {
+    const [hh, mm] = hora.split(":");
+    return `${hh.padStart(2, "0")}:${mm.padStart(2, "0")}`; // Garante que tenha 2 dígitos
+  }
+  return hora; // Retorna o valor original se não for uma string válida
 }
 
 // Preenche os campos de horário
@@ -1167,6 +1211,39 @@ function setupEditSalaModal(salaId) {
 
   // Evento para salvar alterações
   document.getElementById("modalSalvarSala").addEventListener("click", async function () {
+  // Validação de intervalo de horários
+  const horarioInicioUteis = document.getElementById("modalHorarioInicioUteisEdit").value;
+  const horarioFimUteis = document.getElementById("modalHorarioFimUteisEdit").value;
+  const horarioInicioNaoUteis = document.getElementById("modalHorarioInicioNaoUtilEdit").value;
+  const horarioFimNaoUteis = document.getElementById("modalHorarioFimNaoUtilEdit").value;
+
+  if (horarioInicioUteis && horarioFimUteis) {
+    const diffUteis = calcularDiferencaHoras(horarioInicioUteis, horarioFimUteis);
+    if (diffUteis < 1) {
+      Swal.fire({
+        title: "Erro!",
+        text: "O intervalo entre os horários de dias úteis deve ser maior que 1 hora.",
+        icon: "error",
+        background: "#121212",
+        color: "#fff"
+      });
+      return;
+    }
+  }
+
+  if (horarioInicioNaoUteis && horarioFimNaoUteis) {
+    const diffNaoUteis = calcularDiferencaHoras(horarioInicioNaoUteis, horarioFimNaoUteis);
+    if (diffNaoUteis < 1) {
+      Swal.fire({
+        title: "Erro!",
+        text: "O intervalo entre os horários de finais de semana/feriados deve ser maior que 1 hora.",
+        icon: "error",
+        background: "#121212",
+        color: "#fff"
+      });
+      return;
+    }
+  }
     console.log("Salvando alterações...");
 
     const formData = new FormData();
@@ -1238,6 +1315,8 @@ function setupEditSalaModal(salaId) {
     }
   });
 
+validarIntervaloAoVivo("modalHorarioInicioUteisEdit", "modalHorarioFimUteisEdit");
+validarIntervaloAoVivo("modalHorarioInicioNaoUtilEdit", "modalHorarioFimNaoUtilEdit");
 
 }
 
@@ -1614,4 +1693,47 @@ async function obterIdUsuarioLogado() {
     return usuario.id;
   }
   throw new Error("Usuário não está logado ou ID não encontrado.");
+}
+
+function calcularDiferencaHoras(horarioInicio, horarioFim) {
+  const [horaInicio, minutoInicio] = horarioInicio.split(":").map(Number);
+  const [horaFim, minutoFim] = horarioFim.split(":").map(Number);
+
+  const inicio = horaInicio * 60 + minutoInicio;
+  const fim = horaFim * 60 + minutoFim;
+
+  // Verifica se o horário de término é menor que o horário de início (não permitido)
+  if (fim <= inicio) {
+    return -1; // Retorna um valor negativo para indicar erro
+  }
+
+  return (fim - inicio) / 60; // Retorna a diferença em horas
+}
+
+function validarIntervaloAoVivo(horarioInicioId, horarioFimId) {
+  const horarioInicio = document.getElementById(horarioInicioId);
+  const horarioFim = document.getElementById(horarioFimId);
+
+  function verificarIntervalo() {
+    const inicio = horarioInicio.value;
+    const fim = horarioFim.value;
+
+    if (inicio && fim) {
+      const diff = calcularDiferencaHoras(inicio, fim);
+      if (diff < 1) {
+        horarioInicio.classList.add("is-invalid");
+        horarioFim.classList.add("is-invalid");
+      } else {
+        horarioInicio.classList.remove("is-invalid");
+        horarioFim.classList.remove("is-invalid");
+      }
+    } else {
+      // Remove a borda vermelha se os campos estiverem vazios
+      horarioInicio.classList.remove("is-invalid");
+      horarioFim.classList.remove("is-invalid");
+    }
+  }
+
+  horarioInicio.addEventListener("input", verificarIntervalo);
+  horarioFim.addEventListener("input", verificarIntervalo);
 }

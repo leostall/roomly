@@ -1125,3 +1125,9 @@ input[data-mask] {
         font-size: 1.5rem;
     }
 }
+
+/* Estilo para o campo de horário inválido */
+.is-invalid {
+  border: 2px solid #ff6b6b !important;
+  box-shadow: 0 0 5px rgba(255, 107, 107, 0.5);
+}
