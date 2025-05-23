@@ -12,23 +12,36 @@
     <h2 class="mb-4 text-center">Reserva de Sala</h2>
     <div id="sala-info" class="mb-4"></div>
     <form id="formReserva" class="row g-3">
-      <div class="col-md-6">
-        <label for="checkin" class="form-label">Check-in</label>
-        <input type="date" class="form-control" id="checkin" required>
-      </div>
-      <div class="col-md-6">
-        <label for="checkout" class="form-label">Check-out</label>
-        <input type="date" class="form-control" id="checkout" required>
-      </div>
-      <div class="col-12 text-center">
-        <button type="submit" class="btn btn-primary">Confirmar Reserva</button>
-      </div>
-    </form>
+    <div class="col-md-6">
+      <label for="data" class="form-label">Data</label>
+      <input type="date" class="form-control" id="data" required>
+    </div>
+    <div class="col-md-6">
+      <label for="horarioEntrada" class="form-label">Horário de Entrada</label>
+      <input type="time" class="form-control" id="horarioEntrada" required>
+    </div>
+    <div class="col-md-6">
+      <label for="horarioSaida" class="form-label">Horário de Saída</label>
+      <input type="time" class="form-control" id="horarioSaida" required>
+    </div>
+    <div class="col-12 text-center">
+      <button type="submit" class="btn btn-primary">Confirmar Reserva</button>
+    </div>
+  </form>
   </div>
   <script>
     // Pega o ID da sala da URL
     const params = new URLSearchParams(window.location.search);
     const salaId = params.get('sala');
+
+    // Função para formatar os horários no formato HH:MM
+    function formatarHora(hora) {
+      if (!hora) return "Não disponível";
+      const partes = hora.split(":");
+      const horas = partes[0].padStart(2, "0"); // Garante dois dígitos para as horas
+      const minutos = partes[1].padStart(2, "0"); // Garante dois dígitos para os minutos
+      return `${horas}:${minutos}`;
+    }
 
     // Busca os dados da sala
     async function carregarSala() {
@@ -61,6 +74,16 @@
                     .map(([dia]) => dia.charAt(0).toUpperCase() + dia.slice(1))
                     .join(', ') || 'Nenhum dia disponível'}
                 </p>
+                <p class="card-text"><strong>Horários de Dias Úteis:</strong> 
+                  ${sala.HorarioInicio_DiasUteis && sala.HorarioFim_DiasUteis 
+                    ? `${formatarHora(sala.HorarioInicio_DiasUteis)} - ${formatarHora(sala.HorarioFim_DiasUteis)}` 
+                    : 'Não disponível'}
+                </p>
+                <p class="card-text"><strong>Horários de Finais de Semana:</strong> 
+                  ${sala.HorarioInicio_DiaNaoUtil && sala.HorarioFim_DiaNaoUtil 
+                    ? `${formatarHora(sala.HorarioInicio_DiaNaoUtil)} - ${formatarHora(sala.HorarioFim_DiaNaoUtil)}` 
+                    : 'Não disponível'}
+                </p>
               </div>
             </div>
           </div>
@@ -69,6 +92,23 @@
     }
     carregarSala();
 
+    // Seleciona o campo de data
+    const dataInput = document.getElementById('data');
+
+    // Adiciona um evento de input para validar a data em tempo real
+    dataInput.addEventListener('input', () => {
+      const hoje = new Date(); // Data atual
+      const dataSelecionada = new Date(dataInput.value); // Data selecionada no campo
+
+      // Remove a classe de erro, se existir
+      dataInput.classList.remove('is-invalid');
+
+      // Verifica se a data selecionada é anterior ao dia atual
+      if (dataSelecionada < hoje.setHours(0, 0, 0, 0)) {
+        dataInput.classList.add('is-invalid'); // Adiciona a classe de erro
+      }
+    });
+
     // (Opcional) Lógica para enviar a reserva
     document.getElementById('formReserva').addEventListener('submit', function(e) {
       e.preventDefault();
@@ -76,34 +116,49 @@
       alert('Reserva enviada!');
     });
 
-    
-document.getElementById('formReserva').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const checkin = document.getElementById('checkin').value;
-  const checkout = document.getElementById('checkout').value;
 
-  try {
-    const resp = await fetch('http://127.0.0.1:8000/reservar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        sala_id: salaId,
-        checkin,
-        checkout
-      })
+    document.getElementById('formReserva').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const data = document.getElementById('data').value;
+      const horarioEntrada = document.getElementById('horarioEntrada').value;
+      const horarioSaida = document.getElementById('horarioSaida').value;
+
+      if (!horarioEntrada || !horarioSaida) {
+        alert("Por favor, insira os horários de entrada e saída.");
+        return;
+      }
+
+      // Captura o dia da semana (0 = Domingo, 1 = Segunda, ..., 6 = Sábado)
+      const diaSemana = new Date(data).getDay();
+
+
+      const checkin = `${data}T${horarioEntrada}`;
+      const checkout = `${data}T${horarioSaida}`;
+
+      try {
+        const resp = await fetch('http://127.0.0.1:8000/reservar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            sala_id: salaId,
+            dia_semana: diaSemana,
+            checkin,
+            checkout
+          })
+        });
+        const responseData = await resp.json();
+        if (resp.ok) {
+          alert(responseData.message);
+          window.location.href = "index.html";
+        } else {
+          alert(responseData.detail || "Erro ao verificar disponibilidade");
+        }
+      } catch (err) {
+        alert("Erro ao verificar disponibilidade");
+      }
     });
-    const data = await resp.json();
-    if (resp.ok) {
-      alert(data.message);
-      window.location.href = "index.html";
-    } else {
-      alert(data.detail || "Erro ao reservar");
-    }
-  } catch (err) {
-    alert("Erro ao reservar");
-  }
-});
+
   </script>
 </body>
 </html>
