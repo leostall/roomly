@@ -12,6 +12,7 @@ from typing import Optional
 
 
 
+
 app = FastAPI()
 
 app.add_middleware(SessionMiddleware, secret_key="roomly")
@@ -722,30 +723,34 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
 
     # Converte horários para datetime
     try:
-        if isinstance(checkin_horario, str):
-            checkin_dt = datetime.strptime(checkin_horario, "%Y-%m-%dT%H:%M")
-        else:
-            checkin_dt = checkin_horario
-
-        if isinstance(checkout_horario, str):
-            checkout_dt = datetime.strptime(checkout_horario, "%Y-%m-%dT%H:%M")
-        else:
-            checkout_dt = checkout_horario
+        checkin_dt = datetime.strptime(checkin_horario, "%Y-%m-%dT%H:%M")
+        checkout_dt = datetime.strptime(checkout_horario, "%Y-%m-%dT%H:%M")
     except Exception:
         raise HTTPException(status_code=400, detail="Formato de data ou horário inválido")
+
+    # Verifica se a data da reserva está dentro do intervalo permitido (até 1 ano a partir de hoje)
+    hoje = datetime.now()
+    um_ano_depois = hoje.replace(year=hoje.year + 1)
+    if checkin_dt.date() > um_ano_depois.date():
+        raise HTTPException(status_code=400, detail="A data da reserva não pode ser superior a 1 ano a partir de hoje")
+
+    # Verifica se o intervalo de tempo é de pelo menos 1 hora
+    if (checkout_dt - checkin_dt).total_seconds() < 3600:
+        raise HTTPException(status_code=400, detail="O intervalo mínimo para reserva é de 1 hora")
 
     if checkin_dt >= checkout_dt:
         raise HTTPException(status_code=400, detail="Horário de início deve ser antes do horário de término")
 
-    # Determina o dia da semana (0 = Domingo, ..., 6 = Sábado)
-    dia_semana = checkin_dt.weekday()
+    # Determina o dia da semana (1 = Segunda, ..., 7 = Domingo)
+    dia_semana = checkin_dt.weekday() + 1
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     try:
         # Verifica se o dia da semana está disponível para a sala
         cursor.execute("""
-            SELECT Domingo_Disp, Segunda_Disp, Terca_Disp, Quarta_Disp, Quinta_Disp, Sexta_Disp, Sabado_Disp
+            SELECT Domingo_Disp, Segunda_Disp, Terca_Disp, Quarta_Disp, Quinta_Disp, Sexta_Disp, Sabado_Disp,
+                   HorarioInicio_DiasUteis, HorarioFim_DiasUteis, HorarioInicio_DiaNaoUtil, HorarioFim_DiaNaoUtil
             FROM salas WHERE ID_Sala = %s
         """, (sala_id,))
         sala = cursor.fetchone()
@@ -753,7 +758,7 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
             raise HTTPException(status_code=404, detail="Sala não encontrada")
 
         dias_disponiveis = {
-            0: sala["Domingo_Disp"],
+            7: sala["Domingo_Disp"],
             1: sala["Segunda_Disp"],
             2: sala["Terca_Disp"],
             3: sala["Quarta_Disp"],
@@ -765,18 +770,55 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
         if not dias_disponiveis.get(dia_semana, 0):
             raise HTTPException(status_code=400, detail="A sala não está disponível no dia selecionado")
 
-        # Verifica se já existe reserva no período
+        # Verifica se é dia útil ou não útil
+        if dia_semana in [1, 2, 3, 4, 5]:  # Dias úteis (segunda a sexta)
+            horario_inicio = sala["HorarioInicio_DiasUteis"]
+            horario_fim = sala["HorarioFim_DiasUteis"]
+        else:  # Dias não úteis (sábado e domingo)
+            horario_inicio = sala["HorarioInicio_DiaNaoUtil"]
+            horario_fim = sala["HorarioFim_DiaNaoUtil"]
+
+        # Valida se os horários estão dentro do intervalo permitido
+        if horario_inicio and horario_fim:
+            # Converte para string se necessário
+            if not isinstance(horario_inicio, str):
+                horario_inicio = str(horario_inicio)
+            if not isinstance(horario_fim, str):
+                horario_fim = str(horario_fim)
+
+            # Remove os segundos, se existirem
+            horario_inicio = horario_inicio[:5]  # Pega apenas os primeiros 5 caracteres (HH:MM)
+            horario_fim = horario_fim[:5]        # Pega apenas os primeiros 5 caracteres (HH:MM)
+
+            # Converte os horários para objetos datetime.time
+            try:
+                horario_inicio_dt = datetime.strptime(horario_inicio, "%H:%M").time()
+                horario_fim_dt = datetime.strptime(horario_fim, "%H:%M").time()
+            except ValueError:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Formato de horário inválido no banco de dados: {horario_inicio} ou {horario_fim}"
+                )
+
+            if not (horario_inicio_dt <= checkin_dt.time() <= horario_fim_dt and
+                    horario_inicio_dt <= checkout_dt.time() <= horario_fim_dt):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Horários fora do intervalo permitido: {horario_inicio} - {horario_fim}"
+                )
+
+        # Verifica se já existe reserva no mesmo período
         cursor.execute("""
             SELECT * FROM locacao_loca
             WHERE fk_salas_ID_Sala = %s
               AND (
-                (Checkin <= %s AND Checkout >= %s) OR
-                (Checkin <= %s AND Checkout >= %s) OR
+                (Checkin < %s AND Checkout > %s) OR
+                (Checkin < %s AND Checkout > %s) OR
                 (Checkin >= %s AND Checkout <= %s)
               )
-        """, (sala_id, checkin_dt, checkin_dt, checkout_dt, checkout_dt, checkin_dt, checkout_dt))
+        """, (sala_id, checkout_dt, checkin_dt, checkout_dt, checkin_dt, checkin_dt, checkout_dt))
         if cursor.fetchone():
-            raise HTTPException(status_code=400, detail="Já existe reserva nesse período")
+            raise HTTPException(status_code=400, detail="Já existe uma reserva nesse período")
 
         # Insere a reserva na tabela locacao_loca
         cursor.execute("""
@@ -794,4 +836,3 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
     finally:
         cursor.close()
         connection.close()
-        
