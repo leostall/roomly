@@ -1211,38 +1211,56 @@ function setupEditSalaModal(salaId) {
 
   // Evento para salvar alterações
   document.getElementById("modalSalvarSala").addEventListener("click", async function () {
+
+    // Captura os valores dos horários
+    const horarioInicioUteis = document.getElementById("modalHorarioInicioUteisEdit").value || null;
+    const horarioFimUteis = document.getElementById("modalHorarioFimUteisEdit").value || null;
+    const horarioInicioNaoUteis = document.getElementById("modalHorarioInicioNaoUtilEdit").value || null;
+    const horarioFimNaoUteis = document.getElementById("modalHorarioFimNaoUtilEdit").value || null;
+
+    // Captura os valores de disponibilidade
+    const domingo = document.getElementById("modalEditDomingo").checked ? 1 : 0;
+    const segunda = document.getElementById("modalEditSegunda").checked ? 1 : 0;
+    const terca = document.getElementById("modalEditTerca").checked ? 1 : 0;
+    const quarta = document.getElementById("modalEditQuarta").checked ? 1 : 0;
+    const quinta = document.getElementById("modalEditQuinta").checked ? 1 : 0;
+    const sexta = document.getElementById("modalEditSexta").checked ? 1 : 0;
+    const sabado = document.getElementById("modalEditSabado").checked ? 1 : 0;
+
+    // Ajusta os horários para NULL se o dia correspondente não estiver selecionado
+    const horarioInicioDiasUteisFinal = (segunda || terca || quarta || quinta || sexta) ? horarioInicioUteis : null;
+    const horarioFimDiasUteisFinal = (segunda || terca || quarta || quinta || sexta) ? horarioFimUteis : null;
+    const horarioInicioNaoUteisFinal = (sabado || domingo) ? horarioInicioNaoUteis : null;
+    const horarioFimNaoUteisFinal = (sabado || domingo) ? horarioFimNaoUteis : null;
+
+
   // Validação de intervalo de horários
-  const horarioInicioUteis = document.getElementById("modalHorarioInicioUteisEdit").value;
-  const horarioFimUteis = document.getElementById("modalHorarioFimUteisEdit").value;
-  const horarioInicioNaoUteis = document.getElementById("modalHorarioInicioNaoUtilEdit").value;
-  const horarioFimNaoUteis = document.getElementById("modalHorarioFimNaoUtilEdit").value;
-
-  if (horarioInicioUteis && horarioFimUteis) {
-    const diffUteis = calcularDiferencaHoras(horarioInicioUteis, horarioFimUteis);
-    if (diffUteis < 1) {
-      Swal.fire({
-        title: "Erro!",
-        text: "O intervalo entre os horários de dias úteis deve ser maior que 1 hora.",
-        icon: "error",
-        background: "#121212",
-        color: "#fff"
-      });
-      return;
+    if (horarioInicioUteis && horarioFimUteis) {
+        const diffUteis = calcularDiferencaHoras(horarioInicioUteis, horarioFimUteis);
+        if (diffUteis < 1) {
+            Swal.fire({
+                title: "Erro!",
+                text: "O intervalo entre os horários de dias úteis deve ser maior que 1 hora.",
+                icon: "error",
+                background: "#121212",
+                color: "#fff"
+            });
+            return;
+        }
     }
-  }
 
-  if (horarioInicioNaoUteis && horarioFimNaoUteis) {
-    const diffNaoUteis = calcularDiferencaHoras(horarioInicioNaoUteis, horarioFimNaoUteis);
-    if (diffNaoUteis < 1) {
-      Swal.fire({
-        title: "Erro!",
-        text: "O intervalo entre os horários de finais de semana/feriados deve ser maior que 1 hora.",
-        icon: "error",
-        background: "#121212",
-        color: "#fff"
-      });
-      return;
-    }
+    if (horarioInicioNaoUteis && horarioFimNaoUteis) {
+        const diffNaoUteis = calcularDiferencaHoras(horarioInicioNaoUteis, horarioFimNaoUteis);
+        if (diffNaoUteis < 1) {
+            Swal.fire({
+                title: "Erro!",
+                text: "O intervalo entre os horários de finais de semana/feriados deve ser maior que 1 hora.",
+                icon: "error",
+                background: "#121212",
+                color: "#fff"
+            });
+            return;
+        }
   }
     console.log("Salvando alterações...");
 
@@ -1260,18 +1278,28 @@ function setupEditSalaModal(salaId) {
     formData.append("complemento", document.getElementById("modalEditComplemento").value);
     formData.append("descricao", document.getElementById("modalEditDescricao").value);
     formData.append("fk_tipo_sala_id", document.getElementById("modalEditTipoSala").value);
-    formData.append("domingo", document.getElementById("modalEditDomingo").checked ? 1 : 0);
-    formData.append("segunda", document.getElementById("modalEditSegunda").checked ? 1 : 0);
-    formData.append("terca", document.getElementById("modalEditTerca").checked ? 1 : 0);
-    formData.append("quarta", document.getElementById("modalEditQuarta").checked ? 1 : 0);
-    formData.append("quinta", document.getElementById("modalEditQuinta").checked ? 1 : 0);
-    formData.append("sexta", document.getElementById("modalEditSexta").checked ? 1 : 0);
-    formData.append("sabado", document.getElementById("modalEditSabado").checked ? 1 : 0);
+    formData.append("domingo", domingo);
+    formData.append("segunda", segunda);
+    formData.append("terca", terca);
+    formData.append("quarta", quarta);
+    formData.append("quinta", quinta);
+    formData.append("sexta", sexta);
+    formData.append("sabado", sabado);
     formData.append("status", 1);
-    formData.append("HorarioInicio_DiasUteis", document.getElementById("modalHorarioInicioUteisEdit").value);
-    formData.append("HorarioFim_DiasUteis", document.getElementById("modalHorarioFimUteisEdit").value);
-    formData.append("HorarioInicio_DiaNaoUtil", document.getElementById("modalHorarioInicioNaoUtilEdit").value);
-    formData.append("HorarioFim_DiaNaoUtil", document.getElementById("modalHorarioFimNaoUtilEdit").value);
+    
+    if (horarioInicioDiasUteisFinal !== null) {
+    formData.append("HorarioInicio_DiasUteis", horarioInicioDiasUteisFinal);
+    }
+    if (horarioFimDiasUteisFinal !== null) {
+        formData.append("HorarioFim_DiasUteis", horarioFimDiasUteisFinal);
+    }
+    if (horarioInicioNaoUteisFinal !== null) {
+        formData.append("HorarioInicio_DiaNaoUtil", horarioInicioNaoUteisFinal);
+    }
+    if (horarioFimNaoUteisFinal !== null) {
+        formData.append("HorarioFim_DiaNaoUtil", horarioFimNaoUteisFinal);
+    }
+
 
     // Adiciona a imagem, se houver
     const imagemInput = document.getElementById("modalEditImagemSala");
@@ -1302,7 +1330,9 @@ function setupEditSalaModal(salaId) {
             window.location.reload(); // Fallback se a função não existir
           }
         });
-      }
+      } else {
+            throw new Error(result.detail || "Erro ao salvar alterações");
+        }
 
     } catch (error) {
       Swal.fire({

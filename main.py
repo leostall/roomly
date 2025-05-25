@@ -270,7 +270,13 @@ async def cadastrar_sala(
     if (sabado or domingo):
         if not HorarioInicio_DiaNaoUtil or not HorarioFim_DiaNaoUtil:
             raise HTTPException(status_code=400, detail="Horários de finais de semana/feriados são obrigatórios.")
-        
+    
+    # Ajusta os horários para NULL se não forem preenchidos
+    HorarioInicio_DiasUteis = HorarioInicio_DiasUteis if HorarioInicio_DiasUteis else None
+    HorarioFim_DiasUteis = HorarioFim_DiasUteis if HorarioFim_DiasUteis else None
+    HorarioInicio_DiaNaoUtil = HorarioInicio_DiaNaoUtil if HorarioInicio_DiaNaoUtil else None
+    HorarioFim_DiaNaoUtil = HorarioFim_DiaNaoUtil if HorarioFim_DiaNaoUtil else None
+
     data_cadastro = datetime.now() 
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -357,8 +363,8 @@ async def get_sala(id: int, request: Request):
             imagem_url = "images/placeholder.jpg"
         
         def formatar_hora(hora):
-            if not hora:
-                return ""
+            if hora is None:  # Verifica explicitamente se é NULL
+                return None
             # Se vier como datetime.time ou datetime.datetime
             if hasattr(hora, "strftime"):
                 return hora.strftime("%H:%M")  # Retorna no formato HH:MM
@@ -443,6 +449,12 @@ async def editar_sala(
     if not usuario:
         raise HTTPException(status_code=401, detail="Usuário não autenticado")
     
+    # Ajusta os horários para None se não forem preenchidos
+    HorarioInicio_DiasUteis = HorarioInicio_DiasUteis if HorarioInicio_DiasUteis else None
+    HorarioFim_DiasUteis = HorarioFim_DiasUteis if HorarioFim_DiasUteis else None
+    HorarioInicio_DiaNaoUtil = HorarioInicio_DiaNaoUtil if HorarioInicio_DiaNaoUtil else None
+    HorarioFim_DiaNaoUtil = HorarioFim_DiaNaoUtil if HorarioFim_DiaNaoUtil else None
+    
     # Validação obrigatória dos horários
     if (segunda or terca or quarta or quinta or sexta):
         if not HorarioInicio_DiasUteis or not HorarioFim_DiasUteis:
@@ -454,36 +466,43 @@ async def editar_sala(
     connection = get_db_connection()
     cursor = connection.cursor()
     try:
+        # Monta a query de forma dinâmica para tratar valores NULL
         if imagem:
             imagem_bytes = await imagem.read()
-            cursor.execute("""
+            query = """
                 UPDATE salas
                 SET Capacidade=%s, Tamanho=%s, Valor_Hora=%s, Recursos=%s, Tipo_Mobilia=%s, CEP=%s, Rua=%s,
                     Numero=%s, Cidade=%s, Estado=%s, Complemento=%s, Descricao=%s, fk_tipo_sala_ID_Tipo_Sala=%s,
                     Domingo_Disp=%s, Segunda_Disp=%s, Terca_Disp=%s, Quarta_Disp=%s, Quinta_Disp=%s, Sexta_Disp=%s, Sabado_Disp=%s, Imagem=%s,
                     HorarioInicio_DiasUteis=%s, HorarioFim_DiasUteis=%s, HorarioInicio_DiaNaoUtil=%s, HorarioFim_DiaNaoUtil=%s
                 WHERE ID_Sala=%s AND fk_usuario_ID_Usuario=%s
-            """, (
+            """
+            params = (
                 capacidade, tamanho, valor_hora, recursos, tipo_mobilia, cep, rua, numero, cidade, estado, complemento, descricao,
                 fk_tipo_sala_id, domingo, segunda, terca, quarta, quinta, sexta, sabado, imagem_bytes,
                 HorarioInicio_DiasUteis, HorarioFim_DiasUteis, HorarioInicio_DiaNaoUtil, HorarioFim_DiaNaoUtil,
                 id, usuario["id"]
-            ))
+            )
         else:
-            cursor.execute("""
+            query = """
                 UPDATE salas
                 SET Capacidade=%s, Tamanho=%s, Valor_Hora=%s, Recursos=%s, Tipo_Mobilia=%s, CEP=%s, Rua=%s,
                     Numero=%s, Cidade=%s, Estado=%s, Complemento=%s, Descricao=%s, fk_tipo_sala_ID_Tipo_Sala=%s,
                     Domingo_Disp=%s, Segunda_Disp=%s, Terca_Disp=%s, Quarta_Disp=%s, Quinta_Disp=%s, Sexta_Disp=%s, Sabado_Disp=%s,
                     HorarioInicio_DiasUteis=%s, HorarioFim_DiasUteis=%s, HorarioInicio_DiaNaoUtil=%s, HorarioFim_DiaNaoUtil=%s
                 WHERE ID_Sala=%s AND fk_usuario_ID_Usuario=%s
-            """, (
+            """
+            params = (
                 capacidade, tamanho, valor_hora, recursos, tipo_mobilia, cep, rua, numero, cidade, estado, complemento, descricao,
                 fk_tipo_sala_id, domingo, segunda, terca, quarta, quinta, sexta, sabado,
                 HorarioInicio_DiasUteis, HorarioFim_DiasUteis, HorarioInicio_DiaNaoUtil, HorarioFim_DiaNaoUtil,
                 id, usuario["id"]
-            ))
+            )
 
+        # Substitui valores None por NULL no MySQL
+        params = tuple(param if param is not None else None for param in params)
+
+        cursor.execute(query, params)
         connection.commit()
         return {"success": True, "message": "Sala atualizada com sucesso!"}
     except Exception as e:
