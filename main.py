@@ -755,9 +755,14 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
     if (checkout_dt - checkin_dt).total_seconds() < 3600:
         raise HTTPException(status_code=400, detail="O intervalo mínimo para reserva é de 1 hora")
 
-    hoje = datetime.now()
-    um_ano_depois = hoje.replace(year=hoje.year + 1)
-    if checkin_dt.date() > um_ano_depois.date():
+    agora = datetime.now()
+
+    # ✅ NOVO: impede checkin em horário já passado (mas permite hoje com horário futuro)
+    if checkin_dt < agora:
+        raise HTTPException(status_code=400, detail="O horário de entrada já passou. Selecione um horário futuro.")
+
+    um_ano_depois = agora.replace(year=agora.year + 1)
+    if checkin_dt > um_ano_depois:
         raise HTTPException(status_code=400, detail="A data da reserva não pode ser superior a 1 ano a partir de hoje")
 
     # Determina o dia da semana (1 = segunda-feira ... 7 = domingo)

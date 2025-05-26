@@ -12,39 +12,36 @@
     <h2 class="mb-4 text-center">Reserva de Sala</h2>
     <div id="sala-info" class="mb-4"></div>
     <form id="formReserva" class="row g-3">
-    <div class="col-md-6">
-      <label for="data" class="form-label">Data</label>
-      <input type="date" class="form-control" id="data" required>
-    </div>
-    <div class="col-md-6">
-      <label for="horarioEntrada" class="form-label">Horário de Entrada</label>
-      <input type="time" class="form-control" id="horarioEntrada" required>
-    </div>
-    <div class="col-md-6">
-      <label for="horarioSaida" class="form-label">Horário de Saída</label>
-      <input type="time" class="form-control" id="horarioSaida" required>
-    </div>
-    <div class="col-12 text-center">
-      <button type="submit" class="btn btn-primary">Confirmar Reserva</button>
-    </div>
-  </form>
+      <div class="col-md-6">
+        <label for="data" class="form-label">Data</label>
+        <input type="date" class="form-control" id="data" required>
+      </div>
+      <div class="col-md-6">
+        <label for="horarioEntrada" class="form-label">Horário de Entrada</label>
+        <input type="time" class="form-control" id="horarioEntrada" required>
+      </div>
+      <div class="col-md-6">
+        <label for="horarioSaida" class="form-label">Horário de Saída</label>
+        <input type="time" class="form-control" id="horarioSaida" required>
+      </div>
+      <div class="col-12 text-center">
+        <button type="submit" class="btn btn-primary">Confirmar Reserva</button>
+      </div>
+    </form>
   </div>
+
   <script>
-    // Pega o ID da sala da URL
     const params = new URLSearchParams(window.location.search);
     const salaId = params.get('sala');
 
-    // Função para formatar os horários no formato HH:MM
     function formatarHora(hora) {
-      if (!hora || hora === "null") return "Não disponível"; // Verifica se é null ou string "null"
+      if (!hora || hora === "null") return "Não disponível";
       const partes = hora.split(":");
-      const horas = partes[0].padStart(2, "0"); // Garante dois dígitos para as horas
-      const minutos = partes[1].padStart(2, "0"); // Garante dois dígitos para os minutos
+      const horas = partes[0].padStart(2, "0");
+      const minutos = partes[1].padStart(2, "0");
       return `${horas}:${minutos}`;
     }
 
-
-    // Busca os dados da sala
     async function carregarSala() {
       const resp = await fetch(`http://127.0.0.1:8000/salas-recuperar/${salaId}`, { credentials: "include" });
       const sala = await resp.json();
@@ -93,41 +90,41 @@
     }
     carregarSala();
 
-    // Seleciona o campo de data
     const dataInput = document.getElementById('data');
+    const horarioEntradaInput = document.getElementById('horarioEntrada');
 
-    // Adiciona um evento de input para validar a data em tempo real
+    // Define os limites do campo de data
+    const hoje = new Date();
+    const umAnoDepois = new Date();
+    umAnoDepois.setFullYear(hoje.getFullYear() + 1);
+    dataInput.min = hoje.toISOString().split("T")[0];
+    dataInput.max = umAnoDepois.toISOString().split("T")[0];
+
+    // Valida se a data é válida com o horário de entrada
     dataInput.addEventListener('input', () => {
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
-      
-      // Verifica se a data é válida
-      if (!dataInput.value) {
-        dataInput.classList.remove('is-invalid');
-        return;
-      }
-      
-      const dataSelecionada = new Date(dataInput.value);
-      if (isNaN(dataSelecionada.getTime())) {
-        dataInput.classList.add('is-invalid');
-        return;
-      }
-      
-      dataSelecionada.setHours(0, 0, 0, 0);
-      
-      const umAnoDepois = new Date();
-      umAnoDepois.setFullYear(hoje.getFullYear() + 1);
-      umAnoDepois.setHours(0, 0, 0, 0);
+      const dataSelecionadaStr = dataInput.value;
+      const horarioEntradaStr = horarioEntradaInput.value;
 
-      // Remove a classe de erro, se existir
       dataInput.classList.remove('is-invalid');
+      if (!dataSelecionadaStr) return;
 
-      // Apenas datas anteriores a hoje OU posteriores a um ano ficam vermelhas
-      if (dataSelecionada < hoje || dataSelecionada > umAnoDepois) {
-        dataInput.classList.add('is-invalid');
+      const agora = new Date();
+      const umAnoDepois = new Date();
+      umAnoDepois.setFullYear(agora.getFullYear() + 1);
+
+      if (horarioEntradaStr) {
+        const dataHoraSelecionada = new Date(`${dataSelecionadaStr}T${horarioEntradaStr}`);
+        if (isNaN(dataHoraSelecionada.getTime()) || dataHoraSelecionada < agora || dataHoraSelecionada > umAnoDepois) {
+          dataInput.classList.add('is-invalid');
+        }
+      } else {
+        const dataSelecionada = new Date(dataSelecionadaStr);
+        if (dataSelecionada > umAnoDepois) {
+          dataInput.classList.add('is-invalid');
+        }
       }
     });
-    
+
     document.getElementById('formReserva').addEventListener('submit', async function (e) {
       e.preventDefault();
       const data = document.getElementById('data').value;
@@ -141,75 +138,49 @@
       const errorMsg = document.querySelector('.error-msg');
       if (errorMsg) errorMsg.remove();
 
-      // Valida se os horários foram preenchidos
-      if (!horarioEntrada || !horarioSaida) {
-          alert("Por favor, insira os horários de entrada e saída.");
-          return;
+      if (!data || !horarioEntrada || !horarioSaida) {
+        alert("Por favor, preencha todos os campos.");
+        return;
       }
 
-      // Valida se a data foi preenchida
-      if (!data) {
-          alert("Por favor, selecione uma data.");
-          dataInput.classList.add('is-invalid');
-          return;
-      }
-
-      // Valida se a data é válida
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
-      const partesData = data.split("-");
-      const dataSelecionada = new Date(partesData[0], partesData[1] - 1, partesData[2]);
-      dataSelecionada.setHours(0, 0, 0, 0);
-      
-      const umAnoDepois = new Date();
-      umAnoDepois.setFullYear(hoje.getFullYear() + 1);
-      umAnoDepois.setHours(0, 0, 0, 0);
-
-      if (isNaN(dataSelecionada.getTime())) {
-          alert("Data inválida selecionada.");
-          dataInput.classList.add('is-invalid');
-          return;
-      }
-
-      // Valida o intervalo de datas
-      if (dataSelecionada < hoje || dataSelecionada > umAnoDepois) {
-          alert("A data selecionada é inválida. Escolha uma data entre hoje e até 1 ano no futuro.");
-          dataInput.classList.add('is-invalid');
-          return;
-      }
-
-      // Valida se o intervalo de tempo é de pelo menos 1 hora
       const checkin = new Date(`${data}T${horarioEntrada}`);
       const checkout = new Date(`${data}T${horarioSaida}`);
+
+      if (checkin < new Date()) {
+        alert("O horário de entrada já passou. Selecione um horário futuro.");
+        dataInput.classList.add('is-invalid');
+        return;
+      }
+
       if ((checkout - checkin) / (1000 * 60 * 60) < 1) {
-          const error = document.createElement('div');
-          error.className = 'error-msg text-danger mt-1';
-          error.textContent = "O intervalo mínimo para reserva é de 1 hora.";
-          document.getElementById('horarioSaida').classList.add('is-invalid');
-          document.getElementById('horarioSaida').parentNode.appendChild(error);
-          return;
+        const error = document.createElement('div');
+        error.className = 'error-msg text-danger mt-1';
+        error.textContent = "O intervalo mínimo para reserva é de 1 hora.";
+        document.getElementById('horarioSaida').classList.add('is-invalid');
+        document.getElementById('horarioSaida').parentNode.appendChild(error);
+        return;
       }
 
       try {
-          const resp = await fetch('http://127.0.0.1:8000/reservar', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-              body: JSON.stringify({
-                  sala_id: salaId,
-                  checkin: `${data}T${horarioEntrada}`,
-                  checkout: `${data}T${horarioSaida}`
-              })
-          });
-          const responseData = await resp.json();
-          if (resp.ok) {
-              alert(responseData.message);
-              window.location.href = "index.html";
-          } else {
-              alert(responseData.detail || "Erro ao verificar disponibilidade");
-          }
+        const resp = await fetch('http://127.0.0.1:8000/reservar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            sala_id: salaId,
+            checkin: `${data}T${horarioEntrada}`,
+            checkout: `${data}T${horarioSaida}`
+          })
+        });
+        const responseData = await resp.json();
+        if (resp.ok) {
+          alert(responseData.message);
+          window.location.href = "index.html";
+        } else {
+          alert(responseData.detail || "Erro ao verificar disponibilidade");
+        }
       } catch (err) {
-          alert("Erro ao verificar disponibilidade");
+        alert("Erro ao verificar disponibilidade");
       }
     });
   </script>
