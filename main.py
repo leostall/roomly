@@ -729,7 +729,7 @@ async def get_salas(limit: int = None):
 
 @app.post("/reservar")
 async def reservar_sala(request: Request, data: dict = Body(...)):
-    from datetime import datetime
+    from datetime import datetime, timedelta
 
     usuario = request.session.get("usuario")
     if not usuario:
@@ -742,7 +742,6 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
     if not sala_id or not checkin_horario or not checkout_horario:
         raise HTTPException(status_code=400, detail="Dados incompletos")
 
-    # Converte horários para datetime
     try:
         checkin_dt = datetime.strptime(checkin_horario, "%Y-%m-%dT%H:%M")
         checkout_dt = datetime.strptime(checkout_horario, "%Y-%m-%dT%H:%M")
@@ -756,8 +755,6 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
         raise HTTPException(status_code=400, detail="O intervalo mínimo para reserva é de 1 hora")
 
     agora = datetime.now()
-
-    # ✅ NOVO: impede checkin em horário já passado (mas permite hoje com horário futuro)
     if checkin_dt < agora:
         raise HTTPException(status_code=400, detail="O horário de entrada já passou. Selecione um horário futuro.")
 
@@ -765,7 +762,6 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
     if checkin_dt > um_ano_depois:
         raise HTTPException(status_code=400, detail="A data da reserva não pode ser superior a 1 ano a partir de hoje")
 
-    # Determina o dia da semana (1 = segunda-feira ... 7 = domingo)
     dia_semana = checkin_dt.weekday() + 1
 
     connection = get_db_connection()
@@ -793,7 +789,6 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
         if not dias_disponiveis.get(dia_semana, 0):
             raise HTTPException(status_code=400, detail="A sala não está disponível no dia selecionado")
 
-        # Verifica se é dia útil ou não útil
         if dia_semana in [1, 2, 3, 4, 5]:
             horario_inicio = sala["HorarioInicio_DiasUteis"]
             horario_fim = sala["HorarioFim_DiasUteis"]
@@ -801,22 +796,14 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
             horario_inicio = sala["HorarioInicio_DiaNaoUtil"]
             horario_fim = sala["HorarioFim_DiaNaoUtil"]
 
-        print("---- DEBUG HORÁRIOS ----")
-        print("Dia da semana:", dia_semana)
-        print("Horário início:", horario_inicio)
-        print("Horário fim:", horario_fim)
-        print("------------------------")
-
         if horario_inicio is None or horario_fim is None:
             raise HTTPException(status_code=400, detail="Sala sem horário configurado para esse tipo de dia")
 
-        # ✅ Função que normaliza o horário vindo do banco
         def converter_hora(hora_str):
             if isinstance(hora_str, str):
                 hora_str = hora_str.strip()
             else:
                 hora_str = str(hora_str)
-
             partes = hora_str.split(":")
             if len(partes) >= 2:
                 hora = partes[0].zfill(2)
@@ -824,34 +811,48 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
                 return datetime.strptime(f"{hora}:{minuto}", "%H:%M").time()
             raise ValueError("Formato de hora inválido")
 
-        # Converte os horários para objetos time
         try:
             h_inicio = converter_hora(horario_inicio)
             h_fim = converter_hora(horario_fim)
         except Exception:
             raise HTTPException(status_code=500, detail="Erro ao interpretar horários configurados para a sala")
 
-        # Compara horários informados com a faixa da sala
         if not (h_inicio <= checkin_dt.time() <= h_fim and h_inicio <= checkout_dt.time() <= h_fim):
             raise HTTPException(
                 status_code=400,
                 detail=f"Horários fora da faixa permitida ({h_inicio.strftime('%H:%M')} - {h_fim.strftime('%H:%M')})"
             )
 
-        # Verifica se já existe reserva no mesmo período
+        # 🔄 NOVO: busca conflitos e retorna lista se houver
         cursor.execute("""
-            SELECT * FROM locacao_loca
+            SELECT Checkin, Checkout FROM locacao_loca
             WHERE fk_salas_ID_Sala = %s
+              AND DATE(Checkin) = %s
               AND (
                 (Checkin < %s AND Checkout > %s) OR
                 (Checkin < %s AND Checkout > %s) OR
                 (Checkin >= %s AND Checkout <= %s)
               )
-        """, (sala_id, checkout_dt, checkin_dt, checkout_dt, checkin_dt, checkin_dt, checkout_dt))
-        if cursor.fetchone():
-            raise HTTPException(status_code=400, detail="Já existe uma reserva nesse período")
+        """, (
+            sala_id, checkin_dt.date(),
+            checkout_dt, checkin_dt,
+            checkout_dt, checkin_dt,
+            checkin_dt, checkout_dt
+        ))
+        conflitos = cursor.fetchall()
 
-        # Insere a reserva
+        if conflitos:
+            horarios_ocupados = [
+                f"{c['Checkin'].strftime('%H:%M')} - {c['Checkout'].strftime('%H:%M')}" for c in conflitos
+            ]
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "mensagem": "Já existe uma reserva nesse período.",
+                    "horarios_ocupados": horarios_ocupados
+                }
+            )
+
         cursor.execute("""
             INSERT INTO locacao_loca (Checkin, Checkout, fk_usuario_ID_Usuario, fk_salas_ID_Sala)
             VALUES (%s, %s, %s, %s)
@@ -864,6 +865,65 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
     except Exception as e:
         connection.rollback()
         raise HTTPException(status_code=500, detail=f"Erro ao reservar: {str(e)}")
+    finally:
+        cursor.close()
+        connection.close()
+
+
+@app.get("/minhas-reservas")
+async def minhas_reservas(request: Request):
+    usuario = request.session.get("usuario")
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Usuário não autenticado")
+
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT 
+                r.ID_Locacao AS id_reserva,
+                s.Descricao AS nome_sala,
+                s.Rua AS rua,
+                s.Numero AS numero,
+                s.Cidade AS cidade,
+                s.Estado AS estado,
+                r.Checkin AS horario_inicio,
+                r.Checkout AS horario_fim,
+                s.Imagem AS imagem
+            FROM locacao_loca r
+            JOIN salas s ON r.fk_salas_ID_Sala = s.ID_Sala
+            WHERE r.fk_usuario_ID_Usuario = %s
+        """, (usuario["id"],))
+        reservas = cursor.fetchall()
+
+        print("Reservas retornadas do banco:", reservas)  # Adicione este print para depuração
+
+        for reserva in reservas:
+            reserva["imagem_url"] = (
+                "data:image/jpeg;base64," + base64.b64encode(reserva["imagem"]).decode()
+                if reserva["imagem"] else "images/placeholder.jpg"
+            )
+            reserva["endereco"] = f"{reserva['rua']}, {reserva['numero']} - {reserva['cidade']}, {reserva['estado']}"
+
+            # Verifica se os campos são strings e converte para datetime, se necessário
+            if isinstance(reserva["horario_inicio"], str):
+                reserva["horario_inicio"] = datetime.strptime(reserva["horario_inicio"], "%Y-%m-%d %H:%M:%S")
+            if isinstance(reserva["horario_fim"], str):
+                reserva["horario_fim"] = datetime.strptime(reserva["horario_fim"], "%Y-%m-%d %H:%M:%S")
+
+            # Formata a data da reserva antes de sobrescrever o horário
+            reserva["data_reserva"] = reserva["horario_inicio"].strftime("%d/%m/%Y")  # Formata como dia/mês/ano
+
+            # Formata os horários
+            reserva["horario_inicio"] = reserva["horario_inicio"].strftime("%H:%M")
+            reserva["horario_fim"] = reserva["horario_fim"].strftime("%H:%M")
+
+            del reserva["imagem"]
+
+        return reservas
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar reservas: {str(e)}")
     finally:
         cursor.close()
         connection.close()

@@ -93,14 +93,12 @@
     const dataInput = document.getElementById('data');
     const horarioEntradaInput = document.getElementById('horarioEntrada');
 
-    // Define os limites do campo de data
     const hoje = new Date();
     const umAnoDepois = new Date();
     umAnoDepois.setFullYear(hoje.getFullYear() + 1);
     dataInput.min = hoje.toISOString().split("T")[0];
     dataInput.max = umAnoDepois.toISOString().split("T")[0];
 
-    // Valida se a data é válida com o horário de entrada
     dataInput.addEventListener('input', () => {
       const dataSelecionadaStr = dataInput.value;
       const horarioEntradaStr = horarioEntradaInput.value;
@@ -131,7 +129,6 @@
       const horarioEntrada = document.getElementById('horarioEntrada').value;
       const horarioSaida = document.getElementById('horarioSaida').value;
 
-      // Limpa mensagens de erro anteriores
       document.getElementById('horarioEntrada').classList.remove('is-invalid');
       document.getElementById('horarioSaida').classList.remove('is-invalid');
       dataInput.classList.remove('is-invalid');
@@ -172,12 +169,18 @@
             checkout: `${data}T${horarioSaida}`
           })
         });
+
         const responseData = await resp.json();
         if (resp.ok) {
           alert(responseData.message);
           window.location.href = "index.html";
         } else {
-          alert(responseData.detail || "Erro ao verificar disponibilidade");
+          if (typeof responseData.detail === "object" && responseData.detail.horarios_ocupados) {
+            const horarios = responseData.detail.horarios_ocupados.join("\n");
+            alert(`${responseData.detail.mensagem}\nHorários já reservados:\n${horarios}`);
+          } else {
+            alert(responseData.detail || "Erro ao verificar disponibilidade");
+          }
         }
       } catch (err) {
         alert("Erro ao verificar disponibilidade");

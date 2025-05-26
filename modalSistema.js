@@ -1767,3 +1767,83 @@ function validarIntervaloAoVivo(horarioInicioId, horarioFimId) {
   horarioInicio.addEventListener("input", verificarIntervalo);
   horarioFim.addEventListener("input", verificarIntervalo);
 }
+
+function showMinhasReservasModal() {
+  if (document.getElementById('minhasReservasModal')) {
+    document.getElementById('minhasReservasModal').remove();
+  }
+
+  const modalHTML = `
+    <div class="modal fade" id="minhasReservasModal" tabindex="-1" aria-labelledby="minhasReservasModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="minhasReservasModalLabel">Minhas Reservas</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="reservasContainer" class="row g-3">
+              <!-- Reservas serão carregadas dinamicamente -->
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+  // Carrega as reservas do usuário
+  carregarReservasUsuario();
+
+  // Inicializa o modal
+  const modal = new bootstrap.Modal(document.getElementById('minhasReservasModal'));
+  modal.show();
+}
+
+async function carregarReservasUsuario() {
+  try {
+    const response = await fetch('http://127.0.0.1:8000/minhas-reservas', {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    const reservas = await response.json();
+    console.log('Reservas recebidas:', reservas); // Adicione este log para depuração
+
+    const container = document.getElementById('reservasContainer');
+    container.innerHTML = '';
+
+    if (reservas.length === 0) {
+      container.innerHTML = '<p class="text-center text-muted">Nenhuma reserva encontrada.</p>';
+      return;
+    }
+
+    reservas.forEach(reserva => {
+      const reservaCard = `
+        <div class="col-md-6">
+          <div class="data-horario-bloco">
+            <img src="${reserva.imagem_url}" class="card-img-top" alt="Imagem da Sala">
+            <div class="card-body">
+              <h5 class="card-title">${reserva.nome_sala}</h5>
+              <p class="card-text">
+                <strong>Data:</strong> ${reserva.data_reserva}<br>
+                <strong>Horário:</strong> ${reserva.horario_inicio} - ${reserva.horario_fim}<br>
+                <strong>Endereço:</strong> ${reserva.endereco}
+              </p>
+              <a href="detalhesReserva.html?id=${reserva.id_reserva}" class="btn btn-primary">Mais detalhes</a>
+            </div>
+          </div>
+        </div>
+      `;
+      container.insertAdjacentHTML('beforeend', reservaCard);
+    });
+  } catch (error) {
+    console.error('Erro ao carregar reservas:', error);
+    const container = document.getElementById('reservasContainer');
+    container.innerHTML = '<p class="text-center text-danger">Erro ao carregar reservas.</p>';
+  }
+}
