@@ -883,41 +883,59 @@ async def minhas_reservas(request: Request):
         cursor.execute("""
             SELECT 
                 r.ID_Locacao AS id_reserva,
-                s.Descricao AS nome_sala,
                 s.Rua AS rua,
                 s.Numero AS numero,
                 s.Cidade AS cidade,
                 s.Estado AS estado,
                 r.Checkin AS horario_inicio,
                 r.Checkout AS horario_fim,
-                s.Imagem AS imagem
+                s.Imagem AS imagem,
+                ts.Tipo AS tipo_sala,
+                s.Capacidade AS capacidade_sala,     
+                s.Descricao AS descricao_sala
             FROM locacao_loca r
             JOIN salas s ON r.fk_salas_ID_Sala = s.ID_Sala
+            JOIN tipo_sala ts ON s.fk_tipo_sala_ID_Tipo_Sala = ts.ID_Tipo_Sala
             WHERE r.fk_usuario_ID_Usuario = %s
+            ORDER BY r.Checkin DESC
         """, (usuario["id"],))
         reservas = cursor.fetchall()
-
-        print("Reservas retornadas do banco:", reservas)  # Adicione este print para depuração
 
         for reserva in reservas:
             reserva["imagem_url"] = (
                 "data:image/jpeg;base64," + base64.b64encode(reserva["imagem"]).decode()
                 if reserva["imagem"] else "images/placeholder.jpg"
             )
-            reserva["endereco"] = f"{reserva['rua']}, {reserva['numero']} - {reserva['cidade']}, {reserva['estado']}"
 
-            # Verifica se os campos são strings e converte para datetime, se necessário
+            reserva["endereco"] = f"{reserva.get('rua', '')}, {reserva.get('numero', '')} - {reserva.get('cidade', '')}, {reserva.get('estado', '')}"
+
+
             if isinstance(reserva["horario_inicio"], str):
-                reserva["horario_inicio"] = datetime.strptime(reserva["horario_inicio"], "%Y-%m-%d %H:%M:%S")
+
+                try:
+                    reserva["horario_inicio"] = datetime.strptime(reserva["horario_inicio"], "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    pass 
             if isinstance(reserva["horario_fim"], str):
-                reserva["horario_fim"] = datetime.strptime(reserva["horario_fim"], "%Y-%m-%d %H:%M:%S")
+                try:
+                    reserva["horario_fim"] = datetime.strptime(reserva["horario_fim"], "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    pass
 
-            # Formata a data da reserva antes de sobrescrever o horário
-            reserva["data_reserva"] = reserva["horario_inicio"].strftime("%d/%m/%Y")  # Formata como dia/mês/ano
+            if isinstance(reserva["horario_inicio"], datetime):
+                reserva["data_reserva"] = reserva["horario_inicio"].strftime("%d/%m/%Y")
+            else:
+                reserva["data_reserva"] = "Data inválida"
 
-            # Formata os horários
-            reserva["horario_inicio"] = reserva["horario_inicio"].strftime("%H:%M")
-            reserva["horario_fim"] = reserva["horario_fim"].strftime("%H:%M")
+            if isinstance(reserva["horario_inicio"], datetime):
+                reserva["horario_inicio"] = reserva["horario_inicio"].strftime("%H:%M")
+            else:
+                reserva["horario_inicio"] = "--:--"
+
+            if isinstance(reserva["horario_fim"], datetime):
+                reserva["horario_fim"] = reserva["horario_fim"].strftime("%H:%M")
+            else:
+                reserva["horario_fim"] = "--:--"
 
             del reserva["imagem"]
 
@@ -925,5 +943,6 @@ async def minhas_reservas(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar reservas: {str(e)}")
     finally:
-        cursor.close()
-        connection.close()
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
