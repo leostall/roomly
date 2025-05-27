@@ -9,6 +9,8 @@ import base64
 from datetime import datetime
 from fastapi import Body
 from typing import Optional
+from fastapi import FastAPI, Query
+
 
 
 
@@ -924,6 +926,72 @@ async def minhas_reservas(request: Request):
         return reservas
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar reservas: {str(e)}")
+    finally:
+        cursor.close()
+        connection.close()
+
+
+@app.get("/salas")
+async def get_salas(
+    capacidade: Optional[int] = Query(None),
+    valor: Optional[int] = Query(None),
+    disponibilidade: Optional[str] = Query(None),
+    estado: Optional[str] = Query(None),
+    cidade: Optional[str] = Query(None)
+):
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+        # Base da query
+        query = """
+            SELECT s.ID_Sala, s.Descricao, s.Valor_Hora, s.Capacidade, s.Imagem, ts.Tipo
+            FROM salas s
+            JOIN tipo_sala ts ON s.fk_tipo_sala_ID_Tipo_Sala = ts.ID_Tipo_Sala
+            WHERE s.Status = 1
+        """
+        params = []
+
+        # Filtro por capacidade
+        if capacidade:
+            if capacidade == 1:
+                query += " AND s.Capacidade BETWEEN 1 AND 10"
+            elif capacidade == 2:
+                query += " AND s.Capacidade BETWEEN 11 AND 20"
+            elif capacidade == 3:
+                query += " AND s.Capacidade BETWEEN 21 AND 50"
+            elif capacidade == 4:
+                query += " AND s.Capacidade > 50"
+
+        # Filtro por valor
+        if valor:
+            if valor == 1:
+                query += " AND s.Valor_Hora BETWEEN 0 AND 50"
+            elif valor == 2:
+                query += " AND s.Valor_Hora BETWEEN 51 AND 100"
+            elif valor == 3:
+                query += " AND s.Valor_Hora BETWEEN 101 AND 200"
+            elif valor == 4:
+                query += " AND s.Valor_Hora > 200"
+
+        print("Query gerada:", query)  # Log da query gerada
+
+        cursor.execute(query, params)
+        salas = cursor.fetchall()
+
+        # Processar imagens
+        for sala in salas:
+            if sala["Imagem"]:
+                sala["imagem_url"] = "data:image/jpeg;base64," + base64.b64encode(sala["Imagem"]).decode()
+            else:
+                sala["imagem_url"] = "images/placeholder.jpg"
+            del sala["Imagem"]
+
+        print("Salas retornadas:", salas)  # Log das salas retornadas
+        return salas
+    except Exception as e:
+        print("Erro ao buscar salas:", str(e))  # Log do erro
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar salas: {str(e)}")
     finally:
         cursor.close()
         connection.close()
