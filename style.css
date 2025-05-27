@@ -1071,6 +1071,193 @@ input[data-mask] {
     animation: float 6s ease-in-out infinite;
 }
 
+.reserva-visualizar-header-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(to top, rgba(18, 18, 18, 0.95) 20%, rgba(18, 18, 18, 0));
+    color: var(--light-color, #f8f9fa);
+}
+
+.reserva-visualizar-header-overlay h4 {
+    font-weight: 600;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+    margin-bottom: 0.25rem;
+}
+
+.reserva-visualizar-header-image {
+    height: 220px;
+}
+
+.reserva-visualizar-header-overlay p.small {
+    font-size: 0.9em;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+    opacity: 0.9;
+}
+
+.reserva-visualizar-header-image .btn-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    padding: 0.40rem;
+}
+
+
+.reserva-visualizar-content {
+    padding: 1.5rem;
+}
+
+.reserva-visualizar-content h5.text-accent {
+    font-weight: 600;
+    color: var(--accent-color, #4cc9f0) !important;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+}
+
+.reserva-visualizar-content h5.text-accent i {
+    font-size: 1.1em;
+}
+
+/* === ESTILOS PARA A MODAL DE VISUALIZAÇÃO DE RESERVA === */
+
+.modal-visualizar-reserva-content {
+    background-color: var(--dark-color, #18181b) !important;
+    color: var(--light-color, #f8f9fa) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.modal-visualizar-reserva-content .modal-body {
+    padding: 0 !important;
+}
+
+.visualizar-reserva-header {
+    width: 100%;
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+    border-top-left-radius: calc(0.5rem - 1px);
+    border-top-right-radius: calc(0.5rem - 1px);
+}
+
+.visualizar-reserva-imagem-sala {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.visualizar-reserva-header-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(to top, rgba(18, 18, 18, 0.9) 15%, rgba(18, 18, 18, 0.0) 100%);
+    color: var(--light-color);
+}
+
+.visualizar-reserva-header-overlay .btn-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 50%;
+    padding: 0.35rem;
+    filter: invert(1) brightness(1.5);
+}
+
+.visualizar-reserva-header-overlay .btn-close:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.visualizar-reserva-nome-sala {
+    font-weight: 600;
+    font-size: 1.75rem;
+    margin-bottom: 0.15rem;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.visualizar-reserva-tipo-sala {
+    font-size: 0.95rem;
+    opacity: 0.85;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.visualizar-reserva-detalhes-container {
+    padding: 1.5rem;
+}
+
+.visualizar-reserva-secao-titulo {
+    font-weight: 600;
+    color: var(--accent-color) !important;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--primary-color);
+    margin-bottom: 1.1rem;
+    display: flex;
+    align-items: center;
+    font-size: 1.15rem;
+}
+
+.visualizar-reserva-secao-titulo i {
+    margin-right: 0.6rem;
+    font-size: 1.25em;
+    opacity: 0.9;
+}
+
+.table-visualizar-reserva {
+    color: var(--light-color, #e0e0e0) !important;
+    background-color: transparent !important;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.table-visualizar-reserva td,
+.table-visualizar-reserva th {
+    background-color: transparent !important;
+    color: inherit !important;
+    border: none !important;
+    padding: 0.35rem 0;
+    vertical-align: top;
+}
+
+.table-visualizar-reserva td:last-child {
+    padding-left: 0.5rem;
+    color: var(--light-color);
+    word-break: break-word;
+}
+
+.table-visualizar-reserva strong {
+    color: var(--accent-color);
+    font-weight: 500;
+    display: inline-block;
+}
+
+.modal-visualizar-reserva-content .modal-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: var(--dark-color);
+    padding: 0.75rem 1.5rem;
+}
+
+#visualizarReservaModal .modal-lg .modal-content {
+    background-color: var(--dark-color, #18181b);
+    color: var(--light-color, #f8f9fa);
+}
+
+.visualizar-reserva-descricao-texto {
+    text-align: justify;
+}
+
 /* Responsividade */
 @media (max-width: 992px) {
     h1 {
