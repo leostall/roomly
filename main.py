@@ -885,113 +885,65 @@ async def minhas_reservas(request: Request):
         cursor.execute("""
             SELECT 
                 r.ID_Locacao AS id_reserva,
-                s.Descricao AS nome_sala,
                 s.Rua AS rua,
                 s.Numero AS numero,
                 s.Cidade AS cidade,
                 s.Estado AS estado,
                 r.Checkin AS horario_inicio,
                 r.Checkout AS horario_fim,
-                s.Imagem AS imagem
+                s.Imagem AS imagem,
+                ts.Tipo AS tipo_sala,
+                s.Capacidade AS capacidade_sala,     
+                s.Descricao AS descricao_sala
             FROM locacao_loca r
             JOIN salas s ON r.fk_salas_ID_Sala = s.ID_Sala
+            JOIN tipo_sala ts ON s.fk_tipo_sala_ID_Tipo_Sala = ts.ID_Tipo_Sala
             WHERE r.fk_usuario_ID_Usuario = %s
+            ORDER BY r.Checkin DESC
         """, (usuario["id"],))
         reservas = cursor.fetchall()
-
-        print("Reservas retornadas do banco:", reservas)  # Adicione este print para depuração
 
         for reserva in reservas:
             reserva["imagem_url"] = (
                 "data:image/jpeg;base64," + base64.b64encode(reserva["imagem"]).decode()
                 if reserva["imagem"] else "images/placeholder.jpg"
             )
-            reserva["endereco"] = f"{reserva['rua']}, {reserva['numero']} - {reserva['cidade']}, {reserva['estado']}"
 
-            # Verifica se os campos são strings e converte para datetime, se necessário
+            reserva["endereco"] = f"{reserva.get('rua', '')}, {reserva.get('numero', '')} - {reserva.get('cidade', '')}, {reserva.get('estado', '')}"
+
+
             if isinstance(reserva["horario_inicio"], str):
-                reserva["horario_inicio"] = datetime.strptime(reserva["horario_inicio"], "%Y-%m-%d %H:%M:%S")
+
+                try:
+                    reserva["horario_inicio"] = datetime.strptime(reserva["horario_inicio"], "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    pass 
             if isinstance(reserva["horario_fim"], str):
-                reserva["horario_fim"] = datetime.strptime(reserva["horario_fim"], "%Y-%m-%d %H:%M:%S")
+                try:
+                    reserva["horario_fim"] = datetime.strptime(reserva["horario_fim"], "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    pass
 
-            # Formata a data da reserva antes de sobrescrever o horário
-            reserva["data_reserva"] = reserva["horario_inicio"].strftime("%d/%m/%Y")  # Formata como dia/mês/ano
+            if isinstance(reserva["horario_inicio"], datetime):
+                reserva["data_reserva"] = reserva["horario_inicio"].strftime("%d/%m/%Y")
+            else:
+                reserva["data_reserva"] = "Data inválida"
 
-            # Formata os horários
-            reserva["horario_inicio"] = reserva["horario_inicio"].strftime("%H:%M")
-            reserva["horario_fim"] = reserva["horario_fim"].strftime("%H:%M")
+            if isinstance(reserva["horario_inicio"], datetime):
+                reserva["horario_inicio"] = reserva["horario_inicio"].strftime("%H:%M")
+            else:
+                reserva["horario_inicio"] = "--:--"
+
+            if isinstance(reserva["horario_fim"], datetime):
+                reserva["horario_fim"] = reserva["horario_fim"].strftime("%H:%M")
+            else:
+                reserva["horario_fim"] = "--:--"
 
             del reserva["imagem"]
 
         return reservas
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar reservas: {str(e)}")
-    finally:
-        cursor.close()
-        connection.close()
-
-
-@app.get("/salas")
-async def get_salas(
-    capacidade: Optional[int] = Query(None),
-    valor: Optional[int] = Query(None),
-    disponibilidade: Optional[str] = Query(None),
-    estado: Optional[str] = Query(None),
-    cidade: Optional[str] = Query(None)
-):
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-
-    try:
-        # Base da query
-        query = """
-            SELECT s.ID_Sala, s.Descricao, s.Valor_Hora, s.Capacidade, s.Imagem, ts.Tipo
-            FROM salas s
-            JOIN tipo_sala ts ON s.fk_tipo_sala_ID_Tipo_Sala = ts.ID_Tipo_Sala
-            WHERE s.Status = 1
-        """
-        params = []
-
-        # Filtro por capacidade
-        if capacidade:
-            if capacidade == 1:
-                query += " AND s.Capacidade BETWEEN 1 AND 10"
-            elif capacidade == 2:
-                query += " AND s.Capacidade BETWEEN 11 AND 20"
-            elif capacidade == 3:
-                query += " AND s.Capacidade BETWEEN 21 AND 50"
-            elif capacidade == 4:
-                query += " AND s.Capacidade > 50"
-
-        # Filtro por valor
-        if valor:
-            if valor == 1:
-                query += " AND s.Valor_Hora BETWEEN 0 AND 50"
-            elif valor == 2:
-                query += " AND s.Valor_Hora BETWEEN 51 AND 100"
-            elif valor == 3:
-                query += " AND s.Valor_Hora BETWEEN 101 AND 200"
-            elif valor == 4:
-                query += " AND s.Valor_Hora > 200"
-
-        print("Query gerada:", query)  # Log da query gerada
-
-        cursor.execute(query, params)
-        salas = cursor.fetchall()
-
-        # Processar imagens
-        for sala in salas:
-            if sala["Imagem"]:
-                sala["imagem_url"] = "data:image/jpeg;base64," + base64.b64encode(sala["Imagem"]).decode()
-            else:
-                sala["imagem_url"] = "images/placeholder.jpg"
-            del sala["Imagem"]
-
-        print("Salas retornadas:", salas)  # Log das salas retornadas
-        return salas
-    except Exception as e:
-        print("Erro ao buscar salas:", str(e))  # Log do erro
-        raise HTTPException(status_code=500, detail=f"Erro ao buscar salas: {str(e)}")
     finally:
         cursor.close()
         connection.close()
