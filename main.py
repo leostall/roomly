@@ -894,7 +894,9 @@ async def minhas_reservas(request: Request):
                 s.Imagem AS imagem,
                 ts.Tipo AS tipo_sala,
                 s.Capacidade AS capacidade_sala,     
-                s.Descricao AS descricao_sala
+                s.Descricao AS descricao_sala,
+                s.Valor_Hora AS valor_hora,
+                r.fk_salas_ID_Sala AS id_sala
             FROM locacao_loca r
             JOIN salas s ON r.fk_salas_ID_Sala = s.ID_Sala
             JOIN tipo_sala ts ON s.fk_tipo_sala_ID_Tipo_Sala = ts.ID_Tipo_Sala
