@@ -10,6 +10,9 @@ from datetime import datetime
 from fastapi import Body
 from typing import Optional
 from fastapi import FastAPI, Query
+from fastapi import Request, HTTPException
+from pydantic import BaseModel
+
 
 
 
@@ -61,6 +64,9 @@ class Sala(BaseModel):
     sexta: int
     sabado: int
     status: int = 1  # Status padrão como 1
+
+class ExcluirContaRequest(BaseModel):
+    senha: str
 
 def get_db_connection():
     try:
@@ -179,9 +185,15 @@ async def excluir_conta(request: Request):
     usuario = request.session.get("usuario")
     if not usuario:
         raise HTTPException(status_code=401, detail="Não autenticado")
+async def excluir_conta(request: Request, dados: ExcluirContaRequest):
+    usuario_logado = request.session.get("usuario")
+    if not usuario_logado:
+        raise HTTPException(status_code=401, detail="Usuário não autenticado")
 
+    usuario_id = usuario_logado["id"]
     connection = get_db_connection()
     cursor = connection.cursor()
+    cursor = connection.cursor(dictionary=True)
 
     try:
         cursor.execute("DELETE FROM salas WHERE fk_usuario_ID_Usuario = %s", (usuario["id"],))
@@ -190,13 +202,28 @@ async def excluir_conta(request: Request):
 
         cursor.execute("DELETE FROM usuario WHERE ID_Usuario = %s", (usuario["id"],))
 
+        # Busca a senha atual do usuário
+        cursor.execute("SELECT Senha FROM usuario WHERE ID_Usuario = %s", (usuario_id,))
+        user_db = cursor.fetchone()
+        if not user_db:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+        # Verifica a senha
+        if not verify_password(dados.senha, user_db["Senha"]):
+            return {"success": False, "message": "Senha incorreta. Conta não excluída."}
+
+        # Exclui a conta
+        cursor.execute("DELETE FROM usuario WHERE ID_Usuario = %s", (usuario_id,))
         connection.commit()
         request.session.clear() 
 
         return {"success": True, "message": "Conta, salas e tipo de salas associadas excluídas com sucesso!"}
+        request.session.clear()
+        return {"success": True, "message": "Conta excluída com sucesso!"}
     except Exception as e:
         connection.rollback()
         raise HTTPException(status_code=500, detail=f"Erro ao excluir conta: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         cursor.close()
         connection.close()

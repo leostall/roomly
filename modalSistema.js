@@ -119,6 +119,8 @@ function loadUserData() {
 
 // Função para configurar os eventos da modal
 function setupModalEvents() {
+
+
   // Máscara para CPF
   document.getElementById("modalCpf").addEventListener("input", function (e) {
     let cpf = e.target.value.replace(/\D/g, '');
@@ -160,35 +162,66 @@ function setupModalEvents() {
   });
 
   // Evento para excluir conta
-  document.getElementById("modalExcluirConta").addEventListener("click", function () {
+
+document.getElementById("modalExcluirConta").addEventListener("click", function () {
+  // Fecha o modal Bootstrap antes de abrir o Swal
+  const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+  if (modal) modal.hide();
+
+  setTimeout(() => {
     Swal.fire({
-      title: "Tem certeza?",
-      text: "Essa ação irá excluir sua conta permanentemente.",
-      icon: "warning",
+      title: "Confirme sua senha",
+      input: "password",
+      inputLabel: "Digite sua senha atual para excluir a conta",
+      inputPlaceholder: "Senha atual",
+      inputAttributes: {
+        autocapitalize: "off",
+        autocorrect: "off"
+      },
       showCancelButton: true,
-      confirmButtonText: "Sim, excluir",
+      confirmButtonText: "Excluir",
       cancelButtonText: "Cancelar",
       background: "#121212",
       color: "#ffffff",
       confirmButtonColor: "#d33",
-      cancelButtonColor: "#6c757d"
+      cancelButtonColor: "#6c757d",
+      preConfirm: (senha) => {
+        if (!senha) {
+          Swal.showValidationMessage("Digite sua senha para confirmar.");
+        }
+        return senha;
+      }
     }).then((result) => {
-      if (result.isConfirmed) {
+      if (result.isConfirmed && result.value) {
         fetch("http://127.0.0.1:8000/excluir-conta", {
           method: "DELETE",
-          credentials: "include"
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify({ senha: result.value })
         })
           .then(response => response.json())
           .then(data => {
-            Swal.fire({
-              title: "Conta excluída!",
-              text: data.message,
-              icon: "success",
-              background: "#121212",
-              color: "#ffffff"
-            }).then(() => {
-              window.location.href = "login.html";
-            });
+            if (data.success !== false) {
+              Swal.fire({
+                title: "Conta excluída!",
+                text: data.message,
+                icon: "success",
+                background: "#121212",
+                color: "#ffffff"
+              }).then(() => {
+                window.location.href = "login.html";
+              });
+            } else {
+              Swal.fire({
+                title: "Erro!",
+                text: data.message,
+                icon: "error",
+                background: "#121212",
+                color: "#ffffff"
+              });
+            }
           })
           .catch(error => {
             Swal.fire({
@@ -201,7 +234,8 @@ function setupModalEvents() {
           });
       }
     });
-  });
+  }, 300); // Pequeno delay para garantir que o modal Bootstrap fechou
+});
 
   // Evento para editar conta
 
