@@ -1349,6 +1349,7 @@ async def get_cidades(estado: str):
 @app.post("/check-telefone")
 async def check_telefone(data: dict):
     telefone = data.get("telefone")
+    print("Telefone recebido no backend:", telefone)  
     if not telefone:
         raise HTTPException(status_code=400, detail="Telefone não fornecido")
 
@@ -1364,3 +1365,22 @@ async def check_telefone(data: dict):
         connection.close()
 
     return {"success": True, "message": "Telefone disponível"}
+
+@app.post("/check-email")
+async def check_email(data: dict):
+    email = data.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="Email não fornecido")
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("SELECT * FROM usuario WHERE Email = %s", (email,))
+        if cursor.fetchone():
+            raise HTTPException(status_code=400, detail="Email já cadastrado")
+    finally:
+        cursor.close()
+        connection.close()
+
+    return {"success": True, "message": "Email disponível"}

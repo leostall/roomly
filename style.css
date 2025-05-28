@@ -603,7 +603,10 @@ h1 {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     padding: 0.5rem 0;
+    right: 0;
 }
+
+.dropdown-menu.dropdown-menu-end{left: 0; right: auto;}
 
 .dropdown-item {
     color: #ddd;
@@ -1525,3 +1528,91 @@ input[data-mask] {
         display: none; /* Esconde a imagem da esquerda em telas menores */
     }
 }
+
+/* Estilo para os botões de horário */
+.horario-btn {
+  width: 100%; /* Ocupa toda a largura da coluna */
+  padding: 5px; /* Reduz o espaçamento interno */
+  font-size: 0.85rem; /* Reduz o tamanho da fonte */
+}
+
+/* Ajuste para os containers de horário */
+#containerHorarioUteis, #containerHorarioNaoUteis {
+  display: flex;
+  flex-wrap: nowrap; /* Garante que os itens fiquem lado a lado */
+  gap: 10px; /* Espaçamento entre os itens */
+}
+
+/* Ajuste para as colunas */
+#containerHorarioUteis .col-6, #containerHorarioNaoUteis .col-6 {
+  flex: 1 1 50%; /* Cada campo ocupa 50% da largura */
+  max-width: 50%; /* Garante que não ultrapasse 50% */
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 576px) {
+  #containerHorarioUteis .col-6, #containerHorarioNaoUteis .col-6 {
+    flex: 1 1 100%; /* Em telas pequenas, cada campo ocupa 100% da largura */
+    max-width: 100%;
+  }
+
+  .horario-btn {
+    font-size: 0.75rem; /* Reduz ainda mais o tamanho da fonte */
+  }
+}
+
+/* Estilo para os botões de horário na edição */
+.horario-btn {
+  width: 100%; /* Ocupa toda a largura da coluna */
+  padding: 5px; /* Reduz o espaçamento interno */
+  font-size: 0.85rem; /* Reduz o tamanho da fonte */
+}
+
+/* Ajuste para os containers de horário na edição */
+#containerHorarioUteisEdit, #containerHorarioNaoUteisEdit {
+  display: flex;
+  flex-wrap: nowrap; /* Garante que os itens fiquem lado a lado */
+  gap: 10px; /* Espaçamento entre os itens */
+}
+
+/* Ajuste para as colunas na edição */
+#containerHorarioUteisEdit .col-6, #containerHorarioNaoUteisEdit .col-6 {
+  flex: 1 1 50%; /* Cada campo ocupa 50% da largura */
+  max-width: 50%; /* Garante que não ultrapasse 50% */
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 576px) {
+  #containerHorarioUteisEdit .col-6, #containerHorarioNaoUteisEdit .col-6 {
+    flex: 1 1 100%; /* Em telas pequenas, cada campo ocupa 100% da largura */
+    max-width: 100%;
+  }
+
+  .horario-btn {
+    font-size: 0.75rem; /* Reduz ainda mais o tamanho da fonte */
+  }
+}
+
+/* Ajuste para os selects de Estado e Cidade */
+#modalEstado, #modalCidade {
+    background-color: rgba(30, 30, 30, 0.8) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.75rem center !important;
+    background-size: 16px 12px !important;
+    border-radius: 5px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    width: 100%; /* Garante que o dropdown ocupa toda a largura do container */
+    height: 38px; /* Ajusta a altura para ficar alinhado com o botão */
+    display: inline-block; /* Garante alinhamento com outros elementos */
+}
+
+/* Ajuste para o dropdown de opções */
+#modalEstado option, #modalCidade option {
+    background-color: #121212 !important;
+    color: #fff !important;
+}
+

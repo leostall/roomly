@@ -519,30 +519,27 @@ function showCadastroSalaModal() {
                       <input type="file" class="form-control" id="modalImagemSala" accept="image/*">
                     </div>
                   
-                  <!-- Horários de Dias Úteis -->
-                  <div id="containerHorarioUteis" style="display:none;">
-                    <div class="col-12 col-md-6">
+                  <div id="containerHorarioUteis" class="row">
+                    <div class="col-6">
                       <label for="modalHorarioInicioUteis" class="form-label">Horário Início (Dias Úteis) *</label>
-                      <input type="time" class="form-control" id="modalHorarioInicioUteis">
+                      <input type="time" class="form-control horario-btn" id="modalHorarioInicioUteis">
                     </div>
-                    <div class="col-12 col-md-6">
+                    <div class="col-6">
                       <label for="modalHorarioFimUteis" class="form-label">Horário Fim (Dias Úteis) *</label>
-                      <input type="time" class="form-control" id="modalHorarioFimUteis">
+                      <input type="time" class="form-control horario-btn" id="modalHorarioFimUteis">
                     </div>
                   </div>
 
-                  <!-- Horários de Finais de Semana/Feriados -->
-                  <div id="containerHorarioNaoUteis" style="display:none;">
-                    <div class="col-12 col-md-6">
+                  <div id="containerHorarioNaoUteis" class="row mt-3">
+                    <div class="col-6">
                       <label for="modalHorarioInicioNaoUtil" class="form-label">Horário Início (Finais de Semana/Feriados) *</label>
-                      <input type="time" class="form-control" id="modalHorarioInicioNaoUtil">
+                      <input type="time" class="form-control horario-btn" id="modalHorarioInicioNaoUtil">
                     </div>
-                    <div class="col-12 col-md-6">
+                    <div class="col-6">
                       <label for="modalHorarioFimNaoUtil" class="form-label">Horário Fim (Finais de Semana/Feriados) *</label>
-                      <input type="time" class="form-control" id="modalHorarioFimNaoUtil">
+                      <input type="time" class="form-control horario-btn" id="modalHorarioFimNaoUtil">
                     </div>
                   </div>
-                </div>
                 </div>
               </div>
             </form>
@@ -631,7 +628,13 @@ function setupCadastroSalaModal() {
   });
 
   if (!atLeastOneChecked) {
-    document.querySelector('#cadastroSalaForm .invalid-feedback').style.display = 'block';
+    Swal.fire({
+      title: "Erro!",
+      text: "Selecione pelo menos um dia da semana.",
+      icon: "error",
+      background: "#121212",
+      color: "#ffffff"
+    });
     return;
   }
 
@@ -1069,24 +1072,25 @@ function showEditSalaModal(salaId) {
                       </div>
                 </div>
                 <!-- Adicione dentro do <form id="editarSalaForm">, após os checkboxes de dias -->
-                <div id="containerHorarioUteisEdit" style="display:none;">
-                  <div class="col-12 col-md-6">
+                <div id="containerHorarioUteisEdit" class="row">
+                  <div class="col-6">
                     <label for="modalHorarioInicioUteisEdit" class="form-label">Horário Início (Dias Úteis) *</label>
-                    <input type="time" class="form-control" id="modalHorarioInicioUteisEdit">
+                    <input type="time" class="form-control horario-btn" id="modalHorarioInicioUteisEdit">
                   </div>
-                  <div class="col-12 col-md-6">
+                  <div class="col-6">
                     <label for="modalHorarioFimUteisEdit" class="form-label">Horário Fim (Dias Úteis) *</label>
-                    <input type="time" class="form-control" id="modalHorarioFimUteisEdit">
+                    <input type="time" class="form-control horario-btn" id="modalHorarioFimUteisEdit">
                   </div>
                 </div>
-                <div id="containerHorarioNaoUteisEdit" style="display:none;">
-                  <div class="col-12 col-md-6">
+
+                <div id="containerHorarioNaoUteisEdit" class="row mt-3">
+                  <div class="col-6">
                     <label for="modalHorarioInicioNaoUtilEdit" class="form-label">Horário Início (Finais de Semana/Feriados) *</label>
-                    <input type="time" class="form-control" id="modalHorarioInicioNaoUtilEdit">
+                    <input type="time" class="form-control horario-btn" id="modalHorarioInicioNaoUtilEdit">
                   </div>
-                  <div class="col-12 col-md-6">
+                  <div class="col-6">
                     <label for="modalHorarioFimNaoUtilEdit" class="form-label">Horário Fim (Finais de Semana/Feriados) *</label>
-                    <input type="time" class="form-control" id="modalHorarioFimNaoUtilEdit">
+                    <input type="time" class="form-control horario-btn" id="modalHorarioFimNaoUtilEdit">
                   </div>
                 </div>
               </div>
@@ -1980,7 +1984,13 @@ async function carregarEstados(selectId) {
       selectEstado.appendChild(option);
     });
   } catch (error) {
-    console.error("Erro ao carregar estados:", error);
+    Swal.fire({
+      title: "Erro!",
+      text: "Não foi possível carregar os estados.",
+      icon: "error",
+      background: "#121212",
+      color: "#ffffff"
+    });
   }
 }
 
@@ -2003,7 +2013,13 @@ async function carregarCidades(selectEstadoId, selectCidadeId) {
       selectCidade.appendChild(option);
     });
   } catch (error) {
-    console.error("Erro ao carregar cidades:", error);
+    Swal.fire({
+      title: "Erro!",
+      text: "Não foi possível carregar as cidades.",
+      icon: "error",
+      background: "#121212",
+      color: "#ffffff"
+    });
   }
 }
 
