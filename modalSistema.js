@@ -79,7 +79,33 @@ function showEditUserModal() {
       </div>
     </div>
   </div>
+
+
+  <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-white">
+        <div class="modal-header">
+          <h5 class="modal-title">Excluir conta</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formConfirmDelete">
+            <div class="mb-3">
+              <label for="deletePassword" class="form-label">Senha atual <span class="required">*</span></label>
+              <input type="password" class="form-control" id="deletePassword" placeholder="Digite sua senha atual" required>
+            </div>
+          </form>
+          <div id="deleteError" class="text-danger mt-2" style="display:none;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="btnConfirmDelete">Excluir Conta</button>
+        </div>
+      </div>
+    </div>
+  </div>
   `;
+
 
   // Adiciona a modal ao body
   document.body.insertAdjacentHTML('beforeend', modalHTML);
@@ -119,6 +145,8 @@ function loadUserData() {
 
 // Função para configurar os eventos da modal
 function setupModalEvents() {
+
+
   // Máscara para CPF
   document.getElementById("modalCpf").addEventListener("input", function (e) {
     let cpf = e.target.value.replace(/\D/g, '');
@@ -160,49 +188,76 @@ function setupModalEvents() {
   });
 
   // Evento para excluir conta
-  document.getElementById("modalExcluirConta").addEventListener("click", function () {
-    Swal.fire({
-      title: "Tem certeza?",
-      text: "Essa ação irá excluir sua conta permanentemente.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Sim, excluir",
-      cancelButtonText: "Cancelar",
-      background: "#121212",
-      color: "#ffffff",
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#6c757d"
-    }).then((result) => {
-      if (result.isConfirmed) {
-        fetch("http://127.0.0.1:8000/excluir-conta", {
-          method: "DELETE",
-          credentials: "include"
-        })
-          .then(response => response.json())
-          .then(data => {
-            Swal.fire({
-              title: "Conta excluída!",
-              text: data.message,
-              icon: "success",
-              background: "#121212",
-              color: "#ffffff"
-            }).then(() => {
-              window.location.href = "login.html";
-            });
-          })
-          .catch(error => {
-            Swal.fire({
-              title: "Erro!",
-              text: error.message,
-              icon: "error",
-              background: "#121212",
-              color: "#ffffff"
-            });
-          });
-      }
-    });
-  });
 
+// Evento para abrir o modal de exclusão de conta
+document.getElementById("modalExcluirConta").addEventListener("click", function () {
+  // Fecha o modal de edição de usuário
+  const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+  if (modal) modal.hide();
+
+  // Limpa campo e erro
+  document.getElementById("deletePassword").value = "";
+  document.getElementById("deleteError").style.display = "none";
+
+  // Abre o modal de confirmação de exclusão
+  const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+  deleteModal.show();
+});
+
+// Evento para confirmar exclusão de conta
+// Evento para confirmar exclusão de conta
+document.getElementById("btnConfirmDelete").addEventListener("click", function () {
+  const senha = document.getElementById("deletePassword").value;
+  const errorDiv = document.getElementById("deleteError");
+  errorDiv.style.display = "none";
+
+  if (!senha) {
+    errorDiv.textContent = "Digite sua senha para confirmar.";
+    errorDiv.style.display = "block";
+    return;
+  }
+
+  fetch("http://127.0.0.1:8000/excluir-conta", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ senha })
+  })
+    .then(async response => {
+      const data = await response.json();
+      if (response.ok && data.success !== false) {
+        const deleteModal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
+        deleteModal.hide();
+        Swal.fire({
+          title: "Conta excluída!",
+          text: data.message,
+          icon: "success",
+          background: "#121212",
+          color: "#ffffff"
+        }).then(() => {
+          window.location.href = "login.html";
+        });
+      } else {
+        // Mostra o Swal de erro mesmo se vier erro HTTP
+        Swal.fire({
+          title: "Erro!",
+          text: data.message || "Senha incorreta. Conta não excluída.",
+          icon: "error",
+          background: "#121212",
+          color: "#ffffff"
+        });
+      }
+    })
+    .catch(error => {
+      Swal.fire({
+        title: "Erro!",
+        text: "Erro ao excluir conta.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+    });
+});
   // Evento para editar conta
 
 document.getElementById("modalEditarConta").addEventListener("click", function () {
