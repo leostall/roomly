@@ -145,7 +145,7 @@ async function carregarTodasSalas(limite = null) {
                   <span class="fw-bold">R$ ${sala.Valor_Hora}/h</span>
                   <span class="text-muted ms-2">• até ${sala.Capacidade} pessoas</span>
                 </div>
-                <button class="btn btn-sm btn-primary reservar-btn" data-id="${sala.ID_Sala}">Reservar</button>
+                <a href="#" class="btn btn-primary w-100 mt-3" onclick="showReservaModal(${sala.ID_Sala})">Reservar</a>
               </div>
             </div>
           </div>
