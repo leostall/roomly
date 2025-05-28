@@ -136,7 +136,7 @@ async def login_usuario(request: Request, login: LoginData):
         raise HTTPException(status_code=401, detail="Email não encontrado!")
 
     if not verify_password(login.senha, user["Senha"]):
-        raise HTTPException(status_code=401, detail="Senha incorreta! Senha: {}".format(user["Senha"]))
+        raise HTTPException(status_code=401, detail="Senha incorreta!")
 
     # Salva na sessão
     request.session["usuario"] = {

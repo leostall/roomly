@@ -1508,3 +1508,20 @@ input[data-mask] {
     }
 }
 
+/* Estilos para centralizar o conteúdo verticalmente */
+.d-flex.align-items-center.justify-content-center {
+    min-height: 100vh; /* Garante que o contêiner ocupa a altura total da viewport */
+}
+
+/* Ajustes para formulários em telas pequenas */
+@media (max-width: 767px) {
+    .form-container {
+        padding: 1.5rem; /* Padding para o formulário */
+        margin: 1rem auto; /* Centraliza o formulário horizontalmente */
+        max-width: 90%; /* Limita a largura máxima do formulário em telas menores */
+    }
+
+    .login-image {
+        display: none; /* Esconde a imagem da esquerda em telas menores */
+    }
+}
