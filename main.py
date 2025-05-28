@@ -1237,3 +1237,111 @@ async def cancelar_locacao_pelo_locador(id_locacao: int, request: Request):
         if connection and connection.is_connected():
             cursor.close()
             connection.close()
+
+@app.get("/salas")
+async def get_salas(
+    capacidade: Optional[int] = Query(None),
+    valor_hora: Optional[int] = Query(None),
+    disponibilidade: Optional[str] = Query(None),
+    estado: Optional[str] = Query(None),
+    cidade: Optional[str] = Query(None)
+):
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    try:
+        query = """
+            SELECT s.ID_Sala, s.Descricao, s.Valor_Hora, s.Capacidade, s.Imagem, ts.Tipo, s.Estado, s.Cidade
+            FROM salas s
+            JOIN tipo_sala ts ON s.fk_tipo_sala_ID_Tipo_Sala = ts.ID_Tipo_Sala
+            WHERE s.Status = 1
+        """
+        
+        if capacidade:
+            if capacidade == 1:
+                query += " AND s.Capacidade BETWEEN 1 AND 10"
+            elif capacidade == 2:
+                query += " AND s.Capacidade BETWEEN 11 AND 20"
+            elif capacidade == 3:
+                query += " AND s.Capacidade BETWEEN 21 AND 50"
+            elif capacidade == 4:
+                query += " AND s.Capacidade > 50"
+
+        if valor_hora:
+            if valor_hora == 1:
+                query += " AND s.Valor_Hora BETWEEN 0 AND 50"
+            elif valor_hora == 2:
+                query += " AND s.Valor_Hora BETWEEN 51 AND 100"
+            elif valor_hora == 3:
+                query += " AND s.Valor_Hora BETWEEN 101 AND 200"
+            elif valor_hora == 4:
+                query += " AND s.Valor_Hora > 200"
+
+        if disponibilidade:
+            dias_semana = {
+                "domingo": "Domingo_Disp",
+                "segunda": "Segunda_Disp",
+                "terca": "Terca_Disp",
+                "quarta": "Quarta_Disp",
+                "quinta": "Quinta_Disp",
+                "sexta": "Sexta_Disp",
+                "sabado": "Sabado_Disp"
+            }
+            coluna_dia = dias_semana.get(disponibilidade.lower())
+            if coluna_dia:
+                query += f" AND s.{coluna_dia} = 1"
+
+        if estado:
+            query += " AND s.Estado = %s"
+        if cidade:
+            query += " AND s.Cidade = %s"
+
+        params = []
+        if estado:
+            params.append(estado)
+        if cidade:
+            params.append(cidade)
+
+        cursor.execute(query, params)
+        salas = cursor.fetchall()
+        
+        for sala in salas:
+            if sala["Imagem"]:
+                sala["imagem_url"] = "data:image/jpeg;base64," + base64.b64encode(sala["Imagem"]).decode()
+            else:
+                sala["imagem_url"] = "images/placeholder.jpg"
+            del sala["Imagem"]
+        
+        return salas
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar salas: {str(e)}")
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.get("/estados")
+async def get_estados():
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT DISTINCT Estado FROM salas ORDER BY Estado")
+        estados = cursor.fetchall()
+        return [estado["Estado"] for estado in estados]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar estados: {str(e)}")
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.get("/cidades")
+async def get_cidades(estado: str):
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT DISTINCT Cidade FROM salas WHERE Estado = %s ORDER BY Cidade", (estado,))
+        cidades = cursor.fetchall()
+        return [cidade["Cidade"] for cidade in cidades]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao buscar cidades: {str(e)}")
+    finally:
+        cursor.close()
+        connection.close()
