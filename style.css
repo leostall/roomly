@@ -1291,6 +1291,16 @@ input[data-mask] {
     border-color: #dc3545 !important;
 }
 
+.reserva-hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+        url('images/minas-reservas-hero.jpeg');
+    background-size: cover;
+    background-position: center;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+}
+
 /* Responsividade */
 @media (max-width: 992px) {
     h1 {
@@ -1453,36 +1463,34 @@ input[data-mask] {
 }
 
 /* Estilo para os filtros */
-    .filter-sidebar {
-      background-color: #000;
-      color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-    }
+.filter-sidebar {
+    background-color: #000;
+    color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+}
 
-    .filter-sidebar h5 {
-      color: #fff;
-    }
+.filter-sidebar h5 {
+    color: #fff;
+}
 
-    .filter-sidebar label {
-      color: #fff;
-    }
+.filter-sidebar label {
+    color: #fff;
+}
 
-    .filter-sidebar .form-control,
-    .filter-sidebar .form-select {
-      background-color: #333;
-      color: #fff;
-      border: 1px solid #444;
-    }
+.filter-sidebar .form-control,
+.filter-sidebar .form-select {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #444;
+}
 
-    .filter-sidebar .btn {
-      background-color: #444;
-      color: #fff;
-      border: none;
-    }
+.filter-sidebar .btn {
+    background-color: #444;
+    color: #fff;
+    border: none;
+}
 
-    .filter-sidebar .btn:hover {
-      background-color: #555;
-    }
-
-    
+.filter-sidebar .btn:hover {
+    background-color: #555;
+}

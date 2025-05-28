@@ -1050,3 +1050,190 @@ async def cancelar_reserva_api(id_reserva: int, request: Request):
             connection.close()
         cursor.close()
         connection.close()
+
+@app.get("/locador/locacoes-de-minhas-salas")
+async def get_locacoes_de_minhas_salas(request: Request):
+    usuario_sessao = request.session.get("usuario")
+    if not usuario_sessao:
+        raise HTTPException(status_code=401, detail="Usuário não autenticado.")
+    
+    if usuario_sessao.get("papel") != 2: # Apenas Locadores (papel = 2)
+        raise HTTPException(status_code=403, detail="Acesso negado. Esta funcionalidade é apenas para locadores.")
+
+    locador_id = usuario_sessao["id"]
+    connection = None
+    locacoes_formatadas = []
+
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+
+        query = """
+            SELECT 
+                ll.ID_Locacao AS id_locacao,
+                s.ID_Sala AS id_sala,
+                ts.Tipo AS tipo_sala,
+                u_renter.Nome AS nome_locatario,
+                u_renter.CPF AS cpf_locatario,
+                u_renter.Telefone AS telefone_locatario,
+                u_renter.Email AS email_locatario,
+                ll.Checkin AS checkin_original,
+                ll.Checkout AS checkout_original,
+                ll.Ativo AS ativo, 
+                s.Rua AS rua_sala,
+                s.Numero AS numero_sala,
+                s.Cidade AS cidade_sala,
+                s.Estado AS estado_sala,
+                s.Capacidade AS capacidade_sala,    
+                s.Valor_Hora AS valor_hora_sala 
+            FROM locacao_loca ll
+            JOIN salas s ON ll.fk_salas_ID_Sala = s.ID_Sala
+            JOIN usuario u_locator ON s.fk_usuario_ID_Usuario = u_locator.ID_Usuario
+            JOIN usuario u_renter ON ll.fk_usuario_ID_Usuario = u_renter.ID_Usuario
+            JOIN tipo_sala ts ON s.fk_tipo_sala_ID_Tipo_Sala = ts.ID_Tipo_Sala
+            WHERE u_locator.ID_Usuario = %s
+            ORDER BY ll.Checkin DESC
+        """
+        cursor.execute(query, (locador_id,))
+        locacoes = cursor.fetchall()
+
+        for locacao in locacoes:
+            checkin_dt = locacao["checkin_original"]
+            checkout_dt = locacao["checkout_original"]
+            
+            # Formatação de data e hora
+            data_reserva_formatada = ""
+            horario_inicio = "--:--"
+            horario_fim = "--:--"
+
+            if isinstance(checkin_dt, datetime):
+                data_reserva_formatada = checkin_dt.strftime("%d/%m/%Y")
+                horario_inicio = checkin_dt.strftime("%H:%M")
+            
+            if isinstance(checkout_dt, datetime):
+                horario_fim = checkout_dt.strftime("%H:%M")
+
+            endereco_sala_completo = f"{locacao.get('rua_sala', '')}, {locacao.get('numero_sala', '')} - {locacao.get('cidade_sala', '')}, {locacao.get('estado_sala', '')}"
+
+            locacoes_formatadas.append({
+                "id_locacao": locacao["id_locacao"],
+                "id_sala": locacao["id_sala"],
+                "tipo_sala": locacao["tipo_sala"],
+                "nome_locatario": locacao["nome_locatario"],
+                "cpf_locatario": locacao["cpf_locatario"], 
+                "telefone_locatario": locacao["telefone_locatario"],
+                "checkin_original": checkin_dt.isoformat() if isinstance(checkin_dt, datetime) else str(checkin_dt), 
+                "checkout_original": checkout_dt.isoformat() if isinstance(checkout_dt, datetime) else str(checkout_dt), 
+                "data_reserva_formatada": data_reserva_formatada,
+                "horario_inicio": horario_inicio,
+                "horario_fim": horario_fim,
+                "ativo": locacao["ativo"],
+                "email_locatario": locacao["email_locatario"],
+                "capacidade_sala": locacao["capacidade_sala"],
+                "valor_hora_sala": locacao["valor_hora_sala"],
+                "endereco_sala": endereco_sala_completo
+                # "observacoes_locatario": locacao.get("observacoes_locatario") # Adicionar se tiver essa coluna/dado
+            })
+
+        return locacoes_formatadas
+
+    except mysql.connector.Error as err:
+        print(f"Erro de banco de dados: {err}") 
+        raise HTTPException(status_code=500, detail=f"Erro de banco de dados ao buscar locações: {err}")
+    except Exception as e:
+        print(f"Erro inesperado: {e}") 
+        raise HTTPException(status_code=500, detail=f"Ocorreu um erro inesperado ao processar sua solicitação: {e}")
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+@app.put("/locador/locacoes/{id_locacao}/cancelar")
+async def cancelar_locacao_pelo_locador(id_locacao: int, request: Request):
+    usuario_sessao = request.session.get("usuario")
+    if not usuario_sessao:
+        raise HTTPException(status_code=401, detail="Usuário não autenticado.")
+    
+    if usuario_sessao.get("papel") != 2:
+        raise HTTPException(status_code=403, detail="Acesso negado. Funcionalidade apenas para locadores.")
+
+    locador_id = usuario_sessao["id"]
+    connection = None
+    
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+
+        query_verificacao = """
+            SELECT 
+                ll.ID_Locacao, 
+                ll.Checkin, 
+                ll.Ativo AS ativo_locacao,
+                s.fk_usuario_ID_Usuario AS id_proprietario_sala
+            FROM locacao_loca ll
+            JOIN salas s ON ll.fk_salas_ID_Sala = s.ID_Sala
+            WHERE ll.ID_Locacao = %s
+        """
+        cursor.execute(query_verificacao, (id_locacao,))
+        locacao = cursor.fetchone()
+
+        if not locacao:
+            raise HTTPException(status_code=404, detail="Locação não encontrada.")
+        
+        if locacao["id_proprietario_sala"] != locador_id:
+            raise HTTPException(status_code=403, detail="Esta locação não pertence a uma de suas salas.")
+
+        if locacao["ativo_locacao"] == 2: 
+            raise HTTPException(status_code=400, detail="Esta locação já foi cancelada por você.")
+
+        # 3. Verificar a regra das 24 horas
+        checkin_locacao_dt = locacao["Checkin"]
+        if not isinstance(checkin_locacao_dt, datetime):
+            try:
+                checkin_locacao_dt = datetime.strptime(str(checkin_locacao_dt), "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                try:
+                    checkin_locacao_dt = datetime.fromisoformat(str(checkin_locacao_dt))
+                except ValueError:
+                    raise HTTPException(status_code=500, detail="Formato de data/hora do check-in inválido no banco.")
+
+
+        agora = datetime.now()
+
+        if checkin_locacao_dt < agora:
+             if locacao["ativo_locacao"] == 1: 
+                raise HTTPException(status_code=400, detail="Não é possível cancelar uma locação que já iniciou ou passou.")
+
+        if locacao["ativo_locacao"] == 1 and (checkin_locacao_dt - agora) < timedelta(hours=24):
+            raise HTTPException(status_code=400, detail="As locações só podem ser canceladas pelo locador com mais de 24 horas de antecedência do horário de check-in.")
+
+        query_update = """
+            UPDATE locacao_loca 
+            SET Ativo = 2 
+            WHERE ID_Locacao = %s
+        """
+        cursor.execute(query_update, (id_locacao,))
+        
+        if cursor.rowcount == 0:
+            connection.rollback()
+            raise HTTPException(status_code=500, detail="Não foi possível atualizar o status da locação. Nenhuma linha afetada.")
+
+        connection.commit()
+        return {"success": True, "message": "Locação cancelada com sucesso pelo locador."}
+
+    except mysql.connector.Error as err:
+        if connection and connection.is_connected():
+            connection.rollback()
+        print(f"Erro de banco de dados (cancelar locacao locador): {err}")
+        raise HTTPException(status_code=500, detail=f"Erro de banco de dados: {err}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        if connection and connection.is_connected():
+            connection.rollback()
+        print(f"Erro inesperado (cancelar locacao locador): {e}")
+        raise HTTPException(status_code=500, detail=f"Ocorreu um erro inesperado: {str(e)}")
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
