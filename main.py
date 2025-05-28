@@ -1345,3 +1345,22 @@ async def get_cidades(estado: str):
     finally:
         cursor.close()
         connection.close()
+
+@app.post("/check-telefone")
+async def check_telefone(data: dict):
+    telefone = data.get("telefone")
+    if not telefone:
+        raise HTTPException(status_code=400, detail="Telefone não fornecido")
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("SELECT * FROM usuario WHERE Telefone = %s", (telefone,))
+        if cursor.fetchone():
+            raise HTTPException(status_code=400, detail="Telefone já cadastrado")
+    finally:
+        cursor.close()
+        connection.close()
+
+    return {"success": True, "message": "Telefone disponível"}
