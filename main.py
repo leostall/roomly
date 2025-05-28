@@ -888,9 +888,9 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
             )
 
         cursor.execute("""
-            INSERT INTO locacao_loca (Checkin, Checkout, fk_usuario_ID_Usuario, fk_salas_ID_Sala)
+            INSERT INTO locacao_loca (Checkin, Checkout, fk_usuario_ID_Usuario, fk_salas_ID_Sala, Ativo)
             VALUES (%s, %s, %s, %s)
-        """, (checkin_dt, checkout_dt, usuario["id"], sala_id))
+        """, (checkin_dt, checkout_dt, usuario["id"], sala_id, 1))
         connection.commit()
 
         return {"success": True, "message": "Reserva realizada com sucesso!"}
