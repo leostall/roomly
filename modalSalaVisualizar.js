@@ -98,7 +98,9 @@ function calcularEPreencherDetalhesDerivadosVisualizacao(reserva) {
     const valorTotalEl = document.getElementById('visValorTotalReserva');
     const statusEl = document.getElementById('visStatusReserva');
 
-    if (reserva.data_reserva && reserva.horario_inicio && reserva.horario_fim) {
+    if (reserva.ativo_reserva === 0) {
+        statusTexto = 'Cancelada';
+    } else if (reserva.data_reserva && reserva.horario_inicio && reserva.horario_fim) {
         try {
             const partesData = reserva.data_reserva.split('/');
             const dia = parseInt(partesData[0], 10);
@@ -138,7 +140,7 @@ function calcularEPreencherDetalhesDerivadosVisualizacao(reserva) {
                 } else if (dataHoraInicioReserva.getFullYear() === agora.getFullYear() &&
                     dataHoraInicioReserva.getMonth() === agora.getMonth() &&
                     dataHoraInicioReserva.getDate() === agora.getDate()) {
-                    statusTexto = 'É Hoje';
+                    statusTexto = 'Hoje';
                 } else {
                     statusTexto = 'Agendada';
                 }

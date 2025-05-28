@@ -87,6 +87,7 @@ async function verificarLogin() {
       if (loginBtn) loginBtn.style.display = "block";
       if (dropdown) dropdown.style.display = "none";
       if (adminItems) adminItems.style.display = "none";
+      window.location.href = "login.html";
     }
   } catch (error) {
     console.error("Erro ao verificar login:", error);
@@ -164,7 +165,7 @@ async function carregarTodasSalas(limite = null) {
   }
 }
 
-const SESSION_TIMEOUT = 5 * 60 * 1000; //   TEMPO DA SESSÃO EM MILISSEGUNDOS (5 MINUTOS)
+const SESSION_TIMEOUT = 15 * 60 * 1000; //   TEMPO DA SESSÃO EM MILISSEGUNDOS (5 MINUTOS)
 let sessionTimer = null;
 let userIsLogged = false;
 

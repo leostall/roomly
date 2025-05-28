@@ -1258,6 +1258,39 @@ input[data-mask] {
     text-align: justify;
 }
 
+.reserva-cancelada-visual {
+    opacity: 0.65;
+    border: 1.5px solid #dc3545 !important;
+    box-shadow: 0 0 8px rgba(220, 53, 69, 0.25);
+}
+
+.reserva-cancelada-visual .row>.col-md-4>img {
+    opacity: 0.4;
+}
+
+.reserva-cancelada-visual .card-body {
+    opacity: 0.7;
+}
+
+.reserva-cancelada-visual .card-text,
+.reserva-cancelada-visual .card-title,
+.reserva-cancelada-visuala .badge,
+.reserva-cancelada-visual .data-horario-bloco {
+    opacity: 0.7;
+}
+
+.card.bg-dark:not(.reserva-cancelada-visual):hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-color: rgba(var(--primary-color-rgb, 67, 97, 238), 0.3) !important;
+}
+
+.card.bg-dark.reserva-cancelada-visual:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3), 0 0 8px rgba(220, 53, 69, 0.25);
+    border-color: #dc3545 !important;
+}
+
 /* Responsividade */
 @media (max-width: 992px) {
     h1 {

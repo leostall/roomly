@@ -60,6 +60,11 @@ class Sala(BaseModel):
     sabado: int
     status: int = 1  # Status padrão como 1
 
+class ReservaEditData(BaseModel):
+    nova_data_reserva: str  
+    novo_horario_checkin: str 
+    novo_horario_checkout: str
+
 def get_db_connection():
     try:
         return mysql.connector.connect(
@@ -894,7 +899,8 @@ async def minhas_reservas(request: Request):
                 s.Capacidade AS capacidade_sala,     
                 s.Descricao AS descricao_sala,
                 s.Valor_Hora AS valor_hora,
-                r.fk_salas_ID_Sala AS id_sala
+                r.fk_salas_ID_Sala AS id_sala,
+                r.Ativo AS ativo_reserva 
             FROM locacao_loca r
             JOIN salas s ON r.fk_salas_ID_Sala = s.ID_Sala
             JOIN tipo_sala ts ON s.fk_tipo_sala_ID_Tipo_Sala = ts.ID_Tipo_Sala
@@ -946,5 +952,70 @@ async def minhas_reservas(request: Request):
         raise HTTPException(status_code=500, detail=f"Erro ao buscar reservas: {str(e)}")
     finally:
         if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+@app.put("/reservas/{id_reserva}/cancelar") 
+async def cancelar_reserva_api(id_reserva: int, request: Request):
+    usuario_sessao = request.session.get("usuario")
+    if not usuario_sessao:
+        raise HTTPException(status_code=401, detail="Usuário não autenticado. Faça login para continuar.")
+    
+    usuario_id = usuario_sessao["id"]
+    connection = None
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+
+        cursor.execute("""
+            SELECT Checkin, Ativo 
+            FROM locacao_loca 
+            WHERE ID_Locacao = %s AND fk_usuario_ID_Usuario = %s
+        """, (id_reserva, usuario_id))
+        reserva = cursor.fetchone()
+
+        if not reserva:
+            raise HTTPException(status_code=404, detail="Reserva não encontrada ou não pertence a este usuário.")
+        
+        if reserva["Ativo"] == 0:
+            raise HTTPException(status_code=400, detail="Esta reserva já foi cancelada anteriormente.")
+
+        checkin_reserva = reserva["Checkin"]
+        agora = datetime.now()
+
+        if not isinstance(checkin_reserva, datetime):
+             checkin_reserva = datetime.strptime(str(checkin_reserva), "%Y-%m-%d %H:%M:%S")
+
+
+        if checkin_reserva < agora:
+            raise HTTPException(status_code=400, detail="Não é possível cancelar uma reserva que já iniciou ou passou.")
+
+        if (checkin_reserva - agora) < timedelta(hours=24):
+            raise HTTPException(status_code=400, detail="As reservas só podem ser canceladas com mais de 24 horas de antecedência do horário de check-in.")
+
+        cursor.execute("""
+            UPDATE locacao_loca 
+            SET Ativo = 0 
+            WHERE ID_Locacao = %s AND fk_usuario_ID_Usuario = %s
+        """, (id_reserva, usuario_id))
+        
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=500, detail="Não foi possível atualizar a reserva. Tente novamente.")
+
+        connection.commit()
+        return {"success": True, "message": "Reserva cancelada com sucesso!"}
+
+    except mysql.connector.Error as err:
+        if connection and connection.is_connected():
+            connection.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro de banco de dados: {err}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        if connection and connection.is_connected():
+            connection.rollback()
+        raise HTTPException(status_code=500, detail=f"Ocorreu um erro inesperado: {str(e)}")
+    finally:
+        if connection and connection.is_connected():
             cursor.close()
             connection.close()
