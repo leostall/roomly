@@ -31,7 +31,7 @@
                     <li class="nav-item"><a class="nav-link" href="index.html#features">Vantagens</a></li>
                     <li class="nav-item"><a class="nav-link" href="todasSalas.html">Salas</a></li>
                     <li class="nav-item"><a class="nav-link" href="contato.html">Contato</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="reservas.html">Minhas Reservas</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="detalhesReserva.html">Minhas Reservas</a></li>
                 </ul>
                 <div class="ms-lg-3 mt-3 mt-lg-0" id="auth-buttons">
                     <div class="dropdown" id="user-dropdown" style="display: none;">
@@ -46,7 +46,9 @@
                             <li><a class="dropdown-item" href="detalhesReserva.html"><i
                                         class="bi bi-calendar-check me-2"></i>Minhas Reservas</a></li>
                             <div id="admin-items" style="display: none;">
-                                <li><a class="dropdown-item" href="#" id="editRooms"><i
+                                <li><a class="dropdown-item" href="detalhesLocacoes.html"><i
+                                            class="bi bi-building-check me-2"></i>Minhas Locações</a></li>
+                                <li><a class="dropdown-item" href="editarSalas.html" id="editRooms"><i
                                             class="bi bi-pencil-square me-2"></i>Minhas
                                         Salas</a></li>
                                 <li><a class="dropdown-item" onclick="showCadastroSalaModal();"><i
@@ -88,17 +90,17 @@
                             <h5 class="card-title text-accent mb-4">Filtrar Reservas</h5>
                             <div class="mb-3">
                                 <label for="nomeSalaFiltro" class="form-label">Nome da Sala (Tipo)</label>
-                                <input type="text" class="form-control" id="nomeSalaFiltro"
+                                <input type="text" class="form-control form-control-dark" id="nomeSalaFiltro"
                                     placeholder="Digite o tipo da sala">
                             </div>
                             <div class="mb-3">
                                 <label for="dataCheckinFiltro" class="form-label">Data de Check-in</label>
-                                <input type="date" class="form-control" id="dataCheckinFiltro">
+                                <input type="date" class="form-control form-control-dark" id="dataCheckinFiltro">
                             </div>
                             <div class="mb-3">
-                                <label for="capacidadeFiltro" class="form-label">Capacidade</label>
-                                <input type="number" class="form-control" id="capacidadeFiltro" placeholder="Ex: 5"
-                                    min="1">
+                                <label for="capacidadeFiltro" class="form-label">Capacidade Mínima</label>
+                                <input type="number" class="form-control form-control-dark" id="capacidadeFiltro"
+                                    placeholder="Ex: 5" min="1">
                             </div>
                             <div class="mb-3">
                                 <label for="statusReservaFiltro" class="form-label">Status</label>
@@ -107,7 +109,8 @@
                                     <option value="agendada">Agendada</option>
                                     <option value="hoje">Hoje</option>
                                     <option value="passada">Passada</option>
-                                    <option value="cancelada">Cancelada</option>
+                                    <option value="cancelada_locatario">Cancelada pelo Locatário</option>
+                                    <option value="cancelada_locador">Cancelada pelo Locador</option>
                                 </select>
                             </div>
                             <div class="d-grid gap-2">
@@ -124,8 +127,8 @@
 
                 <div class="col-lg-9">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="mb-0">Suas reservas</h4>
-                        <button class="btn btn-primary" id="btnExportarPDF">
+                        <h4 class="mb-0" id="tituloListaReservas">Suas reservas</h4> <button class="btn btn-primary"
+                            id="btnExportarPDF">
                             <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
                         </button>
                     </div>
@@ -192,17 +195,19 @@
         </div>
     </footer>
 
+    <div id="modalsComuns">
+        <script src="modalSistema.js"></script>
+    </div>
+    <script src="modalSalaVisualizar.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="modalSistema.js"></script>
-    <script src="modalSalaVisualizar.js"></script>
     <script src="auth.js"></script>
+
 
     <script>
         let dadosDasReservasAtuais = [];
-        // String da logo em base64 - NÃO ALTERAR
         const logoBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAV0AAABfCAYAAABLNxQIAAAACXBIWXMAAA7EAAAOxAGVKw4bAAADYGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSfvu78nIGlkPSdXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQnPz4KPHg6eG1wbWV0YSB4bWxuczp4PSdhZG9iZTpuczptZXRhLyc+CjxyZGY6UkRGIHhtbG5zOnJkZj0naHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyc+CgogPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9JycKICB4bWxuczpBdHRyaWI9J2h0dHA6Ly9ucy5hdHRyaWJ1dGlvbi5jb20vYWRzLzEuMC8nPgogIDxBdHRyaWI6QWRzPgogICA8cmRmOlNlcT4KICAgIDxyZGY6bGkgcmRmOnBhcnNlVHlwZT0nUmVzb3VyY2UnPgogICAgIDxBdHRyaWI6Q3JlYXRlZD4yMDI1LTA1LTI3PC9BdHRyaWI6Q3JlYXRlZD4KICAgICA8QXR0cmliOkV4dElkPmYzY2IxZTY0LTBjMTctNDVjNS1hYjdiLTcwOGNmNzY4ODIyZjwvQXR0cmliOkV4dElkPgogICAgIDxBdHRyaWI6RmJJZD41MjUyNjU5MTQxNzk1ODA8L0F0dHJpYjpGYklkPgogICAgIDxBdHRyaWI6VG91Y2hUeXBlPjI8L0F0dHJpYjpUb3VjaFR5cGU+CiAgICA8L3JkZjpsaT4KICAgPC9yZGY6U2VxPgogIDwvQXR0cmliOkFkcz4KIDwvcmRmOkRlc2NyaXB0aW9uPgoKIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PScnCiAgeG1sbnM6ZGM9J2h0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvJz4KICA8ZGM6dGl0bGU+CiAgIDxyZGY6QWx0PgogICAgPHJkZjpsaSB4bWw6bGFuZz0neC1kZWZhdWx0Jz5EZXNpZ24gc2VtIG5vbWUgLSAxPC9yZGY6bGk+CiAgIDwvcmRmOkFsdD4KICA8L2RjOnRpdGxlPgogPC9yZGY6RGVzY3JpcHRpb24+CjwvcmRmOlJERj4KPC94Onht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'; // Este é um placeholder minúsculo, SUBSTITUA!
 
         document.addEventListener("DOMContentLoaded", function () {
@@ -210,6 +215,9 @@
             checkUserLoggedIn().then(isLogged => {
                 if (isLogged) {
                     carregarReservas();
+                    document.getElementById('btnFiltrar').addEventListener('click', aplicarFiltros);
+                    document.getElementById('btnLimparFiltros').addEventListener('click', limparFiltrosEExibirTodas);
+                    document.getElementById('btnExportarPDF').addEventListener('click', exportarReservasParaPDF);
                 } else {
                     document.getElementById('listaReservas').innerHTML = '';
                     document.getElementById('semReservas').innerHTML = `
@@ -217,6 +225,8 @@
                         <h5>Acesso Negado</h5>
                         <p class="mb-0">Você precisa estar logado para ver suas reservas. <a href="login.html">Faça login</a>.</p>`;
                     document.getElementById('semReservas').style.display = 'block';
+                    document.querySelector('.col-lg-3.mb-4').style.display = 'none';
+                    document.getElementById('btnExportarPDF').style.display = 'none';
                 }
             }).catch(error => {
                 console.error("Erro ao verificar status de login:", error);
@@ -227,18 +237,13 @@
                         <p class="mb-0">Não foi possível verificar seu status de login. Tente recarregar a página.</p>`;
                 document.getElementById('semReservas').style.display = 'block';
             });
-
-            document.getElementById('btnFiltrar').addEventListener('click', aplicarFiltros);
-            document.getElementById('btnLimparFiltros').addEventListener('click', limparFiltrosEExibirTodas);
-            document.getElementById('btnExportarPDF').addEventListener('click', exportarReservasParaPDF);
         });
 
         async function carregarReservas() {
             const listaReservasDiv = document.getElementById('listaReservas');
             const semReservasDiv = document.getElementById('semReservas');
-            listaReservasDiv.innerHTML = ''; // Clear before loading
+            listaReservasDiv.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div><p class="mt-2 text-muted">Buscando suas reservas...</p></div>';
             semReservasDiv.style.display = 'none';
-            // dadosDasReservasAtuais will be cleared by aplicarFiltros if needed, or on page load
 
             try {
                 const response = await fetch('http://127.0.0.1:8000/minhas-reservas', {
@@ -247,74 +252,85 @@
 
                 if (!response.ok) {
                     if (response.status === 401) {
-                        semReservasDiv.innerHTML = `<i class="bi bi-exclamation-circle fs-1 mb-3"></i><h5>Acesso Negado</h5><p class="mb-0">Sua sessão expirou. <a href="login.html">Faça login</a>.</p>`;
+                        semReservasDiv.innerHTML = `<i class="bi bi-exclamation-circle fs-1 mb-3"></i><h5>Acesso Negado</h5><p class="mb-0">Sua sessão expirou ou você não está logado. <a href="login.html">Faça login</a>.</p>`;
                         semReservasDiv.style.display = 'block'; return;
                     }
-                    const errorData = await response.json().catch(() => ({ detail: 'Erro desconhecido.' }));
+                    const errorData = await response.json().catch(() => ({ detail: 'Erro ao buscar reservas.' }));
                     throw new Error(errorData.detail || `Erro ${response.status}`);
                 }
 
                 const reservas = await response.json();
                 dadosDasReservasAtuais = Array.isArray(reservas) ? reservas : [];
-                renderizarReservas(dadosDasReservasAtuais);
+                aplicarFiltros();
 
             } catch (error) {
                 console.error('Erro ao carregar reservas:', error);
+                listaReservasDiv.innerHTML = '';
                 semReservasDiv.innerHTML = `<i class="bi bi-emoji-dizzy fs-1 mb-3"></i><h5>Ops! Algo deu errado</h5><p class="mb-0">Não foi possível carregar suas reservas: ${error.message}</p>`;
                 semReservasDiv.style.display = 'block';
             }
         }
 
-        // Helper function to get detailed status of a reservation
         function getReservaStatusDetalhado(reserva, agora) {
-            if (reserva.ativo_reserva === 0) return 'cancelada';
+            if (reserva.ativo_reserva === 0) return 'cancelada_locatario';
+            if (reserva.ativo_reserva === 2) return 'cancelada_locador';
 
-            if (!reserva.data_reserva || !reserva.horario_inicio || !reserva.horario_fim) {
-                return 'dados_invalidos'; // Should not happen with valid data
-            }
-
-            let dataHoraInicioReserva = null;
-            let dataHoraCheckoutReserva = null;
-
-            try {
-                const partesData = reserva.data_reserva.split('/');
-                const dia = parseInt(partesData[0], 10);
-                const mes = parseInt(partesData[1], 10) - 1; // Month is 0-indexed
-                const ano = parseInt(partesData[2], 10);
-                const partesHorarioInicio = reserva.horario_inicio.split(':');
-                const horaInicio = parseInt(partesHorarioInicio[0], 10);
-                const minutoInicio = parseInt(partesHorarioInicio[1], 10);
-                const partesHorarioFim = reserva.horario_fim.split(':');
-                const horaFim = parseInt(partesHorarioFim[0], 10);
-                const minutoFim = parseInt(partesHorarioFim[1], 10);
-
-                if ([dia, mes, ano, horaInicio, minutoInicio, horaFim, minutoFim].some(isNaN)) {
+            if (reserva.ativo_reserva === 1) {
+                if (!reserva.data_reserva || !reserva.horario_inicio || !reserva.horario_fim) {
+                    console.warn("Datas/horários ausentes para reserva ID:", reserva.id_reserva);
                     return 'dados_invalidos';
                 }
-                dataHoraInicioReserva = new Date(ano, mes, dia, horaInicio, minutoInicio);
-                dataHoraCheckoutReserva = new Date(ano, mes, dia, horaFim, minutoFim);
-            } catch (e) {
-                console.error("Erro ao parsear data/hora para status: ", e);
-                return 'dados_invalidos';
+
+                let dataHoraInicioReserva, dataHoraCheckoutReserva;
+                try {
+                    const partesData = reserva.data_reserva.split('/');
+                    const dia = parseInt(partesData[0], 10);
+                    const mes = parseInt(partesData[1], 10) - 1;
+                    const ano = parseInt(partesData[2], 10);
+                    const partesHorarioInicio = reserva.horario_inicio.split(':');
+                    const horaInicio = parseInt(partesHorarioInicio[0], 10);
+                    const minutoInicio = parseInt(partesHorarioInicio[1], 10);
+                    const partesHorarioFim = reserva.horario_fim.split(':');
+                    const horaFim = parseInt(partesHorarioFim[0], 10);
+                    const minutoFim = parseInt(partesHorarioFim[1], 10);
+
+                    if ([dia, mes, ano, horaInicio, minutoInicio, horaFim, minutoFim].some(isNaN)) {
+                        return 'dados_invalidos';
+                    }
+                    dataHoraInicioReserva = new Date(ano, mes, dia, horaInicio, minutoInicio);
+                    dataHoraCheckoutReserva = new Date(ano, mes, dia, horaFim, minutoFim);
+
+                } catch (e) {
+                    return 'dados_invalidos';
+                }
+
+                if (dataHoraCheckoutReserva < agora) return 'passada';
+
+                const ehHoje = dataHoraInicioReserva.getFullYear() === agora.getFullYear() &&
+                    dataHoraInicioReserva.getMonth() === agora.getMonth() &&
+                    dataHoraInicioReserva.getDate() === agora.getDate();
+
+                if (ehHoje) return 'hoje';
+                if (dataHoraInicioReserva > agora) return 'agendada';
             }
-
-            if (dataHoraCheckoutReserva < agora) return 'passada';
-
-            const ehHoje = dataHoraInicioReserva.getFullYear() === agora.getFullYear() &&
-                dataHoraInicioReserva.getMonth() === agora.getMonth() &&
-                dataHoraInicioReserva.getDate() === agora.getDate();
-
-            if (ehHoje) return 'hoje';
-            if (dataHoraInicioReserva > agora) return 'agendada';
-
-            return 'desconhecido'; // Fallback for unexpected cases
+            return 'desconhecido';
         }
-
 
         function renderizarReservas(reservasParaRenderizar) {
             const listaReservasDiv = document.getElementById('listaReservas');
             const semReservasDiv = document.getElementById('semReservas');
             listaReservasDiv.innerHTML = '';
+
+            const nomeSalaFiltro = document.getElementById('nomeSalaFiltro').value;
+            const dataCheckinFiltroValue = document.getElementById('dataCheckinFiltro').value;
+            const statusReservaFiltro = document.getElementById('statusReservaFiltro').value;
+            const capacidadeFiltroValue = document.getElementById('capacidadeFiltro').value;
+            if (nomeSalaFiltro || dataCheckinFiltroValue || statusReservaFiltro || capacidadeFiltroValue) {
+                document.getElementById('tituloListaReservas').textContent = "Reservas Filtradas";
+            } else {
+                document.getElementById('tituloListaReservas').textContent = "Suas Reservas";
+            }
+
 
             if (!reservasParaRenderizar || reservasParaRenderizar.length === 0) {
                 semReservasDiv.innerHTML = `<i class="bi bi-calendar-x fs-1 mb-3"></i><h5>Nenhuma reserva encontrada</h5><p class="mb-0">Você ainda não fez nenhuma reserva ou não há reservas com os filtros aplicados.</p>`;
@@ -325,11 +341,11 @@
 
                 reservasParaRenderizar.forEach(reserva => {
                     const statusDetalhado = getReservaStatusDetalhado(reserva, agora);
-                    let statusTextUserFriendly = 'Agendada';
-                    let statusBadgeClass = 'bg-primary';
+                    let statusTextUserFriendly = 'Desconhecido';
+                    let statusBadgeClass = 'bg-secondary';
                     let cardExtraClass = '';
                     let botoesHtml = '';
-                    let dataHoraInicioReserva = null; // For cancellation logic
+                    let dataHoraInicioReserva = null;
 
                     if (reserva.data_reserva && reserva.horario_inicio) {
                         try {
@@ -343,28 +359,28 @@
                             if (![dia, mes, ano, horaInicio, minutoInicio].some(isNaN)) {
                                 dataHoraInicioReserva = new Date(ano, mes, dia, horaInicio, minutoInicio);
                             }
-                        } catch (e) { console.error("Error parsing date for cancellation logic:", e); }
+                        } catch (e) { console.error("Error parsing date for cancellation logic in render:", e); }
                     }
 
-                    let botaoVisualizarHtml = `
-                        <button class="btn btn-outline-info btn-sm" 
-                                onclick='showVisualizarReservaModal(dadosDasReservasAtuais.find(r => r.id_reserva === ${reserva.id_reserva}))'>
-                            <i class="bi bi-eye me-1"></i>Visualizar
-                        </button>`;
+                    let botaoVisualizarHtml = `<button class="btn btn-outline-info btn-sm" onclick='showVisualizarReservaModal(${JSON.stringify(reserva)})'><i class="bi bi-eye me-1"></i>Visualizar Reserva</button>`;
+
                     let acoesAdicionaisHtml = '';
 
                     switch (statusDetalhado) {
-                        case 'cancelada':
-                            statusTextUserFriendly = 'Cancelada';
+                        case 'cancelada_locatario':
+                            statusTextUserFriendly = 'Cancelada (Locatário)';
                             statusBadgeClass = 'bg-danger text-white';
-                            cardExtraClass = 'reserva-cancelada-visual';
-                            botoesHtml = botaoVisualizarHtml;
+                            cardExtraClass = 'reserva-cancelada-visual opacity-75';
+                            break;
+                        case 'cancelada_locador':
+                            statusTextUserFriendly = 'Cancelada (Locador)';
+                            statusBadgeClass = 'bg-danger text-white';
+                            cardExtraClass = 'reserva-cancelada-visual opacity-75';
                             break;
                         case 'passada':
                             statusTextUserFriendly = 'Passada';
                             statusBadgeClass = 'bg-secondary text-white';
-                            cardExtraClass = 'reserva-passada';
-                            botoesHtml = botaoVisualizarHtml;
+                            cardExtraClass = 'reserva-passada opacity-75';
                             break;
                         case 'hoje':
                             statusTextUserFriendly = 'Hoje';
@@ -372,14 +388,13 @@
                             acoesAdicionaisHtml = `
                                 <div class="text-warning small lh-sm d-flex align-items-center me-auto">
                                     <i class="bi bi-info-circle-fill me-1" title="Cancelamento > 24h"></i>
-                                    <span style="font-size: 0.8em;">Cancelamentos requerem mais de 24h de antecedência.</span>
+                                    <span style="font-size: 0.8em;">Cancelamentos só com +24h de antecedência.</span>
                                 </div>`;
-                            botoesHtml = acoesAdicionaisHtml + botaoVisualizarHtml;
                             break;
                         case 'agendada':
                             statusTextUserFriendly = 'Agendada';
                             statusBadgeClass = 'bg-primary text-white';
-                            if (dataHoraInicioReserva) {
+                            if (dataHoraInicioReserva && !isNaN(dataHoraInicioReserva.getTime())) {
                                 const diffHorasParaInicio = (dataHoraInicioReserva.getTime() - agora.getTime()) / (1000 * 60 * 60);
                                 if (diffHorasParaInicio >= 24) {
                                     acoesAdicionaisHtml = `
@@ -390,20 +405,23 @@
                                     acoesAdicionaisHtml = `
                                        <div class="text-warning small lh-sm d-flex align-items-center me-auto">
                                         <i class="bi bi-info-circle-fill me-1" title="Cancelamento > 24h"></i>
-                                        <span style="font-size: 0.8em;">Cancelamentos requerem mais de 24h de antecedência.</span>
+                                        <span style="font-size: 0.8em;">Cancelamentos só com +24h de antecedência.</span>
                                     </div>`;
                                 }
+                            } else {
+                                acoesAdicionaisHtml = `<small class="text-danger me-auto">Erro ao verificar regra de cancelamento.</small>`;
                             }
-                            botoesHtml = acoesAdicionaisHtml + botaoVisualizarHtml;
                             break;
                         case 'dados_invalidos':
                         default:
                             statusTextUserFriendly = 'Dados Inválidos';
-                            statusBadgeClass = 'bg-danger text-white';
-                            botoesHtml = botaoVisualizarHtml + `<small class="text-danger ms-2">Dados da reserva inválidos.</small>`;
-                            console.warn(`Reserva ID: ${reserva.id_reserva} - Dados de data/hora ausentes ou inválidos para status.`);
+                            statusBadgeClass = 'bg-dark text-white border border-danger';
+                            acoesAdicionaisHtml = `<small class="text-danger ms-2 me-auto">Dados da reserva inválidos.</small>`;
                             break;
                     }
+
+                    botoesHtml = acoesAdicionaisHtml + botaoVisualizarHtml;
+
 
                     const cardHTML = `
                         <div class="card bg-dark mb-4 animate__animated animate__fadeInUp ${cardExtraClass}">
@@ -411,20 +429,21 @@
                                 <div class="col-md-4"><img src="${reserva.imagem_url || 'images/placeholder.jpg'}" class="img-fluid rounded-start h-100 object-fit-cover" alt="${reserva.tipo_sala || 'Imagem da sala'}"></div>
                                 <div class="col-md-8">
                                     <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
                                             <h5 class="card-title mb-1">${reserva.tipo_sala || 'Nome da Sala Indisponível'}</h5>
-                                            <span class="badge ${statusBadgeClass} ms-2">${statusTextUserFriendly}</span>
+                                            <span class="badge ${statusBadgeClass} ms-2 fs-09">${statusTextUserFriendly}</span>
                                         </div>
-                                        <p class="card-text text-muted mb-2"><i class="bi bi-geo-alt me-2"></i>${reserva.endereco || 'Endereço não informado'}</p>
-                                        <p class="card-text mb-2"><i class="bi bi-people-fill me-2"></i>${reserva.capacidade_sala || 'N/A'} pessoas</p>
-                                        <p class="card-text mb-2"><i class="bi bi-card-text me-2"></i>${reserva.descricao_sala || 'Descrição não informada'}</p>
-                                        <div class="data-horario-bloco my-3 p-3 bg-darker rounded">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div><i class="bi bi-calendar-check me-2 text-accent"></i><span>${reserva.data_reserva || 'dd/mm/aaaa'}</span></div>
-                                                <div><i class="bi bi-clock me-2 text-accent"></i><span>${reserva.horario_inicio || '--:--'} - ${reserva.horario_fim || '--:--'}</span></div>
+                                        <p class="card-text text-muted mb-1"><i class="bi bi-geo-alt me-2 text-accent"></i>${reserva.endereco || 'Endereço não informado'}</p>
+                                        <p class="card-text mb-1"><i class="bi bi-people-fill me-2 text-accent"></i>Capacidade: ${reserva.capacidade_sala || 'N/A'} pessoas</p>
+                                        <p class="card-text mb-1"><i class="bi bi-cash-coin me-2 text-accent"></i>Valor/hora: R$ ${String(reserva.valor_hora || '0.00').replace('.', ',')}</p>
+                                        
+                                        <div class="data-horario-bloco my-3 p-2 bg-darker rounded-sm">
+                                            <div class="d-flex justify-content-between align-items-center fs-09">
+                                                <div><i class="bi bi-calendar-event me-2 text-accent"></i><span>${reserva.data_reserva || 'dd/mm/aaaa'}</span></div>
+                                                <div><i class="bi bi-clock-history me-2 text-accent"></i><span>${reserva.horario_inicio || '--:--'} - ${reserva.horario_fim || '--:--'}</span></div>
                                             </div>
                                         </div>
-                                        <div class="d-flex align-items-center mt-3">
+                                        <div class="d-flex align-items-center justify-content-end mt-3">
                                             ${botoesHtml}
                                         </div>
                                     </div>
@@ -438,55 +457,33 @@
 
         function aplicarFiltros() {
             const nomeSalaFiltro = document.getElementById('nomeSalaFiltro').value.toLowerCase().trim();
-            const dataCheckinFiltroValue = document.getElementById('dataCheckinFiltro').value; // Format: yyyy-mm-dd
+            const dataCheckinFiltroValue = document.getElementById('dataCheckinFiltro').value;
             const statusReservaFiltro = document.getElementById('statusReservaFiltro').value;
             const capacidadeFiltroValue = document.getElementById('capacidadeFiltro').value;
             const capacidadeFiltro = capacidadeFiltroValue ? parseInt(capacidadeFiltroValue, 10) : null;
 
-            const agora = new Date(); // For status calculation
+            const agora = new Date();
 
             const reservasFiltradas = dadosDasReservasAtuais.filter(reserva => {
                 let corresponde = true;
 
-                // Filtro Nome da Sala (Tipo de Sala)
                 if (nomeSalaFiltro && corresponde) {
                     if (!reserva.tipo_sala || !reserva.tipo_sala.toLowerCase().includes(nomeSalaFiltro)) {
                         corresponde = false;
                     }
                 }
 
-                // Filtro Data de Check-in
                 if (dataCheckinFiltroValue && corresponde) {
-                    const dataFiltro = new Date(dataCheckinFiltroValue + "T00:00:00Z"); // Treat as UTC to match Date object from parts
-
-                    const dataReservaStr = reserva.data_reserva; // Expected format "dd/mm/yyyy"
-                    if (!dataReservaStr) {
-                        corresponde = false; // No data_reserva, cannot match
-                    } else {
-                        const partesDataReserva = dataReservaStr.split('/');
-                        if (partesDataReserva.length === 3) {
-                            const diaReserva = parseInt(partesDataReserva[0], 10);
-                            const mesReserva = parseInt(partesDataReserva[1], 10) - 1; // Month is 0-indexed in JS Date
-                            const anoReserva = parseInt(partesDataReserva[2], 10);
-
-                            if (!isNaN(diaReserva) && !isNaN(mesReserva) && !isNaN(anoReserva)) {
-                                const dataReservaObj = new Date(Date.UTC(anoReserva, mesReserva, diaReserva));
-
-                                if (dataReservaObj.getUTCFullYear() !== dataFiltro.getUTCFullYear() ||
-                                    dataReservaObj.getUTCMonth() !== dataFiltro.getUTCMonth() ||
-                                    dataReservaObj.getUTCDate() !== dataFiltro.getUTCDate()) {
-                                    corresponde = false;
-                                }
-                            } else {
-                                corresponde = false; // Invalid date format in reserva.data_reserva
-                            }
-                        } else {
-                            corresponde = false; // Invalid date format in reserva.data_reserva
+                    if (!reserva.data_reserva) { corresponde = false; }
+                    else {
+                        const [diaRes, mesRes, anoRes] = reserva.data_reserva.split('/');
+                        const dataReservaFormatadaBackend = `${anoRes}-${mesRes.padStart(2, '0')}-${diaRes.padStart(2, '0')}`;
+                        if (dataReservaFormatadaBackend !== dataCheckinFiltroValue) {
+                            corresponde = false;
                         }
                     }
                 }
 
-                // Filtro Status
                 if (statusReservaFiltro && corresponde) {
                     const statusDetalhado = getReservaStatusDetalhado(reserva, agora);
                     if (statusReservaFiltro !== statusDetalhado) {
@@ -494,9 +491,7 @@
                     }
                 }
 
-                // Filtro Capacidade
                 if (capacidadeFiltro !== null && corresponde) {
-                    // Safely parse capacidade_sala, removing non-numeric characters like " pessoas"
                     const capacidadeSalaNum = reserva.capacidade_sala ? parseInt(String(reserva.capacidade_sala).replace(/\D/g, ''), 10) : null;
                     if (capacidadeSalaNum === null || isNaN(capacidadeSalaNum) || capacidadeSalaNum < capacidadeFiltro) {
                         corresponde = false;
@@ -512,12 +507,48 @@
             document.getElementById('dataCheckinFiltro').value = '';
             document.getElementById('statusReservaFiltro').value = '';
             document.getElementById('capacidadeFiltro').value = '';
-            renderizarReservas(dadosDasReservasAtuais); // Re-render with all original data
+            document.getElementById('tituloListaReservas').textContent = "Suas Reservas";
+            renderizarReservas(dadosDasReservasAtuais);
         }
 
         async function exportarReservasParaPDF() {
-            if (!dadosDasReservasAtuais || dadosDasReservasAtuais.length === 0) {
-                Swal.fire({ icon: 'info', title: 'Nenhuma Reserva', text: 'Não há reservas para exportar.', background: '#121212', color: '#fff' });
+            const nomeSalaFiltro = document.getElementById('nomeSalaFiltro').value.toLowerCase().trim();
+            const dataCheckinFiltroValue = document.getElementById('dataCheckinFiltro').value;
+            const statusReservaFiltro = document.getElementById('statusReservaFiltro').value;
+            const capacidadeFiltroValue = document.getElementById('capacidadeFiltro').value;
+            const capacidadeFiltro = capacidadeFiltroValue ? parseInt(capacidadeFiltroValue, 10) : null;
+            const agoraPDF = new Date();
+
+            let reservasParaExportar = dadosDasReservasAtuais.filter(reserva => {
+                let corresponde = true;
+                if (nomeSalaFiltro) {
+                    if (!reserva.tipo_sala || !reserva.tipo_sala.toLowerCase().includes(nomeSalaFiltro)) corresponde = false;
+                }
+                if (dataCheckinFiltroValue && corresponde) {
+                    if (!reserva.data_reserva) { corresponde = false; }
+                    else {
+                        const [diaRes, mesRes, anoRes] = reserva.data_reserva.split('/');
+                        const dataReservaFormatadaBackend = `${anoRes}-${mesRes.padStart(2, '0')}-${diaRes.padStart(2, '0')}`;
+                        if (dataReservaFormatadaBackend !== dataCheckinFiltroValue) corresponde = false;
+                    }
+                }
+                if (statusReservaFiltro && corresponde) {
+                    const statusDetalhado = getReservaStatusDetalhado(reserva, agoraPDF);
+                    if (statusReservaFiltro !== statusDetalhado) corresponde = false;
+                }
+                if (capacidadeFiltro !== null && corresponde) {
+                    const capacidadeSalaNum = reserva.capacidade_sala ? parseInt(String(reserva.capacidade_sala).replace(/\D/g, ''), 10) : null;
+                    if (capacidadeSalaNum === null || isNaN(capacidadeSalaNum) || capacidadeSalaNum < capacidadeFiltro) corresponde = false;
+                }
+                return corresponde;
+            });
+
+            if (!reservasParaExportar || reservasParaExportar.length === 0) {
+                Swal.fire({
+                    icon: 'info', title: 'Nenhuma Reserva',
+                    text: 'Não há reservas para exportar com os filtros atuais.',
+                    background: '#1e1e1e', color: '#fff', customClass: { popup: 'dark-swal' }
+                });
                 return;
             }
 
@@ -525,18 +556,16 @@
             const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
             const margin = 15;
-            const logoOriginalWidth = 349; // Use as dimensões reais se forem diferentes
-            const logoOriginalHeight = 95; // Use as dimensões reais se forem diferentes
-            const logoDisplayWidthPDF = 40;
+            const logoOriginalWidth = 349;
+            const logoOriginalHeight = 95;
+            const logoDisplayWidthPDF = 30;
             const logoDisplayHeightPDF = (logoOriginalHeight / logoOriginalWidth) * logoDisplayWidthPDF;
 
             try {
-                if (logoBase64 && logoBase64.startsWith('data:image')) { // logoBase64 é definida no início do seu script
+                if (logoBase64 && logoBase64.startsWith('data:image')) {
                     doc.addImage(logoBase64, 'PNG', margin, margin, logoDisplayWidthPDF, logoDisplayHeightPDF);
                 }
-            } catch (e) {
-                console.error("Erro ao adicionar logo ao PDF:", e);
-            }
+            } catch (e) { console.error("Erro ao adicionar logo ao PDF:", e); }
 
             doc.setFontSize(18);
             doc.setTextColor(18, 18, 18);
@@ -549,23 +578,32 @@
             }
             doc.setFontSize(10);
             doc.setTextColor(100, 100, 100);
-            const startYInfo = margin + logoDisplayHeightPDF + 10;
+            const startYInfo = margin + logoDisplayHeightPDF + 6;
             doc.text(`Usuário: ${nomeUsuario}`, margin, startYInfo);
             doc.text(`Data de Emissão: ${new Date().toLocaleDateString('pt-BR')}`, margin, startYInfo + 5);
 
-            const head = [['DATA', 'HORÁRIO', 'TIPO SALA', 'STATUS', 'CAPACIDADE', 'VALOR TOTAL (R$)']];
-            const agoraPDF = new Date(); // Usado para determinar o status no contexto do PDF
+            let currentY = startYInfo + 10;
+            if (nomeSalaFiltro) {
+                doc.text(`Filtro Tipo Sala: ${nomeSalaFiltro}`, margin, currentY); currentY += 5;
+            }
+            if (dataCheckinFiltroValue) {
+                const [ano, mes, dia] = dataCheckinFiltroValue.split('-');
+                doc.text(`Filtro Data Check-in: ${dia}/${mes}/${ano}`, margin, currentY); currentY += 5;
+            }
+            if (statusReservaFiltro) {
+                const statusText = document.getElementById('statusReservaFiltro').options[document.getElementById('statusReservaFiltro').selectedIndex].text;
+                doc.text(`Filtro Status: ${statusText}`, margin, currentY); currentY += 5;
+            }
+            if (capacidadeFiltroValue) {
+                doc.text(`Filtro Capacidade Mínima: ${capacidadeFiltroValue} pessoas`, margin, currentY); currentY += 5;
+            }
 
-            const body = dadosDasReservasAtuais.map(reserva => {
-                // AQUI ESTÁ A CORREÇÃO PRINCIPAL: Usar getReservaStatusDetalhado
+
+            const head = [['DATA', 'HORÁRIO', 'TIPO SALA', 'ENDEREÇO', 'STATUS', 'CAPAC.', 'VALOR TOTAL (R$)']];
+
+            const body = reservasParaExportar.map(reserva => {
                 const statusDetalhadoPDF = getReservaStatusDetalhado(reserva, agoraPDF);
-                let statusTextoPDF = statusDetalhadoPDF.charAt(0).toUpperCase() + statusDetalhadoPDF.slice(1);
-                if (statusDetalhadoPDF === 'dados_invalidos') {
-                    statusTextoPDF = 'Dados Inválidos';
-                } else if (statusDetalhadoPDF === 'desconhecido') { // Caso o fallback seja atingido
-                    statusTextoPDF = 'Desconhecido';
-                }
-                // Para 'cancelada', 'agendada', 'hoje', 'passada', a capitalização já funciona bem.
+                let statusTextoPDF = statusDetalhadoPDF.replace(/_/g, ' ').replace(/(^\w{1})|(\s+\w{1})/g, letter => letter.toUpperCase());
 
                 let valorTotalReservaStr = 'N/D';
                 if (reserva.data_reserva && reserva.horario_inicio && reserva.horario_fim && reserva.valor_hora) {
@@ -586,54 +624,73 @@
 
                                 if (!isNaN(valorHoraNumerico) && duracaoHoras > 0) {
                                     const totalCalculado = duracaoHoras * valorHoraNumerico;
-                                    // Só calcula o valor se a reserva não estiver cancelada ou se fizer sentido para o seu negócio
-                                    if (statusDetalhadoPDF !== 'cancelada') { // Ou outra lógica de negócio
-                                        valorTotalReservaStr = `R$ ${totalCalculado.toFixed(2).replace('.', ',')}`;
+                                    if (statusDetalhadoPDF === 'cancelada_locatario' || statusDetalhadoPDF === 'cancelada_locador') {
+                                        valorTotalReservaStr = 'R$ 0,00 (Cancelada)';
                                     } else {
-                                        valorTotalReservaStr = 'R$ 0,00'; // Ou 'Cancelada' ou 'N/A' para valor
+                                        valorTotalReservaStr = `R$ ${totalCalculado.toFixed(2).replace('.', ',')}`;
                                     }
                                 }
                             }
                         }
-                    } catch (e) {
-                        console.error("Erro ao calcular valor total da reserva para PDF:", e);
-                    }
+                    } catch (e) { console.error("Erro ao calcular valor total da reserva para PDF:", e); }
                 }
-
 
                 return [
                     reserva.data_reserva || 'N/D',
                     `${reserva.horario_inicio || '--:--'} - ${reserva.horario_fim || '--:--'}`,
                     reserva.tipo_sala || 'N/D',
-                    statusTextoPDF, // Status corrigido aqui
-                    `${reserva.capacidade_sala || 'N/A'}`, // Removido " pessoas" para PDF, se preferir
+                    reserva.endereco || 'N/D',
+                    statusTextoPDF,
+                    reserva.capacidade_sala ? `${reserva.capacidade_sala} p.` : 'N/D',
                     valorTotalReservaStr
                 ];
             });
 
             doc.autoTable({
-                startY: startYInfo + 15,
+                startY: currentY + 5,
                 head: head,
                 body: body,
                 theme: 'grid',
-                headStyles: { fillColor: [90, 129, 149], textColor: [248, 249, 250] },
-                styles: { fontSize: 9, cellPadding: 2, font: "helvetica", textColor: [18, 18, 18] },
+                headStyles: { fillColor: [67, 97, 238], textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { fontSize: 8, cellPadding: 1.5, font: "helvetica", textColor: [50, 50, 50] },
                 alternateRowStyles: { fillColor: [230, 230, 245] },
-                margin: { top: startYInfo + 10, bottom: 20, left: margin, right: margin },
+                margin: { top: currentY, bottom: 20, left: margin, right: margin },
+                tableWidth: 'auto',
+                columnStyles: {
+                    0: { cellWidth: 18 },  // DATA
+                    1: { cellWidth: 20 },  // HORÁRIO
+                    2: { cellWidth: 30 },  // TIPO SALA
+                    3: { cellWidth: 45 },  // ENDEREÇO
+                    4: { cellWidth: 30 },  // STATUS
+                    5: { cellWidth: 15 },  // CAPAC.
+                    6: { cellWidth: 22 }   // VALOR TOTAL
+                },
                 didDrawPage: function (data) {
                     const pageCount = doc.internal.getNumberOfPages();
                     doc.setFontSize(8);
                     doc.setTextColor(150);
                     doc.text(`Página ${data.pageNumber} de ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
-                    doc.text('Relatório gerado por Roomly', doc.internal.pageSize.width - data.settings.margin.right, doc.internal.pageSize.height - 10, { align: 'right' });
+                    doc.text('Relatório de Reservas Roomly', doc.internal.pageSize.width - data.settings.margin.right, doc.internal.pageSize.height - 10, { align: 'right' });
                 }
             });
 
             doc.save('Minhas_Reservas_Roomly.pdf');
-            Swal.fire({ icon: 'success', title: 'PDF Gerado!', text: 'Download do relatório iniciado.', background: '#121212', color: '#fff' });
+            Swal.fire({
+                icon: 'success', title: 'PDF Gerado!',
+                text: 'Download do relatório de reservas iniciado.',
+                background: '#1e1e1e', color: '#fff', customClass: { popup: 'dark-swal' },
+                focusConfirm: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                backdrop: true,
+                heightAuto: false,
+                scrollbarPadding: false,
+            });
         }
 
-        function cancelarReserva(idReserva) {
+
+        async function cancelarReserva(idReserva) {
             Swal.fire({
                 title: 'Tem certeza?',
                 text: "Você deseja realmente cancelar esta reserva? Esta ação não pode ser desfeita.",
@@ -641,10 +698,11 @@
                 showCancelButton: true,
                 confirmButtonText: 'Sim, cancelar!',
                 cancelButtonText: 'Não',
-                confirmButtonColor: '#d33',
+                confirmButtonColor: '#dc3545',
                 cancelButtonColor: '#6c757d',
-                background: '#121212',
+                background: '#1e1e1e',
                 color: '#fff',
+                customClass: { popup: 'dark-swal' },
                 focusConfirm: false,
                 allowOutsideClick: false,
                 allowEscapeKey: false,
@@ -659,27 +717,26 @@
                         const response = await fetch(`http://127.0.0.1:8000/reservas/${idReserva}/cancelar`, {
                             method: 'PUT',
                             credentials: 'include',
-                            headers: { 'Accept': 'application/json' }
+                            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
                         });
 
                         const data = await response.json();
                         Swal.hideLoading();
 
                         if (response.ok && data.success) {
-                            Swal.fire({ title: 'Cancelada!', text: data.message, icon: 'success', background: '#121212', color: '#fff' });
-                            carregarReservas(); // Recarrega para refletir a mudança de status
+                            Swal.fire({ title: 'Cancelada!', text: data.message, icon: 'success', background: '#1e1e1e', color: '#fff', customClass: { popup: 'dark-swal' } });
+                            carregarReservas();
                         } else {
-                            Swal.fire({ title: 'Erro!', text: data.detail || 'Não foi possível cancelar a reserva.', icon: 'error', background: '#121212', color: '#fff' });
+                            Swal.fire({ title: 'Erro!', text: data.detail || data.message || 'Não foi possível cancelar a reserva.', icon: 'error', background: '#1e1e1e', color: '#fff', customClass: { popup: 'dark-swal' } });
                         }
                     } catch (error) {
                         Swal.hideLoading();
                         console.error('Erro na requisição de cancelamento:', error);
-                        Swal.fire({ title: 'Erro de Conexão!', text: 'Não foi possível conectar ao servidor.', icon: 'error', background: '#121212', color: '#fff' });
+                        Swal.fire({ title: 'Erro de Conexão!', text: 'Não foi possível conectar ao servidor.', icon: 'error', background: '#1e1e1e', color: '#fff', customClass: { popup: 'dark-swal' } });
                     }
                 }
             });
         }
-
     </script>
 </body>
 
