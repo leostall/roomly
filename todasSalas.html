@@ -37,7 +37,6 @@
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
               <li><a class="dropdown-item" onclick="showEditUserModal()"><i class="bi bi-person me-2"></i>Editar
                   usuário</a></li>
-              <!-- Itens administrativos (só aparecem para papel = 2) -->
               <div id="admin-items" style="display: none;">
                 <li><a class="dropdown-item" href="#" id="editRooms"><i class="bi bi-pencil-square me-2"></i>Minhas
                     Salas</a></li>
@@ -67,66 +66,63 @@
 
   <div class="container py-5">
   <div class="row">
-    <!-- Sidebar de Filtros -->
     <div class="col-lg-3">
-      <div class="filter-sidebar">
-        <h5 class="mb-3">Filtros</h5>
-        <!-- Filtro por Capacidade -->
-        <div class="mb-3">
-          <label for="filter-capacity" class="form-label">Capacidade</label>
-          <select id="filter-capacity" class="form-select">
-            <option value="">Selecione</option>
-            <option value="1">1-10 pessoas</option>
-            <option value="2">11-20 pessoas</option>
-            <option value="3">21-50 pessoas</option>
-            <option value="4">Mais de 50 pessoas</option>
-          </select>
+      <div class="card bg-dark border-0 rounded-lg shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title text-accent mb-4">Filtros</h5>
+            <div class="mb-3">
+              <label for="filter-capacity" class="form-label">Capacidade</label>
+              <select id="filter-capacity" class="form-select form-select-dark">
+                <option value="">Selecione</option>
+                <option value="1">1-10 pessoas</option>
+                <option value="2">11-20 pessoas</option>
+                <option value="3">21-50 pessoas</option>
+                <option value="4">Mais de 50 pessoas</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="filter-price" class="form-label">Valor por Hora</label>
+              <select id="filter-price" class="form-select form-select-dark">
+                <option value="">Selecione</option>
+                <option value="1">R$ 0 - R$ 50</option>
+                <option value="2">R$ 51 - R$ 100</option>
+                <option value="3">R$ 101 - R$ 200</option>
+                <option value="4">Mais de R$ 200</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="filter-availability" class="form-label">Disponibilidade</label>
+              <select id="filter-availability" class="form-select form-select-dark">
+                <option value="">Selecione</option>
+                <option value="segunda">Segunda-feira</option>
+                <option value="terca">Terça-feira</option>
+                <option value="quarta">Quarta-feira</option>
+                <option value="quinta">Quinta-feira</option>
+                <option value="sexta">Sexta-feira</option>
+                <option value="sabado">Sábado</option>
+                <option value="domingo">Domingo</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="filter-state" class="form-label">Estado</label>
+              <select id="filter-state" class="form-select form-select-dark" onchange="carregarCidades()">
+                <option value="">Selecione</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="filter-city" class="form-label">Cidade</label>
+              <select id="filter-city" class="form-select form-select-dark">
+                <option value="">Selecione</option>
+              </select>
+            </div>
+            <div class="d-grid gap-2">
+                <button class="btn btn-primary" onclick="aplicarFiltros()">Aplicar Filtros</button>
+            </div>
         </div>
-        <!-- Filtro por Valores -->
-        <div class="mb-3">
-          <label for="filter-price" class="form-label">Valor por Hora</label>
-          <select id="filter-price" class="form-select">
-            <option value="">Selecione</option>
-            <option value="1">R$ 0 - R$ 50</option>
-            <option value="2">R$ 51 - R$ 100</option>
-            <option value="3">R$ 101 - R$ 200</option>
-            <option value="4">Mais de R$ 200</option>
-          </select>
-        </div>
-        <!-- Filtro por Disponibilidade -->
-        <div class="mb-3">
-          <label for="filter-availability" class="form-label">Disponibilidade</label>
-          <select id="filter-availability" class="form-select">
-            <option value="">Selecione</option>
-            <option value="segunda">Segunda-feira</option>
-            <option value="terca">Terça-feira</option>
-            <option value="quarta">Quarta-feira</option>
-            <option value="quinta">Quinta-feira</option>
-            <option value="sexta">Sexta-feira</option>
-            <option value="sabado">Sábado</option>
-            <option value="domingo">Domingo</option>
-          </select>
-        </div>
-        <!-- Filtro por Estado -->
-        <div class="mb-3">
-          <label for="filter-state" class="form-label">Estado</label>
-          <select id="filter-state" class="form-select" onchange="carregarCidades()">
-            <option value="">Selecione</option>
-          </select>
-        </div>
-        <!-- Filtro por Cidade -->
-        <div class="mb-3">
-          <label for="filter-city" class="form-label">Cidade</label>
-          <select id="filter-city" class="form-select">
-            <option value="">Selecione</option>
-          </select>
-        </div>
-        <button class="btn btn-primary w-100" onclick="aplicarFiltros()">Aplicar Filtros</button>
       </div>
     </div>
 
-  <!-- Conteúdo Principal -->
-      <div class="col-lg-9">
+  <div class="col-lg-9">
         <div class="row g-4" id="user-rooms-container"></div>
       </div>
     </div>
@@ -308,6 +304,8 @@ function atualizarSalas(salas) {
     container.innerHTML += card;
   });
 }
+
+
 
 // Inicializar estados ao carregar a página
 document.addEventListener("DOMContentLoaded", carregarEstados);
