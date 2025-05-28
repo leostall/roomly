@@ -440,14 +440,19 @@ function showCadastroSalaModal() {
                   <input type="text" class="form-control" id="modalNumero" placeholder="Número" required>
                 </div>
 
-                <div class="col-12 col-md-6">
-                  <label for="modalCidade" class="form-label">Cidade *</label>
-                  <input type="text" class="form-control" id="modalCidade" placeholder="Cidade" required>
-                </div>
 
                 <div class="col-12 col-md-6">
                   <label for="modalEstado" class="form-label">Estado *</label>
-                  <input type="text" class="form-control" id="modalEstado" placeholder="Estado" required>
+                  <select class="form-control" id="modalEstado" required>
+                    <option value="" disabled selected>Selecione um estado</option>
+                  </select>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="modalCidade" class="form-label">Cidade *</label>
+                  <select class="form-control" id="modalCidade" required>
+                    <option value="" disabled selected>Selecione uma cidade</option>
+                  </select>
                 </div>
 
                 <div class="col-12">
@@ -567,6 +572,14 @@ function setupCadastroSalaModal() {
   // Carrega os tipos de sala
   carregarTiposSalaModal();
 
+  carregarEstados("modalEstado");
+
+  // Configura o evento para carregar cidades ao selecionar um estado
+  document.getElementById("modalEstado").addEventListener("change", () => {
+    carregarCidades("modalEstado", "modalCidade");
+  });
+
+
   // Configura máscara para o CEP
   document.getElementById("modalCep").addEventListener("input", function (e) {
     let cep = e.target.value.replace(/\D/g, '');
@@ -589,8 +602,10 @@ function setupCadastroSalaModal() {
 
       if (!data.erro) {
         document.getElementById('modalRua').value = data.logradouro || '';
-        document.getElementById('modalCidade').value = data.localidade || '';
+        document.getElementById('modalCidade').innerHTML = `<option value="${data.localidade}" selected>${data.localidade}</option>`;
         document.getElementById('modalEstado').value = data.uf || '';
+      } else {
+        console.error("CEP não encontrado.");
       }
     } catch (error) {
       console.error("Erro ao buscar CEP:", error);
@@ -723,19 +738,31 @@ function setupCadastroSalaModal() {
     const diasUteisSelecionados = segunda || terca || quarta || quinta || sexta;
     const diasNaoUteisSelecionados = sabado || domingo;
 
+    const cepValido = await validarCepCidadeEstado(cep, cidade, estado);
+    if (!cepValido) {
+      Swal.fire({
+        title: "Erro!",
+        text: "O CEP não corresponde à cidade e ao estado selecionados.",
+        icon: "error",
+        background: "#121212",
+        color: "#fff"
+      });
+      return; // Impede o envio do formulário
+    }
+
     if (diasUteisSelecionados) {
-  if (!document.getElementById("modalHorarioInicioUteis").value || !document.getElementById("modalHorarioFimUteis").value) {
-    Swal.fire({
-      title: 'Erro!',
-      text: 'Preencha os horários de dias úteis.',
-      icon: 'info',
-      confirmButtonText: 'Ok',
-      background: '#121212',
-      color: '#fff'
-    });
-    return;
-  }
-}
+      if (!document.getElementById("modalHorarioInicioUteis").value || !document.getElementById("modalHorarioFimUteis").value) {
+        Swal.fire({
+          title: 'Erro!',
+          text: 'Preencha os horários de dias úteis.',
+          icon: 'info',
+          confirmButtonText: 'Ok',
+          background: '#121212',
+          color: '#fff'
+        });
+        return;
+      }
+    }
 if (diasNaoUteisSelecionados) {
   if (!document.getElementById("modalHorarioInicioNaoUtil").value || !document.getElementById("modalHorarioFimNaoUtil").value) {
     Swal.fire({
@@ -983,13 +1010,17 @@ function showEditSalaModal(salaId) {
                 <label for="modalEditNumero" class="form-label">Número</label>
                 <input type="number" class="form-control" id="modalEditNumero" required>
               </div>
-              <div class="col-md-6">
-                <label for="modalEditCidade" class="form-label">Cidade</label>
-                <input type="text" class="form-control" id="modalEditCidade" required>
+              <div class="col-12 col-md-6">
+                <label for="modalEditEstado" class="form-label">Estado *</label>
+                <select class="form-control" id="modalEditEstado" required>
+                  <option value="" disabled selected>Selecione um estado</option>
+                </select>
               </div>
-              <div class="col-md-6">
-                <label for="modalEditEstado" class="form-label">Estado</label>
-                <input type="text" class="form-control" id="modalEditEstado" required>
+              <div class="col-12 col-md-6">
+                <label for="modalEditCidade" class="form-label">Cidade *</label>
+                <select class="form-control" id="modalEditCidade" required>
+                  <option value="" disabled selected>Selecione uma cidade</option>
+                </select>
               </div>
               <div class="col-md-6">
                 <label for="modalEditComplemento" class="form-label">Complemento</label>
@@ -1109,10 +1140,13 @@ async function loadSalaData(salaId) {
     document.getElementById('modalEditCep').value = formatarCEP(sala.cep || '');
     document.getElementById("modalEditRua").value = sala.rua || "";
     document.getElementById("modalEditNumero").value = sala.numero || "";
-    document.getElementById("modalEditCidade").value = sala.cidade || "";
     document.getElementById("modalEditEstado").value = sala.estado || "";
     document.getElementById("modalEditComplemento").value = sala.complemento || "";
     document.getElementById("modalEditDescricao").value = sala.descricao || "";
+
+    // Preenche o campo de cidade dinamicamente
+    const selectCidade = document.getElementById("modalEditCidade");
+    selectCidade.innerHTML = `<option value="${sala.cidade}" selected>${sala.cidade}</option>`;
 
     // Preenche os checkboxes
     document.getElementById("modalEditDomingo").checked = sala.disponibilidade.domingo;
@@ -1183,6 +1217,15 @@ toggleHorariosEdicao();
 
 // Função para configurar a modal de edição de sala
 function setupEditSalaModal(salaId) {
+
+  // Carrega os estados
+  carregarEstados("modalEditEstado");
+
+  // Configura o evento para carregar cidades ao selecionar um estado
+  document.getElementById("modalEditEstado").addEventListener("change", () => {
+    carregarCidades("modalEditEstado", "modalEditCidade");
+  });
+
   // Configura máscara para o CEP
   document.getElementById("modalEditCep").addEventListener("input", function (e) {
     let cep = e.target.value.replace(/\D/g, '');
@@ -1205,8 +1248,10 @@ function setupEditSalaModal(salaId) {
 
       if (!data.erro) {
         document.getElementById('modalEditRua').value = data.logradouro || '';
-        document.getElementById('modalEditCidade').value = data.localidade || '';
+        document.getElementById('modalEditCidade').innerHTML = `<option value="${data.localidade}" selected>${data.localidade}</option>`;
         document.getElementById('modalEditEstado').value = data.uf || '';
+      } else {
+        console.error("CEP não encontrado.");
       }
     } catch (error) {
       console.error("Erro ao buscar CEP:", error);
@@ -1288,6 +1333,22 @@ function setupEditSalaModal(salaId) {
     const horarioInicioNaoUteisFinal = (sabado || domingo) ? horarioInicioNaoUteis : null;
     const horarioFimNaoUteisFinal = (sabado || domingo) ? horarioFimNaoUteis : null;
 
+
+    const cep = document.getElementById("modalEditCep").value.replace(/\D/g, '');
+    const cidade = document.getElementById("modalEditCidade").value;
+    const estado = document.getElementById("modalEditEstado").value;
+
+    const cepValido = await validarCepCidadeEstado(cep, cidade, estado);
+    if (!cepValido) {
+      Swal.fire({
+        title: "Erro!",
+        text: "O CEP não corresponde à cidade e ao estado selecionados.",
+        icon: "error",
+        background: "#121212",
+        color: "#fff"
+      });
+      return; // Impede o envio do formulário
+    }
 
   // Validação de intervalo de horários
     if (horarioInicioUteis && horarioFimUteis) {
@@ -1901,4 +1962,59 @@ async function carregarReservasUsuario() {
     const container = document.getElementById('reservasContainer');
     container.innerHTML = '<p class="text-center text-danger">Erro ao carregar reservas.</p>';
   }
+}
+
+// Função para carregar estados
+async function carregarEstados(selectId) {
+  try {
+    const response = await fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados");
+    const estados = await response.json();
+
+    const selectEstado = document.getElementById(selectId);
+    selectEstado.innerHTML = '<option value="" disabled selected>Selecione um estado</option>';
+
+    estados.forEach(estado => {
+      const option = document.createElement("option");
+      option.value = estado.sigla;
+      option.textContent = estado.nome;
+      selectEstado.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Erro ao carregar estados:", error);
+  }
+}
+
+// Função para carregar cidades
+async function carregarCidades(selectEstadoId, selectCidadeId) {
+  const estadoSigla = document.getElementById(selectEstadoId).value;
+  if (!estadoSigla) return;
+
+  try {
+    const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSigla}/municipios`);
+    const cidades = await response.json();
+
+    const selectCidade = document.getElementById(selectCidadeId);
+    selectCidade.innerHTML = '<option value="" disabled selected>Selecione uma cidade</option>';
+
+    cidades.forEach(cidade => {
+      const option = document.createElement("option");
+      option.value = cidade.nome;
+      option.textContent = cidade.nome;
+      selectCidade.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Erro ao carregar cidades:", error);
+  }
+}
+
+function validarCepCidadeEstado(cep, cidade, estado) {
+  return fetch(`https://viacep.com.br/ws/${cep}/json/`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.erro) {
+        return false; // CEP inválido
+      }
+      return data.localidade === cidade && data.uf === estado; // Verifica cidade e estado
+    })
+    .catch(() => false); // Retorna falso em caso de erro
 }
