@@ -532,11 +532,11 @@ function showCadastroSalaModal() {
 
                   <div id="containerHorarioNaoUteis" class="row mt-3">
                     <div class="col-6">
-                      <label for="modalHorarioInicioNaoUtil" class="form-label">Horário Início (Finais de Semana/Feriados) *</label>
+                      <label for="modalHorarioInicioNaoUtil" class="form-label">Horário Início (Finais de Semana/Feriados)*</label>
                       <input type="time" class="form-control horario-btn" id="modalHorarioInicioNaoUtil">
                     </div>
                     <div class="col-6">
-                      <label for="modalHorarioFimNaoUtil" class="form-label">Horário Fim (Finais de Semana/Feriados) *</label>
+                      <label for="modalHorarioFimNaoUtil" class="form-label">Horário Fim (Finais de Semana/Feriados)*</label>
                       <input type="time" class="form-control horario-btn" id="modalHorarioFimNaoUtil">
                     </div>
                   </div>
@@ -586,6 +586,12 @@ function setupCadastroSalaModal() {
       cep = cep.slice(0, 8);
       e.target.value = cep.replace(/(\d{5})(\d{3})/, '$1-$2');
     }
+  });
+
+  // Configura máscara para o campo "Número"
+  document.getElementById("modalNumero").addEventListener("input", function (e) {
+    let numero = e.target.value.replace(/\D/g, ''); // Remove tudo que não for número
+    e.target.value = numero; // Atualiza o valor do campo
   });
 
   // Busca endereço pelo CEP
@@ -742,6 +748,128 @@ function setupCadastroSalaModal() {
     const diasNaoUteisSelecionados = sabado || domingo;
 
     const cepValido = await validarCepCidadeEstado(cep, cidade, estado);
+
+    if (!tipoSalaId || !capacidade || !tamanhoM2 || !valorHora || !recursos || !tipoMobilia || !cep || !rua || !cidade || !estado || !numero || !descricao) {
+      Swal.fire({
+        title: "Erro!",
+        text: "Preencha todos os campos obrigatórios.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+    if (recursos.length < 10 || tipoMobilia.length < 10 || rua.length < 10 || descricao.length < 10) {
+      Swal.fire({
+        title: "Erro!",
+        text: "Os campos de texto devem ter no mínimo 10 caracteres.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+    if (descricao.length > 200) {
+      Swal.fire({
+        title: "Erro!",
+        text: "A descrição deve ter no máximo 200 caracteres.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+    if (capacidade <= 0 || numero <= 0 || capacidade.includes(",")) {
+      Swal.fire({
+        title: "Erro!",
+        text: "Os campos numéricos devem ser positivos e não podem conter vírgulas.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+    // Validação do campo "Número"
+    if (!numero || isNaN(numero) || numero.includes(",") || parseInt(numero) <= 0) {
+      Swal.fire({
+        title: "Erro!",
+        text: "O campo 'Número' deve conter apenas números positivos e não pode conter vírgulas.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+    // Validação do campo "Valor Hora"
+    if (!valorHora || isNaN(valorHora.replace(",", ".")) || parseFloat(valorHora.replace(",", ".")) < 0.1) {
+      Swal.fire({
+        title: "Erro!",
+        text: "O campo 'Valor Hora' deve ser um número válido (mínimo 0,1).",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+    if (!capacidade || isNaN(capacidade.replace(",", ".")) || parseFloat(capacidade.replace(",", ".")) < 0.1) {
+      Swal.fire({
+        title: "Erro!",
+        text: "O campo 'Capacidade' deve ser um número válido (mínimo 0,1).",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+
+    if (!(domingo || segunda || terca || quarta || quinta || sexta || sabado)) {
+      Swal.fire({
+        title: "Erro!",
+        text: "Selecione pelo menos um dia da semana.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+    if (horarioInicioUteis && horarioFimUteis) {
+      const diffUteis = calcularDiferencaHoras(horarioInicioUteis, horarioFimUteis);
+      if (diffUteis < 1) {
+        Swal.fire({
+          title: "Erro!",
+          text: "O intervalo entre os horários de dias úteis deve ser maior que 1 hora.",
+          icon: "error",
+          background: "#121212",
+          color: "#ffffff"
+        });
+        return;
+      }
+    }
+
+    if (horarioInicioNaoUteis && horarioFimNaoUteis) {
+      const diffNaoUteis = calcularDiferencaHoras(horarioInicioNaoUteis, horarioFimNaoUteis);
+      if (diffNaoUteis < 1) {
+        Swal.fire({
+          title: "Erro!",
+          text: "O intervalo entre os horários de finais de semana/feriados deve ser maior que 1 hora.",
+          icon: "error",
+          background: "#121212",
+          color: "#ffffff"
+        });
+        return;
+      }
+    }
+
+
+
     if (!cepValido) {
       Swal.fire({
         title: "Erro!",
