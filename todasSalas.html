@@ -121,9 +121,18 @@
         </div>
       </div>
     </div>
+    
+    <!-- Coluna de Salas -->
+    <div class="col-lg-9">
+      <!-- Aviso de "Nenhuma sala encontrada" -->
+      <div id="semSalas" class="alert alert-dark text-center" style="display: none;">
+        <i class="bi bi-calendar-x fs-1 mb-3"></i>
+        <h5>Nenhuma sala encontrada</h5>
+        <p class="mb-0">Não há salas disponíveis ou não há salas com os filtros aplicados.</p>
+      </div>
 
-  <div class="col-lg-9">
-        <div class="row g-4" id="user-rooms-container"></div>
+      <!-- Contêiner de Salas -->
+      <div class="row g-4" id="user-rooms-container"></div>
       </div>
     </div>
   </div>
@@ -276,7 +285,20 @@ function aplicarFiltros() {
 // Atualizar o container de salas com os resultados
 function atualizarSalas(salas) {
   const container = document.getElementById("user-rooms-container");
-  container.innerHTML = ""; // Limpar resultados anteriores
+  const semSalasDiv = document.getElementById("semSalas");
+
+  // Limpar resultados anteriores
+  container.innerHTML = "";
+
+  if (salas.length === 0) {
+    // Exibe o alerta de "Nenhuma sala encontrada"
+    semSalasDiv.style.display = "block";
+    return;
+  }
+
+  // Oculta o alerta de "Nenhuma sala encontrada"
+  semSalasDiv.style.display = "none";
+
 
   if (salas.length === 0) {
     container.innerHTML = "<p class='text-center'>Nenhuma sala encontrada.</p>";
