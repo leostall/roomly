@@ -1854,6 +1854,17 @@ function setupTiposSalaModal() {
       return;
     }
 
+    if (!nome || nome.length < 3) {
+      Swal.fire({
+        title: "Atenção!",
+        text: "O nome do tipo deve ter no mínimo 3 caracteres.",
+        icon: "info",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
     try {
       let response;
       if (id) {
