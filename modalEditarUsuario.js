@@ -119,41 +119,46 @@ function setupModalEvents() {
         }
 
         fetch("http://127.0.0.1:8000/excluir-conta", {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
             credentials: "include",
-            body: JSON.stringify({ senha })
+            body: JSON.stringify({ senha: senha }),
         })
             .then(async response => {
-                const data = await response.json();
+                const data = await response.json(); // É bom tentar parsear o JSON em ambos os casos (sucesso/erro)
                 const confirmDeleteModalEl = document.getElementById('confirmDeleteModal');
-                if (response.ok && data.success !== false) {
+
+                if (response.ok) { // Esta é a verificação principal para sucesso (status HTTP 2xx)
                     confirmDeleteModalEl.dataset.actionCompleted = 'true';
                     const deleteModalInstance = bootstrap.Modal.getInstance(confirmDeleteModalEl);
                     if (deleteModalInstance) deleteModalInstance.hide();
+
                     Swal.fire({
                         title: "Conta excluída!",
-                        text: data.message,
+                        text: data.message, // Use data.message para a mensagem de sucesso
                         icon: "success",
                         background: "#121212",
                         color: "#ffffff"
                     }).then(() => {
                         window.location.href = "login.html";
                     });
-                } else {
+                } else { // Se response.ok for false, houve um erro (HTTP 4xx ou 5xx)
                     Swal.fire({
                         title: "Erro!",
-                        text: data.message || "Senha incorreta. Conta não excluída.",
+                        text: data.detail || "Ocorreu um erro ao excluir a conta.", // data.detail é o padrão do FastAPI para erros HTTP
                         icon: "error",
                         background: "#121212",
                         color: "#ffffff"
                     });
                 }
             })
-            .catch(error => {
+            .catch(error => { // Erros de rede ou falhas ao tentar fazer o fetch/parse
+                console.error("Fetch error:", error); // Adicione um log para depuração
                 Swal.fire({
-                    title: "Erro!",
-                    text: "Erro ao excluir conta.",
+                    title: "Erro de Conexão!",
+                    text: "Não foi possível conectar ao servidor para excluir a conta.",
                     icon: "error",
                     background: "#121212",
                     color: "#ffffff"

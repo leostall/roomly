@@ -77,6 +77,9 @@ class UsuarioUpdateRequest(BaseModel):
     senha_confirmacao: str 
     nova_senha: Optional[str] = None
 
+class DeleteAccountData(BaseModel):
+    senha: str
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto") #
 
 def hash_password(password: str): #
@@ -197,62 +200,61 @@ async def usuario_logado(request: Request):
         cursor.close()
         connection.close()
 
-@app.delete("/excluir-conta")
-async def excluir_conta_usuario(request: Request, dados_requisicao: ExcluirContaRequest): #
-    usuario_sessao = request.session.get("usuario") #
-    if not usuario_sessao: #
-        raise HTTPException(status_code=401, detail="Usuário não autenticado") #
+@app.post("/excluir-conta")
+async def excluir_conta(request: Request, data: DeleteAccountData = Body(...)):
+    print(f"DEBUG: Conteúdo da sessão em /excluir-conta: {request.session}")
+    
+    # Ajuste aqui para ler da estrutura aninhada
+    usuario_session_data = request.session.get("usuario")
+    user_id = None
+    if usuario_session_data and isinstance(usuario_session_data, dict):
+        user_id = usuario_session_data.get("id") # ou a chave correta para o ID
 
-    usuario_id = usuario_sessao["id"] #
-    connection = get_db_connection() #
-    # Usar dictionary=True para facilitar acesso aos campos
-    cursor = connection.cursor(dictionary=True) #
+    print(f"DEBUG: user_id extraído: {user_id}")
 
+    if not user_id:
+        print(f"DEBUG: user_id não encontrado na estrutura esperada da sessão. Sessão: {request.session}")
+        raise HTTPException(
+            status_code=401,
+            detail="Não autenticado. Por favor, faça login novamente (estrutura da sessão pode estar incorreta)."
+        )
+    
+    # O restante do seu código continua igual...
+    connection = None
+    # ... (seu código para buscar senha, deletar usuário, etc.)
     try:
-        # 1. Busca a senha atual do usuário para verificação
-        cursor.execute("SELECT Senha FROM usuario WHERE ID_Usuario = %s", (usuario_id,)) #
-        user_db = cursor.fetchone() #
-        if not user_db: #
-            # Teoricamente, não deveria acontecer se o usuário está logado, mas é uma segurança.
-            raise HTTPException(status_code=404, detail="Usuário não encontrado no banco de dados.") #
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
 
-        # 2. Verifica a senha fornecida para confirmação
-        if not verify_password(dados_requisicao.senha, user_db["Senha"]): #
-            # Não usar return direto com JSON para erros, usar HTTPException para consistência.
-            raise HTTPException(status_code=403, detail="Senha incorreta. A conta não foi excluída.") #
+        cursor.execute("SELECT Senha FROM usuario WHERE ID_Usuario = %s", (user_id,)) # Use o user_id extraído
+        user_record = cursor.fetchone()
 
-        # 3. Se a senha estiver correta, prosseguir com a exclusão dos dados relacionados e do usuário.
-        #    É importante fazer isso em uma transação.
+        if not user_record:
+            request.session.clear()
+            raise HTTPException(status_code=404, detail="Usuário não encontrado no banco de dados.")
 
-        # Excluir locações feitas pelo usuário (Exemplo, ajuste conforme seu modelo de dados)
-        # cursor.execute("DELETE FROM locacao_loca WHERE fk_usuario_ID_Usuario = %s", (usuario_id,))
+        hashed_password_db = user_record["Senha"]
+
+        if not pwd_context.verify(data.senha, hashed_password_db):
+            raise HTTPException(status_code=400, detail="Senha atual incorreta.")
         
-        # Excluir salas cadastradas pelo usuário (se for locador)
-        cursor.execute("DELETE FROM salas WHERE fk_usuario_ID_Usuario = %s", (usuario_id,)) #
-        
-        # Excluir tipos de sala customizados pelo usuário (se for locador)
-        cursor.execute("DELETE FROM tipo_sala WHERE fk_usuario_ID_Usuario = %s", (usuario_id,)) #
-        
-        # Finalmente, excluir o próprio usuário
-        cursor.execute("DELETE FROM usuario WHERE ID_Usuario = %s", (usuario_id,)) #
-        
-        connection.commit() # Commita todas as exclusões
-        request.session.clear() # Limpa a sessão após a exclusão da conta
+        # Excluindo o usuário da tabela 'usuario'
+        cursor.execute("DELETE FROM usuario WHERE ID_Usuario = %s", (user_id,))
+        connection.commit()
+        request.session.clear()
+        return {"message": "Conta excluída com sucesso."}
 
-        return {"success": True, "message": "Sua conta e todos os dados associados foram excluídos com sucesso!"} #
-
-    except mysql.connector.Error as err: #
-        connection.rollback() # Desfaz quaisquer alterações no DB em caso de erro
-        raise HTTPException(status_code=500, detail=f"Erro de banco de dados ao excluir conta: {str(err)}") #
-    except HTTPException: #
-        # Re-raise HTTPExceptions para que o FastAPI as manipule (ex: senha incorreta)
-        raise #
-    except Exception as e: #
-        connection.rollback() #
-        raise HTTPException(status_code=500, detail=f"Erro inesperado ao excluir conta: {str(e)}") #
-    finally: #
-        cursor.close() #
-        connection.close() #
+    except mysql.connector.Error as err:
+        if connection and connection.is_connected(): connection.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro no banco de dados: {err}")
+    except HTTPException as http_exc:
+        raise http_exc
+    except Exception as e:
+        if connection and connection.is_connected(): connection.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
+    finally:
+        if cursor: cursor.close()
+        if connection and connection.is_connected(): connection.close()
 
 @app.put("/editar-usuario")
 async def editar_usuario_endpoint(request: Request, dados_update: UsuarioUpdateRequest):
