@@ -33,7 +33,7 @@ function showCadastroSalaModal() {
                 <!-- Tamanho m² -->
                 <div class="col-12 col-md-4">
                   <label for="modalTamanhoM2" class="form-label">Tamanho m² *</label>
-                  <input type="number" class="form-control" id="modalTamanhoM2" placeholder="Tamanho m²" min="1" required>
+                  <input type="number" class="form-control" id="modalTamanhoM2" placeholder="Tamanho m²" min="0.1" required>
                 </div>
 
                 <!-- Valor Hora -->
@@ -336,6 +336,17 @@ function setupCadastroSalaModal() {
       Swal.fire({
         title: "Erro!",
         text: "O campo 'Número' deve conter apenas números positivos e não pode conter vírgulas.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+    if (tamanhoM2 < 0.1) {
+      Swal.fire({
+        title: "Erro!",
+        text: "O tamanho deve ser maior ou igual a 0.1 m².",
         icon: "error",
         background: "#121212",
         color: "#ffffff"
@@ -682,7 +693,7 @@ function showEditSalaModal(salaId) {
               </div>
               <div class="col-md-6">
                 <label for="modalEditValorHora" class="form-label">Valor por Hora</label>
-                <input type="number" class="form-control" id="modalEditValorHora" step="0.01" min="1" max="99999.99" required>
+                <input type="number" class="form-control" id="modalEditValorHora" step="0.01" min="0.1" max="99999.99" required>
               </div>
               <div class="col-md-12">
                 <label for="modalEditRecursos" class="form-label">Recursos Disponíveis</label>
@@ -1090,6 +1101,29 @@ function setupEditSalaModal(salaId) {
       Swal.fire({
         title: "Erro!",
         text: "Os campos numéricos devem ser positivos e não podem conter vírgulas.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+    if (tamanhoM2 < 0.1) {
+      Swal.fire({
+        title: "Erro!",
+        text: "O tamanho deve ser maior ou igual a 0.1 m².",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+    // Validação do campo "Valor Hora"
+    if (!valorHora || isNaN(valorHora.replace(",", ".")) || parseFloat(valorHora.replace(",", ".")) < 0.1) {
+      Swal.fire({
+        title: "Erro!",
+        text: "O campo 'Valor Hora' deve ser um número válido (mínimo 0,1).",
         icon: "error",
         background: "#121212",
         color: "#ffffff"
