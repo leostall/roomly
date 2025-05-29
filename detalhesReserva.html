@@ -226,23 +226,13 @@
                     document.getElementById('btnLimparFiltros').addEventListener('click', limparFiltrosEExibirTodas);
                     document.getElementById('btnExportarPDF').addEventListener('click', exportarReservasParaPDF);
                 } else {
-                    document.getElementById('listaReservas').innerHTML = '';
-                    document.getElementById('semReservas').innerHTML = `
-                        <i class="bi bi-exclamation-circle fs-1 mb-3"></i>
-                        <h5>Acesso Negado</h5>
-                        <p class="mb-0">Você precisa estar logado para ver suas reservas. <a href="login.html">Faça login</a>.</p>`;
-                    document.getElementById('semReservas').style.display = 'block';
-                    document.querySelector('.col-lg-3.mb-4').style.display = 'none';
-                    document.getElementById('btnExportarPDF').style.display = 'none';
+                    // Redireciona diretamente para a página de login em caso de erro
+                    window.location.href = "login.html";
                 }
             }).catch(error => {
                 console.error("Erro ao verificar status de login:", error);
-                document.getElementById('listaReservas').innerHTML = '';
-                document.getElementById('semReservas').innerHTML = `
-                        <i class="bi bi-emoji-dizzy fs-1 mb-3"></i>
-                        <h5>Erro de Autenticação</h5>
-                        <p class="mb-0">Não foi possível verificar seu status de login. Tente recarregar a página.</p>`;
-                document.getElementById('semReservas').style.display = 'block';
+                // Redireciona diretamente para a página de login em caso de erro
+                window.location.href = "login.html";
             });
         });
 

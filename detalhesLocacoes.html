@@ -223,13 +223,7 @@
 
 
                     } else if (data.logado && data.papel !== 2) {
-                        document.getElementById('listaLocacoes').innerHTML = '';
-                        document.getElementById('semLocacoes').innerHTML = `
-                            <i class="bi bi-person-fill-lock fs-1 mb-3"></i>
-                            <h5>Acesso Restrito</h5>
-                            <p class="mb-0">Esta página é destinada apenas para locadores.</p>`;
-                        document.getElementById('semLocacoes').style.display = 'block';
-                        document.querySelector('.col-lg-3.mb-4').style.display = 'none';
+                        window.location.href = 'login.html';
                     } else {
                         window.location.href = 'login.html';
                     }
