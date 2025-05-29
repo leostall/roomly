@@ -125,7 +125,12 @@
               </select>
             </div>
             <div class="d-grid gap-2">
-              <button class="btn btn-primary" onclick="aplicarFiltros()">Aplicar Filtros</button>
+                <button class="btn btn-primary" id="btnFiltrarLocacoes" onclick="aplicarFiltros()">
+                  <i class="bi bi-funnel me-2"></i>Filtrar
+                </button>
+                <button class="btn btn-outline-primary" id="btnLimparFiltrosLocacoes" onclick="limparFiltros()">
+                  <i class="bi bi-arrow-counterclockwise me-2"></i>Limpar
+                </button>
             </div>
           </div>
         </div>
@@ -342,7 +347,16 @@
         container.innerHTML += card;
       });
     }
+    function limparFiltros() {
+      document.getElementById("filter-capacity").value = "";
+      document.getElementById("filter-price").value = "";
+      document.getElementById("filter-availability").value = "";
+      document.getElementById("filter-state").value = "";
+      document.getElementById("filter-city").value = "";
 
+      // Limpar os resultados e exibir todas as salas novamente
+      carregarTodasSalas();
+    }
 
     // Inicializar estados ao carregar a página
     document.addEventListener("DOMContentLoaded", carregarEstados);
