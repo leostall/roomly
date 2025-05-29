@@ -944,6 +944,7 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
                 (Checkin < %s AND Checkout > %s) OR
                 (Checkin >= %s AND Checkout <= %s)
               )
+              AND Ativo = 1
         """, (
             sala_id, checkin_dt.date(),
             checkout_dt, checkin_dt,
@@ -966,7 +967,7 @@ async def reservar_sala(request: Request, data: dict = Body(...)):
 
         cursor.execute("""
             INSERT INTO locacao_loca (Checkin, Checkout, fk_usuario_ID_Usuario, fk_salas_ID_Sala, Ativo)
-            VALUES (%s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s)
         """, (checkin_dt, checkout_dt, usuario["id"], sala_id, 1))
         connection.commit()
 

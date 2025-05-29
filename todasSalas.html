@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Editar Salas</title>
+  <title>Roomly - Salas disponíveis</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -13,9 +13,9 @@
 </head>
 
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-      <a class="navbar-brand" href="#">
+      <a class="navbar-brand" href="index.html">
         <img src="images/logoSemFundo.png" alt="Roomly Logo">
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -25,8 +25,8 @@
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="index.html#features">Vantagens</a></li>
-          <li class="nav-item"><a class="nav-link" href="todasSalas.html">Salas</a></li>
           <li class="nav-item"><a class="nav-link" href="contato.html">Contato</a></li>
+          <li class="nav-item"><a class="nav-link" href="todasSalas.html">Salas</a></li>
         </ul>
         <div class="ms-lg-3 mt-3 mt-lg-0" id="auth-buttons">
           <div class="dropdown" id="user-dropdown" style="display: none;">
@@ -37,17 +37,26 @@
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
               <li><a class="dropdown-item" onclick="showEditUserModal()"><i class="bi bi-person me-2"></i>Editar
                   usuário</a></li>
+              <li><a class="dropdown-item" href="detalhesReserva.html"><i class="bi bi-calendar-check me-2"></i>Minhas
+                  Reservas</a></li>
+              <!-- Itens administrativos (só aparecem para papel = 2) -->
               <div id="admin-items" style="display: none;">
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
                 <li><a class="dropdown-item" href="#" id="editRooms"><i class="bi bi-pencil-square me-2"></i>Minhas
                     Salas</a></li>
                 <li><a class="dropdown-item" onclick="showCadastroSalaModal();"><i
                       class="bi bi-plus-circle me-2"></i>Registrar Sala</a></li>
                 <li><a class="dropdown-item" href="#" id="manage-room-types"><i class="bi bi-tags me-2"></i>Tipos de
                     Sala</a></li>
-                <li>
-                  <hr class="dropdown-divider">
-                </li>
+                <li><a class="dropdown-item" href="detalhesLocacoes.html"><i
+                      class="bi bi-clipboard-check	 me-2"></i>Minhas
+                    Locações</a></li>
               </div>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
               <li><a class="dropdown-item" href="#" id="logout"><i class="bi bi-box-arrow-right me-2"></i>Sair</a></li>
             </ul>
           </div>
@@ -65,10 +74,10 @@
   </section>
 
   <div class="container py-5">
-  <div class="row">
-    <div class="col-lg-3">
-      <div class="card bg-dark border-0 rounded-lg shadow-sm">
-        <div class="card-body">
+    <div class="row">
+      <div class="col-lg-3">
+        <div class="card bg-dark border-0 rounded-lg shadow-sm">
+          <div class="card-body">
             <h5 class="card-title text-accent mb-4">Filtros</h5>
             <div class="mb-3">
               <label for="filter-capacity" class="form-label">Capacidade</label>
@@ -116,28 +125,28 @@
               </select>
             </div>
             <div class="d-grid gap-2">
-                <button class="btn btn-primary" onclick="aplicarFiltros()">Aplicar Filtros</button>
+              <button class="btn btn-primary" onclick="aplicarFiltros()">Aplicar Filtros</button>
             </div>
+          </div>
         </div>
       </div>
-    </div>
-    
-    <!-- Coluna de Salas -->
-    <div class="col-lg-9">
-      <!-- Aviso de "Nenhuma sala encontrada" -->
-      <div id="semSalas" class="alert alert-dark text-center" style="display: none;">
-        <i class="bi bi-calendar-x fs-1 mb-3"></i>
-        <h5>Nenhuma sala encontrada</h5>
-        <p class="mb-0">Não há salas disponíveis ou não há salas com os filtros aplicados.</p>
-      </div>
 
-      <!-- Contêiner de Salas -->
-      <div class="row g-4" id="user-rooms-container"></div>
+      <!-- Coluna de Salas -->
+      <div class="col-lg-9">
+        <!-- Aviso de "Nenhuma sala encontrada" -->
+        <div id="semSalas" class="alert alert-dark text-center" style="display: none;">
+          <i class="bi bi-calendar-x fs-1 mb-3"></i>
+          <h5>Nenhuma sala encontrada</h5>
+          <p class="mb-0">Não há salas disponíveis ou não há salas com os filtros aplicados.</p>
+        </div>
+
+        <!-- Contêiner de Salas -->
+        <div class="row g-4" id="user-rooms-container"></div>
       </div>
     </div>
   </div>
 
-  
+
 
   <footer class="footer">
     <div class="container">
@@ -194,119 +203,120 @@
   <script src="modalSistema.js"></script>
   <script src="auth.js"></script>
   <script src="reservaSalaModal.js"></script>
+  <script src="modalEditarUsuario.js"></script>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       carregarTodasSalas(); // Mostra todas
     });
 
- async function carregarEstados() {
-  try {
-    const response = await fetch("http://127.0.0.1:8000/estados");
-    const estados = await response.json();
-    const estadoSelect = document.getElementById("filter-state");
+    async function carregarEstados() {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/estados");
+        const estados = await response.json();
+        const estadoSelect = document.getElementById("filter-state");
 
-    estadoSelect.innerHTML = '<option value="">Selecione</option>'; // Limpar opções anteriores
-    estados.forEach(estado => {
-      const option = document.createElement("option");
-      option.value = estado;
-      option.textContent = estado;
-      estadoSelect.appendChild(option);
-    });
-  } catch (error) {
-    console.error("Erro ao carregar estados:", error);
-  }
-}
-
-async function carregarCidades() {
-  const estado = document.getElementById("filter-state").value;
-  const cidadeSelect = document.getElementById("filter-city");
-  cidadeSelect.innerHTML = '<option value="">Selecione</option>'; // Limpar cidades
-
-  if (estado) {
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/cidades?estado=${estado}`);
-      const cidades = await response.json();
-
-      cidades.forEach(cidade => {
-        const option = document.createElement("option");
-        option.value = cidade;
-        option.textContent = cidade;
-        cidadeSelect.appendChild(option);
-      });
-    } catch (error) {
-      console.error("Erro ao carregar cidades:", error);
-    }
-  }
-}
-
-// Aplicar filtros
-function aplicarFiltros() {
-  const capacidade = document.getElementById("filter-capacity").value;
-  const valorHora = document.getElementById("filter-price").value;
-  const disponibilidade = document.getElementById("filter-availability").value;
-  const estado = document.getElementById("filter-state").value;
-  const cidade = document.getElementById("filter-city").value;
-
-  const params = new URLSearchParams();
-  if (capacidade) params.append("capacidade", capacidade);
-  if (valorHora) params.append("valor_hora", valorHora);
-  if (disponibilidade) params.append("disponibilidade", disponibilidade);
-  if (estado) params.append("estado", estado);
-  if (cidade) params.append("cidade", cidade);
-
-  const url = params.toString() ? `http://127.0.0.1:8000/salas?${params.toString()}` : `http://127.0.0.1:8000/salas`;
-
-  fetch(url)
-    .then(response => {
-      if (!response.ok) {
-        return response.text().then(text => {
-          throw new Error(`Erro na requisição: ${response.status} - ${text}`);
+        estadoSelect.innerHTML = '<option value="">Selecione</option>'; // Limpar opções anteriores
+        estados.forEach(estado => {
+          const option = document.createElement("option");
+          option.value = estado;
+          option.textContent = estado;
+          estadoSelect.appendChild(option);
         });
+      } catch (error) {
+        console.error("Erro ao carregar estados:", error);
       }
-      return response.json();
-    })
-    .then(data => {
-      console.log("Salas filtradas:", data);
-      atualizarSalas(data);
-    })
-    .catch(error => {
-      console.error("Erro ao aplicar filtros:", error);
-      Swal.fire({
-        title: "Erro",
-        text: "Não foi possível aplicar os filtros. Tente novamente mais tarde.",
-        icon: "error",
-        background: "#121212",
-        color: "#ffffff"
-      });
-    });
-}
+    }
 
-// Atualizar o container de salas com os resultados
-function atualizarSalas(salas) {
-  const container = document.getElementById("user-rooms-container");
-  const semSalasDiv = document.getElementById("semSalas");
+    async function carregarCidades() {
+      const estado = document.getElementById("filter-state").value;
+      const cidadeSelect = document.getElementById("filter-city");
+      cidadeSelect.innerHTML = '<option value="">Selecione</option>'; // Limpar cidades
 
-  // Limpar resultados anteriores
-  container.innerHTML = "";
+      if (estado) {
+        try {
+          const response = await fetch(`http://127.0.0.1:8000/cidades?estado=${estado}`);
+          const cidades = await response.json();
 
-  if (salas.length === 0) {
-    // Exibe o alerta de "Nenhuma sala encontrada"
-    semSalasDiv.style.display = "block";
-    return;
-  }
+          cidades.forEach(cidade => {
+            const option = document.createElement("option");
+            option.value = cidade;
+            option.textContent = cidade;
+            cidadeSelect.appendChild(option);
+          });
+        } catch (error) {
+          console.error("Erro ao carregar cidades:", error);
+        }
+      }
+    }
 
-  // Oculta o alerta de "Nenhuma sala encontrada"
-  semSalasDiv.style.display = "none";
+    // Aplicar filtros
+    function aplicarFiltros() {
+      const capacidade = document.getElementById("filter-capacity").value;
+      const valorHora = document.getElementById("filter-price").value;
+      const disponibilidade = document.getElementById("filter-availability").value;
+      const estado = document.getElementById("filter-state").value;
+      const cidade = document.getElementById("filter-city").value;
+
+      const params = new URLSearchParams();
+      if (capacidade) params.append("capacidade", capacidade);
+      if (valorHora) params.append("valor_hora", valorHora);
+      if (disponibilidade) params.append("disponibilidade", disponibilidade);
+      if (estado) params.append("estado", estado);
+      if (cidade) params.append("cidade", cidade);
+
+      const url = params.toString() ? `http://127.0.0.1:8000/salas?${params.toString()}` : `http://127.0.0.1:8000/salas`;
+
+      fetch(url)
+        .then(response => {
+          if (!response.ok) {
+            return response.text().then(text => {
+              throw new Error(`Erro na requisição: ${response.status} - ${text}`);
+            });
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log("Salas filtradas:", data);
+          atualizarSalas(data);
+        })
+        .catch(error => {
+          console.error("Erro ao aplicar filtros:", error);
+          Swal.fire({
+            title: "Erro",
+            text: "Não foi possível aplicar os filtros. Tente novamente mais tarde.",
+            icon: "error",
+            background: "#121212",
+            color: "#ffffff"
+          });
+        });
+    }
+
+    // Atualizar o container de salas com os resultados
+    function atualizarSalas(salas) {
+      const container = document.getElementById("user-rooms-container");
+      const semSalasDiv = document.getElementById("semSalas");
+
+      // Limpar resultados anteriores
+      container.innerHTML = "";
+
+      if (salas.length === 0) {
+        // Exibe o alerta de "Nenhuma sala encontrada"
+        semSalasDiv.style.display = "block";
+        return;
+      }
+
+      // Oculta o alerta de "Nenhuma sala encontrada"
+      semSalasDiv.style.display = "none";
 
 
-  if (salas.length === 0) {
-    container.innerHTML = "<p class='text-center'>Nenhuma sala encontrada.</p>";
-    return;
-  }
+      if (salas.length === 0) {
+        container.innerHTML = "<p class='text-center'>Nenhuma sala encontrada.</p>";
+        return;
+      }
 
-  salas.forEach(sala => {
-    const card = `
+      salas.forEach(sala => {
+        const card = `
       <div class="col-md-6 col-lg-4">
         <div class="room-card h-100 d-flex flex-column">
           <div class="position-relative">
@@ -329,13 +339,13 @@ function atualizarSalas(salas) {
         </div>
       </div>
     `;
-    container.innerHTML += card;
-  });
-}
+        container.innerHTML += card;
+      });
+    }
 
 
-// Inicializar estados ao carregar a página
-document.addEventListener("DOMContentLoaded", carregarEstados);
+    // Inicializar estados ao carregar a página
+    document.addEventListener("DOMContentLoaded", carregarEstados);
   </script>
 </body>
 
