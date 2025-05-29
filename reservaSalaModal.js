@@ -1,4 +1,40 @@
-function showReservaModal(salaId) {
+async function showReservaModal(salaId) {
+    try {
+        // Verifica se o usuário está logado
+        const response = await fetch('http://127.0.0.1:8000/usuario-logado', {
+            credentials: 'include'
+        });
+        const data = await response.json();
+
+        if (!data.logado) {
+            // Redireciona para a página de login se o usuário não estiver logado
+            await Swal.fire({
+                icon: 'warning',
+                title: 'Login necessário',
+                text: 'Você precisa estar logado para reservar uma sala.',
+                confirmButtonText: 'Fazer login',
+                background: '#121212',
+                color: '#fff',
+                allowOutsideClick: false,
+                backdrop: true
+            });
+            window.location.href = 'login.html';
+            return;
+        } } catch (error) {
+        console.error('Erro ao verificar login:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Erro',
+            text: 'Ocorreu um erro ao verificar o login. Tente novamente mais tarde.',
+            confirmButtonText: 'OK',
+            background: '#121212',
+            color: '#fff',
+            allowOutsideClick: false,
+            backdrop: true
+        });
+        return;
+    }
+
     const modalId = 'reservaSalaModal';
     // Remove o modal existente se já estiver presente para evitar duplicatas
     if (document.getElementById(modalId)) {

@@ -290,9 +290,21 @@
       const data = await response.json();
 
       if (!data.logado) {
+        // Exibe um SweetAlert informando que o login é necessário
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Login necessário',
+          text: 'Você precisa estar logado para acessar esta funcionalidade.',
+          confirmButtonText: 'Fazer login',
+          background: '#121212',
+          color: '#fff',
+          allowOutsideClick: false,
+          backdrop: true
+        });
         window.location.href = 'login.html';
         return;
       }
+
 
       // Verifica se o usuário já é locador (papel = 2)
       if (data.papel === 2) {

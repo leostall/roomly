@@ -220,10 +220,114 @@
       }
     }
 
-    // Chama a função para buscar as salas ao carregar a página
-    document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/usuario-logado", {
+        method: "GET",
+        credentials: "include",
+        headers: { "Accept": "application/json" }
+      });
+
+      if (!response.ok) {
+        console.error("Usuário não autenticado. Redirecionando para login.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      const userData = await response.json();
+      console.log("Dados do usuário:", userData);
+
+      // Verifica se o usuário está logado
+      if (!userData.logado) {
+        console.warn("Usuário não autenticado. Redirecionando para login.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      // Verifica se o papel do usuário é 1 (usuário comum) ou se está nulo
+      if (userData.papel === 1 || userData.papel === null) {
+        console.warn("Usuário sem permissão. Redirecionando para login.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      console.log("Usuário autorizado. Carregando salas...");
       fetchSalas();
-    });
+    } catch (error) {
+      console.error("Erro ao verificar status de login:", error);
+      window.location.href = "login.html";
+    }
+  });
+
+  async function fetchSalas() {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/minhas-salas", {
+        method: "GET",
+        credentials: "include"
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao carregar salas. Verifique sua autenticação.");
+      }
+
+      const salas = await response.json();
+
+      if (!Array.isArray(salas)) {
+        throw new Error("Resposta inválida do servidor. Esperado uma lista de salas.");
+      }
+
+      const salasContainer = document.getElementById("salas-container");
+      salasContainer.innerHTML = ""; // Limpa o container antes de adicionar as salas
+
+      if (salas.length === 0) {
+        salasContainer.innerHTML = `
+          <div class="col-12 text-center py-5">
+            <div class="alert alert-dark border-secondary text-white">
+              <i class="bi bi-info-circle-fill me-2 text-accent"></i>
+              Ops, parece que você ainda não registrou nenhuma sala.
+              <div class="mt-3">
+                <a onclick="showCadastroSalaModal();" class="btn btn-primary">
+                  <i class="bi bi-plus-circle"></i> Registrar Sala
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        salas.forEach(sala => {
+          const salaCard = document.createElement("div");
+          salaCard.className = "col-md-4 mb-4";
+
+          salaCard.innerHTML = `
+            <div class="card shadow-sm h-100 bg-dark text-white" style="border: 1px solid rgba(255, 255, 255, 0.1);">
+              <div class="card-body d-flex flex-column">
+                <h5 class="card-title text-accent">${sala.tipo}</h5>
+                <p class="card-text"><strong>Capacidade:</strong> ${sala.capacidade} pessoas</p>
+                <p class="card-text"><strong>Endereço:</strong> ${sala.rua}, ${sala.numero}, ${sala.cidade} - ${sala.estado}</p>
+                <div class="mt-auto d-flex justify-content-between">
+                  <button class="btn btn-sm btn-editar" onclick="showEditSalaModal(${sala.id})">
+                    <i class="bi bi-pencil"></i> Editar
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+
+          salasContainer.appendChild(salaCard);
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao buscar salas:", error);
+      document.getElementById("salas-container").innerHTML = `
+        <div class="col-12 text-center py-5">
+          <div class="alert alert-dark border-danger text-white">
+            <i class="bi bi-exclamation-triangle-fill me-2 text-accent"></i>
+            Ocorreu um erro ao carregar suas salas. Por favor, tente novamente.
+          </div>
+        </div>
+      `;
+    }
+  }
   </script>
 </body>
 

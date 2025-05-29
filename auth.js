@@ -87,7 +87,7 @@ async function verificarLogin() {
       if (loginBtn) loginBtn.style.display = "block";
       if (dropdown) dropdown.style.display = "none";
       if (adminItems) adminItems.style.display = "none";
-      window.location.href = "login.html";
+      // window.location.href = "login.html";
     }
   } catch (error) {
     console.error("Erro ao verificar login:", error);
