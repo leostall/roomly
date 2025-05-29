@@ -12,11 +12,7 @@ from typing import Optional
 from fastapi import FastAPI, Query
 from fastapi import Request, HTTPException
 from pydantic import BaseModel
-
-
-
-
-
+import re
 
 app = FastAPI()
 
@@ -72,6 +68,22 @@ class ReservaEditData(BaseModel):
     
 class ExcluirContaRequest(BaseModel):
     senha: str
+
+class UsuarioUpdateRequest(BaseModel):
+    nome: str
+    email: str
+    telefone: str
+    cpf: str  
+    senha_confirmacao: str 
+    nova_senha: Optional[str] = None
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto") #
+
+def hash_password(password: str): #
+    return pwd_context.hash(password) #
+
+def verify_password(plain_password, hashed_password): #
+    return pwd_context.verify(plain_password, hashed_password) #
 
 def get_db_connection():
     try:
@@ -186,86 +198,151 @@ async def usuario_logado(request: Request):
         connection.close()
 
 @app.delete("/excluir-conta")
-async def excluir_conta(request: Request):
-    usuario = request.session.get("usuario")
-    if not usuario:
-        raise HTTPException(status_code=401, detail="Não autenticado")
-async def excluir_conta(request: Request, dados: ExcluirContaRequest):
-    usuario_logado = request.session.get("usuario")
-    if not usuario_logado:
-        raise HTTPException(status_code=401, detail="Usuário não autenticado")
+async def excluir_conta_usuario(request: Request, dados_requisicao: ExcluirContaRequest): #
+    usuario_sessao = request.session.get("usuario") #
+    if not usuario_sessao: #
+        raise HTTPException(status_code=401, detail="Usuário não autenticado") #
 
-    usuario_id = usuario_logado["id"]
-    connection = get_db_connection()
-    cursor = connection.cursor()
-    cursor = connection.cursor(dictionary=True)
+    usuario_id = usuario_sessao["id"] #
+    connection = get_db_connection() #
+    # Usar dictionary=True para facilitar acesso aos campos
+    cursor = connection.cursor(dictionary=True) #
 
     try:
-        cursor.execute("DELETE FROM salas WHERE fk_usuario_ID_Usuario = %s", (usuario["id"],))
+        # 1. Busca a senha atual do usuário para verificação
+        cursor.execute("SELECT Senha FROM usuario WHERE ID_Usuario = %s", (usuario_id,)) #
+        user_db = cursor.fetchone() #
+        if not user_db: #
+            # Teoricamente, não deveria acontecer se o usuário está logado, mas é uma segurança.
+            raise HTTPException(status_code=404, detail="Usuário não encontrado no banco de dados.") #
 
-        cursor.execute("DELETE FROM tipo_sala WHERE fk_usuario_ID_Usuario = %s", (usuario["id"],))
+        # 2. Verifica a senha fornecida para confirmação
+        if not verify_password(dados_requisicao.senha, user_db["Senha"]): #
+            # Não usar return direto com JSON para erros, usar HTTPException para consistência.
+            raise HTTPException(status_code=403, detail="Senha incorreta. A conta não foi excluída.") #
 
-        cursor.execute("DELETE FROM usuario WHERE ID_Usuario = %s", (usuario["id"],))
+        # 3. Se a senha estiver correta, prosseguir com a exclusão dos dados relacionados e do usuário.
+        #    É importante fazer isso em uma transação.
 
-        # Busca a senha atual do usuário
-        cursor.execute("SELECT Senha FROM usuario WHERE ID_Usuario = %s", (usuario_id,))
-        user_db = cursor.fetchone()
-        if not user_db:
-            raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        # Excluir locações feitas pelo usuário (Exemplo, ajuste conforme seu modelo de dados)
+        # cursor.execute("DELETE FROM locacao_loca WHERE fk_usuario_ID_Usuario = %s", (usuario_id,))
+        
+        # Excluir salas cadastradas pelo usuário (se for locador)
+        cursor.execute("DELETE FROM salas WHERE fk_usuario_ID_Usuario = %s", (usuario_id,)) #
+        
+        # Excluir tipos de sala customizados pelo usuário (se for locador)
+        cursor.execute("DELETE FROM tipo_sala WHERE fk_usuario_ID_Usuario = %s", (usuario_id,)) #
+        
+        # Finalmente, excluir o próprio usuário
+        cursor.execute("DELETE FROM usuario WHERE ID_Usuario = %s", (usuario_id,)) #
+        
+        connection.commit() # Commita todas as exclusões
+        request.session.clear() # Limpa a sessão após a exclusão da conta
 
-        # Verifica a senha
-        if not verify_password(dados.senha, user_db["Senha"]):
-            return {"success": False, "message": "Senha incorreta. Conta não excluída."}
+        return {"success": True, "message": "Sua conta e todos os dados associados foram excluídos com sucesso!"} #
 
-        # Exclui a conta
-        cursor.execute("DELETE FROM usuario WHERE ID_Usuario = %s", (usuario_id,))
-        connection.commit()
-        request.session.clear() 
-
-        return {"success": True, "message": "Conta, salas e tipo de salas associadas excluídas com sucesso!"}
-        request.session.clear()
-        return {"success": True, "message": "Conta excluída com sucesso!"}
-    except Exception as e:
-        connection.rollback()
-        raise HTTPException(status_code=500, detail=f"Erro ao excluir conta: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cursor.close()
-        connection.close()
+    except mysql.connector.Error as err: #
+        connection.rollback() # Desfaz quaisquer alterações no DB em caso de erro
+        raise HTTPException(status_code=500, detail=f"Erro de banco de dados ao excluir conta: {str(err)}") #
+    except HTTPException: #
+        # Re-raise HTTPExceptions para que o FastAPI as manipule (ex: senha incorreta)
+        raise #
+    except Exception as e: #
+        connection.rollback() #
+        raise HTTPException(status_code=500, detail=f"Erro inesperado ao excluir conta: {str(e)}") #
+    finally: #
+        cursor.close() #
+        connection.close() #
 
 @app.put("/editar-usuario")
-async def editar_usuario(request: Request, usuario: Usuario):
-    usuario_logado = request.session.get("usuario")
-    if not usuario_logado:
-        raise HTTPException(status_code=401, detail="Usuário não autenticado")
+async def editar_usuario_endpoint(request: Request, dados_update: UsuarioUpdateRequest):
+    usuario_sessao = request.session.get("usuario") #
+    if not usuario_sessao: #
+        raise HTTPException(status_code=401, detail="Usuário não autenticado. Faça login para continuar.") #
 
-    usuario_id = usuario_logado["id"]
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    usuario_id = usuario_sessao["id"] #
+    connection = get_db_connection() #
+    cursor = connection.cursor(dictionary=True) #
 
     try:
-        if usuario.senha:
-            hashed_password = hash_password(usuario.senha)
-            cursor.execute("""
-                UPDATE usuario
-                SET Email = %s, Nome = %s, Telefone = %s, CPF = %s, Senha = %s
-                WHERE ID_Usuario = %s
-            """, (usuario.email, usuario.nome, usuario.telefone, usuario.cpf, hashed_password, usuario_id))
-        else:
-            cursor.execute("""
-                UPDATE usuario
-                SET Email = %s, Nome = %s, Telefone = %s, CPF = %s
-                WHERE ID_Usuario = %s
-            """, (usuario.email, usuario.nome, usuario.telefone, usuario.cpf, usuario_id))
+        # 1. Buscar dados atuais do usuário (senha para verificação, email para checagem de duplicidade)
+        cursor.execute("SELECT Senha, Email, CPF FROM usuario WHERE ID_Usuario = %s", (usuario_id,)) #
+        usuario_db_atual = cursor.fetchone() #
+        if not usuario_db_atual: #
+            raise HTTPException(status_code=404, detail="Usuário não encontrado no banco de dados.") #
 
-        connection.commit()
-        return {"message": "Dados atualizados com sucesso!"}
-    except Exception as e:
-        connection.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cursor.close()
-        connection.close()
+        # 2. Verificar a senha de confirmação (senha atual do usuário)
+        # O campo 'senha_confirmacao' vem do Pydantic model UsuarioUpdateRequest
+        if not verify_password(dados_update.senha_confirmacao, usuario_db_atual["Senha"]): #
+            raise HTTPException(status_code=403, detail="Senha atual incorreta. Alterações não foram salvas.") #
+
+        # 3. Validar Email: Se o email foi alterado, verificar se o novo email já está em uso por OUTRO usuário
+        if dados_update.email != usuario_db_atual["Email"]: #
+            cursor.execute("SELECT ID_Usuario FROM usuario WHERE Email = %s AND ID_Usuario != %s", (dados_update.email, usuario_id)) #
+            if cursor.fetchone(): #
+                raise HTTPException(status_code=400, detail="O novo email fornecido já está em uso por outro usuário.") #
+        
+        # 4. Preparar campos para atualização (SQL e parâmetros)
+        sql_set_parts = [] #
+        sql_params = [] #
+
+        # Nome
+        sql_set_parts.append("Nome = %s") #
+        sql_params.append(dados_update.nome) #
+
+        # Email (já validado)
+        sql_set_parts.append("Email = %s") #
+        sql_params.append(dados_update.email) #
+
+        # Telefone (sem validação de unicidade, conforme solicitado)
+        sql_set_parts.append("Telefone = %s") #
+        sql_params.append(dados_update.telefone) #
+        
+        # CPF: O CPF é readonly no frontend. A API não deve permitir a alteração do CPF.
+        # Não incluímos CPF na query de UPDATE para evitar alteração.
+
+        # 5. Lidar com a atualização de senha (se uma nova senha foi fornecida)
+        if dados_update.nova_senha: #
+            # Verificar se a nova senha é diferente da senha antiga
+            if verify_password(dados_update.nova_senha, usuario_db_atual["Senha"]): #
+                raise HTTPException(status_code=400, detail="A nova senha não pode ser igual à senha antiga.") #
+            
+            # Validar complexidade da nova senha no backend
+            # Regex do JS: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+            if not re.fullmatch(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$", dados_update.nova_senha):
+                raise HTTPException(status_code=400, detail="A nova senha não atende aos requisitos de complexidade (mínimo 8 caracteres, letras maiúsculas, minúsculas, números e caracteres especiais).")
+
+            nova_senha_hashed = hash_password(dados_update.nova_senha) #
+            sql_set_parts.append("Senha = %s") #
+            sql_params.append(nova_senha_hashed) #
+
+        if not sql_set_parts: # Nenhuma alteração efetiva detectada #
+             return {"success": True, "message": "Nenhum dado foi alterado."} #
+
+        # 6. Construir e executar a query de UPDATE
+        sql_query = f"UPDATE usuario SET {', '.join(sql_set_parts)} WHERE ID_Usuario = %s" #
+        sql_params.append(usuario_id) #
+        
+        cursor.execute(sql_query, tuple(sql_params)) #
+        connection.commit() #
+
+        if usuario_sessao.get("nome") != dados_update.nome or usuario_sessao.get("email") != dados_update.email: #
+            request.session["usuario"]["nome"] = dados_update.nome #
+            request.session["usuario"]["email"] = dados_update.email #
+
+        return {"success": True, "message": "Seus dados foram atualizados com sucesso!"} #
+
+    except mysql.connector.Error as err: 
+        connection.rollback() 
+        raise HTTPException(status_code=500, detail=f"Erro de banco de dados ao atualizar usuário: {str(err)}") #
+    except HTTPException: 
+        raise
+    except Exception as e: 
+        connection.rollback() 
+        raise HTTPException(status_code=500, detail=f"Erro inesperado ao atualizar usuário: {str(e)}") #
+    finally: 
+        cursor.close() 
+        connection.close() 
 
 @app.post("/salas-cadastro")
 async def cadastrar_sala(
@@ -1345,22 +1422,3 @@ async def get_cidades(estado: str):
     finally:
         cursor.close()
         connection.close()
-
-@app.post("/check-telefone")
-async def check_telefone(data: dict):
-    telefone = data.get("telefone")
-    if not telefone:
-        raise HTTPException(status_code=400, detail="Telefone não fornecido")
-
-    connection = get_db_connection()
-    cursor = connection.cursor()
-
-    try:
-        cursor.execute("SELECT * FROM usuario WHERE Telefone = %s", (telefone,))
-        if cursor.fetchone():
-            raise HTTPException(status_code=400, detail="Telefone já cadastrado")
-    finally:
-        cursor.close()
-        connection.close()
-
-    return {"success": True, "message": "Telefone disponível"}

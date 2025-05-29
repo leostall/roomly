@@ -42,21 +42,23 @@
                 <label for="cpf" class="form-label">CPF<span class="required">*</span></label>
                 <input type="text" class="form-control" id="cpf" placeholder="000.000.000-00" maxlength="14">
               </div>
-            <div class="mb-3 password-wrapper">
-            <label for="password" class="form-label">Senha<span class="required">*</span></label>
-            <div class="password-wrapper-inner">
-            <input type="password" class="form-control" id="password" placeholder="Inserir Senha">
-            <i class="bi bi-eye toggle-password" onclick="togglePassword('password', this)"></i>
-        </div>
-          <div class="password-hint">A senha deve ter pelo menos 8 caracteres, incluindo uma letra maiúscula, uma minúscula, um número e um caractere especial.</div>
-        </div>
-        <div class="mb-3 password-wrapper">
-          <label for="confirm-password" class="form-label">Confirme sua senha<span class="required">*</span></label>
-          <div class="password-wrapper-inner">
-            <input type="password" class="form-control" id="confirm-password" placeholder="Confirme a senha">
-            <i class="bi bi-eye toggle-password" onclick="togglePassword('confirm-password', this)"></i>
-          </div>
-        </div>
+              <div class="mb-3 password-wrapper">
+                <label for="password" class="form-label">Senha<span class="required">*</span></label>
+                <div class="password-wrapper-inner">
+                  <input type="password" class="form-control" id="password" placeholder="Inserir Senha">
+                  <i class="bi bi-eye toggle-password" onclick="togglePassword('password', this)"></i>
+                </div>
+                <div class="password-hint">A senha deve ter pelo menos 8 caracteres, incluindo uma letra maiúscula, uma
+                  minúscula, um número e um caractere especial.</div>
+              </div>
+              <div class="mb-3 password-wrapper">
+                <label for="confirm-password" class="form-label">Confirme sua senha<span
+                    class="required">*</span></label>
+                <div class="password-wrapper-inner">
+                  <input type="password" class="form-control" id="confirm-password" placeholder="Confirme a senha">
+                  <i class="bi bi-eye toggle-password" onclick="togglePassword('confirm-password', this)"></i>
+                </div>
+              </div>
               <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
               <div class="text-center mt-2">
                 <small>Já tem uma conta? <a href="login.html">Entrar</a></small>
@@ -192,58 +194,46 @@
       }
 
       // Verifica se o telefone já está cadastrado
-      fetch("http://127.0.0.1:8000/check-telefone", {
+      fetch("http://127.0.0.1:8000/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ telefone: telefone })
+        body: JSON.stringify({
+          email: email,
+          nome: nome,
+          telefone: telefone, // O telefone ainda é enviado
+          cpf: cpf,
+          senha: senha
+        })
       })
         .then(response => {
           if (!response.ok) {
-            return response.json().then(data => {
-              throw new Error(data.detail || "Telefone já cadastrado");
-            });
-          }
-
-        return fetch("http://127.0.0.1:8000/register", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              email: email,
-              nome: nome,
-              telefone: telefone,
-              cpf: cpf,
-              senha: senha
-            })
-          });
-        })
-        .then(response => {
-          if (!response.ok) {
+            // Se o backend /register retornar um erro (ex: CPF ou Email já cadastrado)
             return response.json().then(data => {
               throw new Error(data.detail || "Erro ao cadastrar");
             });
           }
-          return response.json();
+          return response.json(); // Converte a resposta de sucesso do /register para JSON
         })
         .then(data => {
+          // 'data' aqui são os dados da resposta de sucesso do /register
           Swal.fire({
             title: "Sucesso!",
-            text: data.message,
+            text: data.message, // Usa a mensagem de sucesso do backend
             icon: "success",
             background: "#121212",
             color: "#ffffff"
           }).then(() => {
             document.getElementById("registrationForm").reset();
-            window.location.href = "/login.html";
+            window.location.href = "/login.html"; // Redireciona para o login
           });
         })
         .catch(error => {
+          // Captura qualquer erro ocorrido no fetch ou nos .then anteriores
           Swal.fire({
             title: "Erro!",
-            text: error.message,
+            text: error.message, // Exibe a mensagem de erro (seja do throw ou de rede)
             icon: "error",
             background: "#121212",
             color: "#ffffff"
