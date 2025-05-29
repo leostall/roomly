@@ -545,7 +545,6 @@ function showCadastroSalaModal() {
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             <button type="button" class="btn btn-primary" id="modalSalvarSala">Salvar Sala</button>
           </div>
         </div>
@@ -633,91 +632,11 @@ function setupCadastroSalaModal() {
     if (checkbox.checked) atLeastOneChecked = true;
   });
 
-  if (!atLeastOneChecked) {
-    Swal.fire({
-      title: "Erro!",
-      text: "Selecione pelo menos um dia da semana.",
-      icon: "error",
-      background: "#121212",
-      color: "#ffffff"
-    });
-    return;
-  }
-
   // Validação de intervalo de horários
   const horarioInicioUteis = document.getElementById("modalHorarioInicioUteis").value;
   const horarioFimUteis = document.getElementById("modalHorarioFimUteis").value;
   const horarioInicioNaoUteis = document.getElementById("modalHorarioInicioNaoUtil").value;
   const horarioFimNaoUteis = document.getElementById("modalHorarioFimNaoUtil").value;
-
-  if (horarioInicioUteis && horarioFimUteis) {
-    const diffUteis = calcularDiferencaHoras(horarioInicioUteis, horarioFimUteis);
-    if (diffUteis < 1) {
-      Swal.fire({
-        title: "Erro!",
-        text: "O intervalo entre os horários de dias úteis deve ser maior que 1 hora.",
-        icon: "error",
-        background: "#121212",
-        color: "#fff"
-      });
-      return;
-    }
-  }
-
-  if (horarioInicioNaoUteis && horarioFimNaoUteis) {
-    const diffNaoUteis = calcularDiferencaHoras(horarioInicioNaoUteis, horarioFimNaoUteis);
-    if (diffNaoUteis < 1) {
-      Swal.fire({
-        title: "Erro!",
-        text: "O intervalo entre os horários de finais de semana/feriados deve ser maior que 1 hora.",
-        icon: "error",
-        background: "#121212",
-        color: "#fff"
-      });
-      return;
-    }
-  }
-
-
-
-    // Verifica campos obrigatórios
-    const requiredFields = document.querySelectorAll('#cadastroSalaForm [required]');
-    let isValid = true;
-
-    requiredFields.forEach(field => {
-      if (!field.value) {
-        field.classList.add('is-invalid');
-        isValid = false;
-      }
-    });
-
-    // Verifica se a imagem foi selecionada
-    const imagemInput = document.getElementById("modalImagemSala");
-    if (imagemInput.files.length === 0) {
-      Swal.fire({
-        title: 'Erro!',
-        text: 'Selecione uma imagem para a sala.',
-        icon: 'info',
-        confirmButtonText: 'Ok',
-        background: '#121212',
-        color: '#fff'
-      });
-      return;
-    }
-
-
-    if (!isValid) {
-      Swal.fire({
-        title: 'Erro!',
-        text: 'Preencha todos os campos obrigatórios.',
-        icon: 'info',
-        confirmButtonText: 'Ok',
-        background: '#121212',
-        color: '#fff'
-      });
-      return;
-    }
-
 
     // Captura os dados do formulário
     const tipoSalaId = document.getElementById("modalTipoSala").value;
@@ -771,10 +690,10 @@ function setupCadastroSalaModal() {
       return;
     }
 
-    if (descricao.length > 200) {
+    if (capacidade < 1) {
       Swal.fire({
         title: "Erro!",
-        text: "A descrição deve ter no máximo 200 caracteres.",
+        text: "O valor de capacidade deve ser maior ou igual a 1.",
         icon: "error",
         background: "#121212",
         color: "#ffffff"
@@ -828,6 +747,17 @@ function setupCadastroSalaModal() {
       return;
     }
 
+    if (descricao.length > 200) {
+      Swal.fire({
+        title: "Erro!",
+        text: "A descrição deve ter no máximo 200 caracteres.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
 
     if (!(domingo || segunda || terca || quarta || quinta || sexta || sabado)) {
       Swal.fire({
@@ -839,6 +769,21 @@ function setupCadastroSalaModal() {
       });
       return;
     }
+
+    // Verifica se a imagem foi selecionada
+    const imagemInput = document.getElementById("modalImagemSala");
+    if (imagemInput.files.length === 0) {
+      Swal.fire({
+        title: 'Erro!',
+        text: 'Selecione uma imagem para a sala.',
+        icon: 'info',
+        confirmButtonText: 'Ok',
+        background: '#121212',
+        color: '#fff'
+      });
+      return;
+    }
+
 
     if (horarioInicioUteis && horarioFimUteis) {
       const diffUteis = calcularDiferencaHoras(horarioInicioUteis, horarioFimUteis);
@@ -1213,11 +1158,11 @@ function showEditSalaModal(salaId) {
 
                 <div id="containerHorarioNaoUteisEdit" class="row mt-3">
                   <div class="col-6">
-                    <label for="modalHorarioInicioNaoUtilEdit" class="form-label">Horário Início (Finais de Semana/Feriados) *</label>
+                    <label for="modalHorarioInicioNaoUtilEdit" class="form-label">Horário Início (Finais de Semana/Feriados)*</label>
                     <input type="time" class="form-control horario-btn" id="modalHorarioInicioNaoUtilEdit">
                   </div>
                   <div class="col-6">
-                    <label for="modalHorarioFimNaoUtilEdit" class="form-label">Horário Fim (Finais de Semana/Feriados) *</label>
+                    <label for="modalHorarioFimNaoUtilEdit" class="form-label">Horário Fim (Finais de Semana/Feriados)*</label>
                     <input type="time" class="form-control horario-btn" id="modalHorarioFimNaoUtilEdit">
                   </div>
                 </div>
@@ -1226,7 +1171,6 @@ function showEditSalaModal(salaId) {
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-danger me-auto" id="modalExcluirSala">Excluir Sala</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             <button type="button" class="btn btn-primary" id="modalSalvarSala">Salvar Alterações</button>
           </div>
         </div>
@@ -1242,6 +1186,7 @@ function showEditSalaModal(salaId) {
 
   // Configura os eventos
   setupEditSalaModal(salaId);
+  
 
   // Inicializa a modal
   const modal = new bootstrap.Modal(document.getElementById('editSalaModal'));
@@ -1369,6 +1314,12 @@ function setupEditSalaModal(salaId) {
     }
   });
 
+  // Configura máscara para o campo "Número"
+  document.getElementById("modalEditNumero").addEventListener("input", function (e) {
+    let numero = e.target.value.replace(/\D/g, ''); // Remove tudo que não for número
+    e.target.value = numero; // Atualiza o valor do campo
+  });
+  
   // Busca endereço pelo CEP
   document.getElementById('modalEditCep').addEventListener('blur', async function () {
     const cep = this.value.replace(/\D/g, '');
@@ -1470,7 +1421,85 @@ function setupEditSalaModal(salaId) {
     const cidade = document.getElementById("modalEditCidade").value;
     const estado = document.getElementById("modalEditEstado").value;
 
+    // Captura os valores dos campos
+    const tipoSalaId = document.getElementById("modalEditTipoSala").value; // Certifique-se de capturar o valor aqui
+    const capacidade = document.getElementById("modalEditCapacidade").value;
+    const tamanhoM2 = document.getElementById("modalEditTamanhoM2").value;
+    const valorHora = document.getElementById("modalEditValorHora").value;
+    const recursos = document.getElementById("modalEditRecursos").value;
+    const tipoMobilia = document.getElementById("modalEditMobilario").value;
+    const rua = document.getElementById("modalEditRua").value;
+    const numero = document.getElementById("modalEditNumero").value;
+    const complemento = document.getElementById("modalEditComplemento").value;
+    const descricao = document.getElementById("modalEditDescricao").value;
+
     const cepValido = await validarCepCidadeEstado(cep, cidade, estado);
+
+    if (!tipoSalaId || !capacidade || !tamanhoM2 || !valorHora || !recursos || !tipoMobilia || !cep || !rua || !cidade || !estado || !numero || !descricao) {
+      Swal.fire({
+        title: "Erro!",
+        text: "Preencha todos os campos obrigatórios.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+    if (recursos.length < 10 || tipoMobilia.length < 10 || rua.length < 10 || descricao.length < 10) {
+      Swal.fire({
+        title: "Erro!",
+        text: "Os campos de texto devem ter no mínimo 10 caracteres.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+    if (capacidade < 1) {
+      Swal.fire({
+        title: "Erro!",
+        text: "O valor de capacidade deve ser maior ou igual a 1.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+    if (capacidade <= 0 || numero <= 0 || capacidade.includes(",")) {
+      Swal.fire({
+        title: "Erro!",
+        text: "Os campos numéricos devem ser positivos e não podem conter vírgulas.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+    if (descricao.length > 200) {
+      Swal.fire({
+        title: "Erro!",
+        text: "A descrição deve ter no máximo 200 caracteres.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
+
+
+    if (!(domingo || segunda || terca || quarta || quinta || sexta || sabado)) {
+      Swal.fire({
+        title: "Erro!",
+        text: "Selecione pelo menos um dia da semana.",
+        icon: "error",
+        background: "#121212",
+        color: "#ffffff"
+      });
+      return;
+    }
     if (!cepValido) {
       Swal.fire({
         title: "Erro!",
